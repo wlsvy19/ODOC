@@ -23,6 +23,21 @@
 	
 	<context:component-scan base-package="com.fif.cf" />
 	
+	<!-- sql찍어내는 공장 -->
+   <beans:bean name="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+      <beans:property name="driverClassName" value="com.mysql.jdbc.Driver" />
+      <beans:property name="url" value="jdbc:mysql://localhost:3306/FIFDB?serverTimezone=UTC" />
+      <beans:property name="username" value="fif" />
+      <beans:property name="password" value="fif123123" />
+   </beans:bean>
 	
-	
+   <beans:bean name="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+   		<beans:property name="dataSource" ref="dataSource"/>
+   		<beans:property name="mapperLocations" value="classpath:com/fif/cf/dao/mapper/*.xml"/>
+   </beans:bean>
+   
+	<!-- 메서드 형태로 sql session 사용할 수 있도록 제공 -->
+	<beans:bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<beans:constructor-arg index="0" ref="sqlSessionFactory"/>
+	</beans:bean>
 </beans:beans>

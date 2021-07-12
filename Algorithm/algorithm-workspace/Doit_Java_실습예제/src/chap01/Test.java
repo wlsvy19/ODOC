@@ -27,6 +27,6 @@ public class Test {
         }
         System.out.println(queue.remove());
 
-        sc.close();
+   
     }
 }
