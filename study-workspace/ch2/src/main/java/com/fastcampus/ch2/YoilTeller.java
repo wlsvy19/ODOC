@@ -25,7 +25,7 @@ public class YoilTeller {
         String month = request.getParameter("month");
         String day = request.getParameter("day");
 
-        // 2. 작업
+        // 2. 작업 처리
         int yyyy = Integer.parseInt(year);
         int mm = Integer.parseInt(month);
         int dd = Integer.parseInt(day);
@@ -44,9 +44,15 @@ public class YoilTeller {
             // 브라우저는 내가 보내는 내용을 모르기 때문에 맞춰줘야 함
             response.setContentType("text/html"); // text로 보냄
             response.setCharacterEncoding("utf-8"); // 인코딩을 설정해줘야 안깨짐
-            PrintWriter out = response.getWriter();// response 객체에서 브라우저로의 출력 스트림을 얻
+            PrintWriter out = response.getWriter();// response 객체에서 브라우저로의 출력 스트림을 얻음
+            out.println("<html>");
+            out.println("<head>");
+            out.println("</head>");
+            out.println("<body>");
             out.println(year + "년" + month + "월" + day + "일은 ");
             out.println(yoil + "요일입니다.");
+            out.println("</body>");
+            out.println("</html>");
         } catch (IOException e) {
             e.printStackTrace();
         }
