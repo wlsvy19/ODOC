@@ -28,7 +28,7 @@ public class MethodInfo {
                 paramList.add(paramType.getName() + " " + paramName);
             }
 
-            System.out.printf("%s %s%s%n", returnType.getName(), name, paramList);
+            //System.out.printf("%s %s%s%n", returnType.getName(), name, paramList);
         }
     } // main
 }

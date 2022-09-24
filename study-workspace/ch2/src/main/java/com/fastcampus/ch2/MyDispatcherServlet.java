@@ -113,6 +113,6 @@ public class MyDispatcherServlet extends HttpServlet {
         }
         
         // 5.렌더링 결과를 출력한다.
-        out.println(result);
+        //out.println(result);
     }
 }

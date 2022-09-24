@@ -51,7 +51,7 @@ public class SetterCall {
             }
         }
         
-        System.out.println(Arrays.toString(ivArr));
+        //System.out.println(Arrays.toString(ivArr));
         
         return obj;
     }

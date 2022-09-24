@@ -17,7 +17,7 @@ public class RequestHeader {
 
         while (e.hasMoreElements()) {
             String name = e.nextElement();
-            System.out.println(name + ":" + request.getHeader(name));
+            //System.out.println(name + ":" + request.getHeader(name));
         }
     }
 }

@@ -50,6 +50,6 @@ public class MethodCall {
         }
 
         // 4.렌더링 결과를 출력한다.
-        System.out.println(result);
+        //System.out.println(result);
     }
 }
