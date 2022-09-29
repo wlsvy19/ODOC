@@ -1,49 +1,50 @@
 package com.fastcampus.ch3.diCopy3;
 
+import com.fastcampus.ch3.diCopy3.AppContext;
+import com.google.common.reflect.ClassPath;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
-class Car {
-}
+@Component class Car { }
+@Component class SportsCar extends Car { }
+@Component class Truck extends Car { }
+@Component class SUV extends Car { }
 
-class SportsCar extends Car {
-}
-
-class Truck extends Car {
-}
-
-class SUV extends Car {
-}
-
-class Engine {
-}
+@Component class Engine { }
 
 class AppContext {
     Map map; // 객체 저장소
 
     AppContext() {
-        // map = new HashMap(); // 생성자에서 map 생성
-        // map.put("car", new SportsCar()); // key, value
-        // map.put("engine", new Engine()); // key,  value
+        map = new HashMap();
+        // @Component 붙은 객체들 Mapdp 저장
+        doComponentScan();
+    }
 
+    private void doComponentScan() {
         try {
-            Properties p = new Properties();
-            p.load(new FileReader("config2.txt"));
+            // 1. 패키지내의 클래스 목록을 가져온다.
+            // 2. 반복문으로 클래스를 하나씩 읽어와 @Component 붙어있는지 확인
+            // 3. @Component 붙어있으면 객체를 생성해서 Mapdp 저장
+            ClassLoader classLoader = AppContext.class.getClassLoader();
+            ClassPath classPath = ClassPath.from(classLoader);
 
-            // Properties에 저장된 내용을 Map에 저장
-            map = new HashMap(p);
-
-            // 반복문으로 클래스 이름얻은 후 객체를 얻고 Map에 저장
-            for (Object key : map.keySet()) {
-                // 클래스 정보 얻어오기
-                Class clazz = Class.forName((String) map.get(key));
-                // 객체를 만들어 Map에 저장
-                map.put(key, clazz.newInstance());
+            Set<ClassPath.ClassInfo> set = classPath.getTopLevelClasses("com.fastcampus.ch3.diCopy3"); // 패키지이름 적기
+            for (ClassPath.ClassInfo classInfo : set) {
+                Class clazz = classInfo.load();
+                Component component = (Component) clazz.getAnnotation(Component.class);
+                if (component != null) {
+                    String id = StringUtils.uncapitalize(classInfo.getSimpleName()); // 클래스 이름만 있음
+                    map.put(id, clazz.newInstance());
+                }
             }
-
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -54,6 +55,7 @@ class AppContext {
     }
 }
 
+// 자동 객체 등록하기 - Component Scanning
 public class Main3 {
     public static void main(String[] args) throws Exception {
         AppContext ac = new AppContext();

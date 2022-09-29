@@ -55,6 +55,7 @@ class AppContext {
     }
 }
 
+// 객체 컨테이너(저장소) 만들기
 public class Main2 {
     public static void main(String[] args) throws Exception {
         AppContext ac = new AppContext();

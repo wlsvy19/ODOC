@@ -26,6 +26,7 @@ public class Main1 {
 //        // return (Car)clazz.newInstance();
 //    }
 
+    // Spring DI(Dependency Inject:의존관계 주입)
     // Car뿐 아니라 Engine도 받을 수 있도록 Object로 확장 가능
     static Object getObject(String key) throws Exception{
         Properties p = new Properties();
