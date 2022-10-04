@@ -20,7 +20,7 @@
         var appHeader = {
             template: '<div>Header</div>',
             props: ['propsData'],
-        }
+        };
         var appContent = {
             template: '<div>Content <button v-on:click="passNum">PASS</button></div>',
             methods: {
@@ -28,7 +28,7 @@
                     this.$emit('pass', 10);
                 }
             }
-        }
+        };
         new Vue({ // Vue는 인스턴스(root)
             el: '#app',
             // data: {
@@ -47,7 +47,7 @@
                     this.num = value;
                 }
             }
-        })
+        });
     </script>
 </body>
 
