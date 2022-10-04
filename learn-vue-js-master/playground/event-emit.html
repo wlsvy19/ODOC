@@ -35,7 +35,7 @@
                 }
             }
         }
-        new Vue({
+        var vueModel = new Vue({
             el: '#app',
             components: {
                 'app-header': appHeader,
@@ -46,7 +46,7 @@
                     console.log('hi');
                 },
                 increaseNumber: function () {
-                    this.num = this.num + 1;
+                    this.num = this.num + 1; // this는 Vue 객체의 data를 가리킴
                     console.log(this.num);
                 }
             },
@@ -54,6 +54,8 @@
                 num: 10
             }
         });
+
+        console.log(vueModel);
     </script>
 </body>
 
