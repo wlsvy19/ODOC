@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <p v-bind:id="uuid" v-bind:class="name">{{num}}</p>
+      <p>{{doubleNum}}</p>
+
+      <!--v-if가 false면 DOM에서 아예 제거-->
+      <div v-if="loading">
+        <!-- v-가 붙으면 data속성 or computed 속성을 봄-->
+        Loading v-if
+      </div>
+      <div v-else>test user has been logged in</div>
+
+      <!--v-show는 display:none 으로 숨기는거임-->
+      <div v-show="loading">
+        Loading v-show
+      </div>
+      <br/>
+      <!-- TODO: 인풋 박스를 만들고 입력된 값을 p 태그에 출력하기-->
+        <input v-model="message" placeholder="입력하세요"></input>
+        <p>Message is: {{message}}</p>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <script>
+      new Vue({
+        el: '#app',
+        data: {
+          num: 10,
+          // doubleNum: this.num * 2
+          uuid: "abc1234", // v-bind로 연결 됨
+          name: "text-blue",
+          loading: true,
+          message: ''
+        },
+        computed: {
+          // 이미 저장된 데이터가 있을 경우 사용
+          doubleNum: function () {
+            return this.num * 2;
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

@@ -33,7 +33,7 @@
                     var vueModel = this;
 
                     // 뷰에서 권고하는 HTTP 통신 라이브러리
-                    axios.get('https://jsonplaceholder.typicode.com/users/')
+                    axios.get('https://jsonplaceholder.typicode.com/users')
                         .then(function (response) {
                             vueModel.users = response.data;
                             console.log(response.data);
