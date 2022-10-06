@@ -1,4 +1,0 @@
-node -v
-npm -v
-설치: npm install -g @vue/cli (관리자권한 필요)
-설치확인: vue --version
