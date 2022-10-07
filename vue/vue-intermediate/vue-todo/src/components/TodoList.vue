@@ -1,0 +1,70 @@
+<template>
+  <div>
+    <ul>
+      <!-- list에서 v-for로 반복문 돌려 줌 -->
+      <li v-for="todoItem in todoItems" v-bind:key="todoItem" class="shadow">
+        {{ todoItem }}
+        <span class="removeBtn">
+         <script src="https://kit.fontawesome.com/45911d9066.js" crossorigin="anonymous"></script>
+
+        </span>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+export default {
+  data: function () {
+    return {
+      todoItems: [],
+    };
+  },
+  // Vue인스턴스가 생성 되자마자 호출 되는 라이프 사이클 훅
+  created: function () {
+    if (localStorage.length > 0) {
+      for (var i = 0; i < localStorage.length; i++) {
+        // 로컬스토리지에 웹펙 저장되어 있는건 출력 안함
+        if (localStorage.key(i) !== "loglevel:webpack-dev-server") {
+          this.todoItems.push(localStorage.key(i));
+        }
+      }
+    }
+  },
+};
+</script>
+
+<style>
+ul {
+	list-style-type: none;
+	padding-left: 0px;
+	margin-top: 0;
+	text-align: left;
+}
+li {
+	display: flex;
+	min-height: 50px;
+	height: 50px;
+	line-height: 50px;
+	margin: 0.5rem 0;
+	padding: 0 0.9rem;
+	background: white;
+	border-radius: 5px;
+}
+  .removeBtn {
+    margin-left: auto;
+    color: #de4343;
+  }
+.checkBtn {
+	line-height: 45px;
+	color: #62acde;
+	margin-right: 5px;
+}
+.checkBtnComplated {
+	color: #b3adad;
+}
+.textCompleted {
+	text-decoration: line-through;
+	color: #b3adad;
+}
+</style>
