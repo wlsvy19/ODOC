@@ -2,11 +2,11 @@
   <div>
     <ul>
       <!-- list에서 v-for로 반복문 돌려 줌 -->
-      <li v-for="todoItem in todoItems" v-bind:key="todoItem" class="shadow">
-        {{ todoItem }}
-        <span class="removeBtn">
-         <script src="https://kit.fontawesome.com/45911d9066.js" crossorigin="anonymous"></script>
-
+      <li v-for="(todoItem, index) in todoItems" v-bind:key="todoItem.item" class="shadow">
+       <i class="checkBtn fa-solid fa-check" v-bind:class="{checkBtnComplated: todoItem.completed}" v-on:click="toggleComplete(todoItem)">check</i>
+        <span v-bind:class="{textCompleted: todoItem.completed}">{{ todoItem.item }}</span>
+        <span class="removeBtn" v-on:click="removeToto(todoItem, index)">
+          <i class="fa-solid fa-trash">Delete</i>
         </span>
       </li>
     </ul>
@@ -20,13 +20,33 @@ export default {
       todoItems: [],
     };
   },
+  methods: {
+    removeToto: function(todoItem, index) {
+      console.log(todoItem, index);
+      localStorage.removeItem(todoItem); // 키삭제->Value삭제
+      // 화면상에 삭제된거 바로 나오게 해야함
+      this.todoItems.splice(index, 1); // 기존 배열 변경 후 새로운 배열로 반환, slice:기존배열변경
+    },
+    toggleComplete: function(todoItem) {
+      todoItem.completed =! todoItem.completed;
+      // 로컬 스토리지의 데이터 갱신
+      localStorage.removeItem(todoItem.item);
+      localStorage.setItem(todoItem.item, JSON.stringify(todoItem));
+    }
+  },
   // Vue인스턴스가 생성 되자마자 호출 되는 라이프 사이클 훅
   created: function () {
     if (localStorage.length > 0) {
       for (var i = 0; i < localStorage.length; i++) {
         // 로컬스토리지에 웹펙 저장되어 있는건 출력 안함
         if (localStorage.key(i) !== "loglevel:webpack-dev-server") {
-          this.todoItems.push(localStorage.key(i));
+
+          // 키만 넣음
+          // this.todoItems.push(localStorage.key(i));
+
+          // value에서 item을 맞춰줘야 completed접근 가능
+          // String->JSON(객체) 변환
+          this.todoItems.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
         }
       }
     }
@@ -51,7 +71,7 @@ li {
 	background: white;
 	border-radius: 5px;
 }
-  .removeBtn {
+.removeBtn {
     margin-left: auto;
     color: #de4343;
   }
