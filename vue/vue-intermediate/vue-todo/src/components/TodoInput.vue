@@ -22,18 +22,21 @@ export default {
       if (this.newTodoItem !== "") {
         // 저장하는 로직 수행
         // key,value->개발자도구-애플리케이션-저장용량-로컬스토리지에 저장
-        var obj = { completed: false, item: this.newTodoItem };
-        //JS객체->String변환
-        localStorage.setItem(this.newTodoItem, JSON.stringify(obj));
+        // var obj = { completed: false, item: this.newTodoItem };
+        // //JS객체->String변환
+        // localStorage.setItem(this.newTodoItem, JSON.stringify(obj));
+        
+        //App.vue로 이벤트 올라가서 v-on으로 받음, 데이터 인자로 넘겨줄 수 있음
+        this.$emit('addTodoItem', this.newTodoItem); 
         this.clearInput();
       } else {
         alert('내용을 입력해주세요!')
       }
     },
+
     // clearInput: function() {
     //   this.newTodoItem = "";
     // },
-
     // 위와 동일, 이 형태로 사용 해도 됨
     clearInput() {
       // 인풋박스 초기화
