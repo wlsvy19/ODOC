@@ -1,0 +1,49 @@
+웹팩 핸드북
+https://joshua1988.github.io/webpack-guide/
+
+npm?(Node Package(라이브러리) Manager)
+
+npm: 자바스크립트 라이브러리 관리
+node -v
+npm -v
+
+npm 장점
+1. package.json에 dependencies 에서 라이브러리 버전 쉽게 관리 가능
+2. 웹사이트에서 일일이 CDN을 찾을 필요 없이 npm install로 설치 가능
+
+npm init -y
+-> package.json 파일 자동 초기화
+
+npm 설치 명령어
+npm install jquery
+-> 특정 라이브러리 설치
+
+npm 제거 명령어
+npm uninstall [패키지명]
+
+
+npm 전역 설치 명령어
+npm install [패키지명] --global
+-> 시스템 레벨 전역 설치(명령어 먹힘)
+
+npm 지역 설치 명령어
+npm install [패키지명] --save-prod
+
+npm install [패키지명] --save-dev
+= npm i vue -D
+-> package.json에 devDependencies 생성
+
+
+dependencies 는 npm install 
+devDependencies 는 npm i vue --save-dev
+-> dependencies 애플리케이션 로직(동작) 구현 직접연관
+-> devDependencies 개발할 때 사용
+
+개발용 라이브러리와 배포용 라이브러리 구분
+개발용: devDependencies
+배포용: dependencies
+
+npm run build 시 devDependencies 안에 있는 라이브러리는 배포x
+-> dependencies들어있는 라이브러리만 배포됨
+
+필요없는 라이브러리 들어가면 build시 소요시간 많아짐
