@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ul>
+    <transition-group name="list" tag="ul">
       <!-- list에서 v-for로 반복문 돌려 줌 -->
       <li v-for="(todoItem, index) in propsdata" v-bind:key="todoItem.item" class="shadow">
        <i class="checkBtn fa-solid fa-check" v-bind:class="{checkBtnComplated: todoItem.completed}" 
@@ -10,7 +10,7 @@
           <i class="fa-solid fa-trash">삭제</i>
         </span>
       </li>
-    </ul>
+    </transition-group>
   </div>
 </template>
 
@@ -62,7 +62,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 ul {
 	list-style-type: none;
 	padding-left: 0px;
@@ -94,5 +94,14 @@ li {
 .textCompleted {
 	text-decoration: line-through;
 	color: #b3adad;
+}
+
+/* 리스트 아이템 트랜지션 효과*/
+.list-enter-active, .list-leave-active {
+  transition: all 1s; /* 움직이는 속도*/
+}
+.list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  transform: translateY(30px);
 }
 </style>
