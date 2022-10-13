@@ -18,14 +18,14 @@
 <script>
 import AlertModal from "./common/AlertModal.vue"
 export default {
-  data: function () {
+  data () {
     return {
       newTodoItem: "",
       showModal: false
     };
   },
   methods: {
-    addTodo: function () {
+    addTodo () {
       // input에 값이 있을 때만 추가
       if (this.newTodoItem !== "") {
         // 저장하는 로직 수행
@@ -35,7 +35,8 @@ export default {
         // localStorage.setItem(this.newTodoItem, JSON.stringify(obj));
 
         //App.vue로 이벤트 올라가서 v-on으로 받음, 데이터 인자로 넘겨줄 수 있음
-        this.$emit("addTodoItem", this.newTodoItem);
+        //this.$emit("addTodoItem", this.newTodoItem); // -> store에 mutation으로 변경
+        this.$store.commit('addOneItem', this.newTodoItem);
         this.clearInput();
       } else {
         // alert("내용을 입력해주세요!");
@@ -53,7 +54,7 @@ export default {
     },
   },
   components: {
-    AlertModal: AlertModal,
+    AlertModal,
   }
 };
 </script>

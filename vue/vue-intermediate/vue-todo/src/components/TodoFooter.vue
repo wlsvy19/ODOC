@@ -5,13 +5,19 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
 export default {
   methods: {
-    clearTodo: function () {
+    ...mapMutations({
+      clearTodo: 'clearAllItems'
+    }),
+
+    //clearTodo () {
       // // 로컬 스토리지 모두 지우는 API
       // localStorage.clear();
-      this.$emit('clearAll');
-    },
+      //this.$emit('clearAll');
+      //this.$store.commit('clearAllItems');
+    //},
   },
 };
 </script>
