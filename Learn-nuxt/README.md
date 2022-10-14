@@ -2,6 +2,8 @@
 ![image](https://user-images.githubusercontent.com/48007459/195757290-51bf4db9-dbee-4533-bbd8-088de86e2d8d.png)
 
 git add . 할 때 에러나면 .git 파일(보기-숨김파일표시) 삭제
+![image](https://user-images.githubusercontent.com/48007459/195757719-7b5fbc19-f453-4f96-8c8d-87fee3472772.png)
+
 
 ## Build Setup
 
