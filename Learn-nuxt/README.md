@@ -2,10 +2,12 @@
 ![image](https://user-images.githubusercontent.com/48007459/195757290-51bf4db9-dbee-4533-bbd8-088de86e2d8d.png)
 
 ## Build Setup
+
+
+```bash
 # nuxt.js 설치
 $npm init nuxt-app@latest Learn-nuxt
 
-```bash
 # install dependencies
 $ npm install
 
