@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script
+      src="https://code.jquery.com/jquery-3.6.1.js"
+      integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI="
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+        //콜백함수: 인자 있는 함수
+      function fetchData() {
+        // 1.
+        var result = [];
+
+        // 2. 비동기 처리: 호출하면 끝, 서버에서 데이터 올때까지 안기다림
+        // -> 특정 로직의 실행이 끝날 때까지 기다려주지 않고 나머지 코드를 먼저 실행하는 것이 비동기 처리
+        $.ajax({
+          url: 'https://api.hnpwa.com/v0/news/1.json',
+          success: function (data) {
+            console.log("데이터 호출 결과: ", data);
+            result = data;
+          },
+        });
+
+        console.log("함수결과: ", result);
+      }
+      fetchData();
+    </script>
+  </body>
+</html>
