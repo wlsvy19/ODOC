@@ -1,9 +1,9 @@
 <template>
   <div>
     <header>
-      <h1>
-        <nuxt-link to="/">Nuxt Shopping</nuxt-link>
-      </h1>
+      <header class="title">
+        <nuxt-link class="logo" to="/">Nuxt Shopping</nuxt-link>
+      </header>
       <!-- <router-link></router-link> -->
       <!-- 아래와 동일 -->
       <!-- <nuxt-link to="/">홈페이지</nuxt-link> -->
@@ -14,3 +14,19 @@
     <!-- <router-view/> -->
   </div>
 </template>
+
+<style scoped>
+/* 헤더 관련 스타일 */
+header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+}
+.logo {
+  font-weight: 900;
+}
+.logo:visited {
+  color: inherit;
+}
+</style>

@@ -1,25 +1,15 @@
-import { fetchCartItems } from '~/api'
-
 export const state = () => ({
-  carts: [],
+  cartItems: [],
 })
 
+// 카트에 담으면 mutation이 호출 되면서 state에 저장, commit으로 받음
 export const mutations = {
-  addItemToCart(state, item) {
-    state.carts.push(item)
-  },
-  setCarts(state, carts) {
-    state.carts = carts
-  },
-}
-
-export const actions = {
-  async fetchCarts(context) {
-    const { data } = await fetchCartItems()
-    const items = data.map((item) => ({
-      ...item,
-      imageUrl: `${item.imageUrl}?random=${Math.random()}`,
-    }))
-    context.commit('setCarts', items)
+  addCartItem(state, cartItem) {
+    const newCartItem = {
+      ...cartItem,
+      // 카트에 담긴 이미지 다르게 나오게 하기 위함
+      imageUrl: `${cartItem.imageUrl}?random=${Math.random()}`,
+    }
+    state.cartItems.push(newCartItem)
   },
 }
