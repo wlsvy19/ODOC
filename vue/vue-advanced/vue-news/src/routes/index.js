@@ -8,7 +8,7 @@ Vue.use(VueRouter)
 export const router = new VueRouter({
     // URL에 #(해쉬)값 제거
     mode: 'history',
-    routes: [
+    routes: [ //URL 라우팅 정보
         {
             path: '/',
             redirect: '/news' // 홈페이지 접속하자마자 news페이지 이동
@@ -26,14 +26,6 @@ export const router = new VueRouter({
         {
             path: '/jobs',
             component: JobsView
-        },
-        {
-            path: '/item',
-            component: ItemView
-        },
-        {
-            path: '/user',
-            component: UserView
-        },
+        }
     ]
 })

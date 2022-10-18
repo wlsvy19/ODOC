@@ -10,6 +10,11 @@ vue create vue-news
 npm i vue-router@3.5.3 --save
 ```
 
+## vuex 설치: 4버전x(에러남) vue2에는 vuex3버전 설치 해야함
+```
+npm i vuex@3.6.2
+```
+
 ## Project setup
 ```
 npm install

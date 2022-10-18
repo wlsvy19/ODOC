@@ -13,6 +13,8 @@
   display: flex;
   padding: 8px;
 }
+
+/* 툴바 클릭 했을 때 구분 */
 .header .router-link-exact-active {
   color: #35495e;
 }
