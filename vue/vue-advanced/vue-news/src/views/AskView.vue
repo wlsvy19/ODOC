@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h1>Ask...</h1>
     <!--  v-for디렉티브는 in 뒤에 오는 ask배열을 반복하여 div태그 돌림, 결과를 in 앞에 있는 변수로 받음 -->
     <!-- <div v-for="item in fetchedAsk">* {{ item.title }}</div> -->
     <p v-for="item in fetchedAsk">
-      <a v-bind:href="item.url">* {{ item.title }}</a>
+      <!-- <a v-bind:href="item.url">* {{ item.title }}</a> -->
+      <router-link v-bind:to="`item/${item.id}`">{{item.title}}</router-link>
       <small> {{item.time_ago}} by {{item.user}}</small>
     </p>
   </div>
@@ -35,9 +35,7 @@ export default {
       // })
 
       // 4. map 헬퍼 함수 사용-store getters 바로 사용
-      ...mapGetters([
-        'fetchedAsk'
-      ])
+      ...mapGetters(['fetchedAsk'])
   },
   created() {
     // var vm = this;
@@ -50,7 +48,7 @@ export default {
     //   .catch(function (error) {
     //     console.log(error);
     //   });
-    this.$store.dispatch("FETCH_ASK");
+    this.$store.dispatch('FETCH_ASK');
   },
 };
 </script>

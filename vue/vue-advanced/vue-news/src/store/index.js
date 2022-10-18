@@ -10,12 +10,17 @@ export const store = new Vuex.Store({
   state: {
     news: [],
     ask_items: [],
-    jobs: []
+    jobs: [],
+    user: {}, // 객체로
+    item: [],
   },
 
-  getters: { //computed와 동일한 속성인데 store에 있는것일뿐
+  getters: { //computed와 동일한 속성인데 store에 있는것일뿐, mapGetters 사용
     fetchedAsk(state) {
       return state.ask_items;
+    },
+    fetchedItem(state) {
+      return state.item;
     }
   },
 

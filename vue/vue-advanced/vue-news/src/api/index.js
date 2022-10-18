@@ -20,6 +20,14 @@ function fetchJobsList() {
     return axios.get(`${config.baseUrl}jobs/1.json`)
 }
 
+function fetchUserInfo(userName) {
+    return axios.get(`${config.baseUrl}user/${userName}.json`)
+}
+
+function fetchCommentItem(id) {
+    return axios.get(`${config.baseUrl}item/${id}.json`)
+}
+
 // ES6 모듈 문법: export 해야 다른데서 import 사용 가능
-export { fetchNewsList, fetchAskList, fetchJobsList }
+export { fetchNewsList, fetchAskList, fetchJobsList, fetchUserInfo, fetchCommentItem }
 

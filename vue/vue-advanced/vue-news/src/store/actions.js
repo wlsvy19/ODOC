@@ -1,10 +1,16 @@
-import { fetchNewsList, fetchAskList, fetchJobsList } from "../api/index.js";
+import { 
+    fetchNewsList, 
+    fetchAskList, 
+    fetchJobsList, 
+    fetchUserInfo, 
+    fetchCommentItem 
+} from "../api/index.js";
 
 export default {
     FETCH_NEWS(context) {
         fetchNewsList()
             .then(response => {
-                console.log(response.data);
+                // console.log(response.data);
                 // commit을 해야 mutation접근 가능
                 context.commit('SET_NEWS', response.data);
             })
@@ -12,7 +18,7 @@ export default {
                 console.log('NEWS...ERROR', error);
             })
     },
-    // DATA Destructuring
+    // DATA Destructuring, 위에코드 아래처럼 변경 가능
     FETCH_ASK({ commit }) {
         fetchAskList()
             .then(({ data }) => {
@@ -29,6 +35,24 @@ export default {
             })
             .catch(error => {
                 console.log('JOBS...ERROR', error);
+            })
+    },
+    FETCH_USER({ commit }, userName) {
+        fetchUserInfo(userName)
+            .then(({ data }) => {
+                commit('SET_USER', data);
+            })
+            .catch(error => {
+                console.log('USER...ERROR', error)
+            })
+    },
+    FETCH_ITEM({ commit }, id) {
+        fetchCommentItem(id)
+            .then(({ data }) => {
+                commit('SET_ITEM', data);
+            })
+            .catch(error => {
+                console.log('ITEM...ERROR', error)
             })
     }
 }
