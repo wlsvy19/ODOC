@@ -37,6 +37,20 @@ body{
   padding: 0;
   margin: 0; 
 }
+a {
+  /* 앵커태그 밑줄 */
+  text-decoration: none;
+  color: #34495e;
+
+}
+/* 앵커태그 커서 올려놨을 때 */
+a:hover {
+  color: #42b883;
+}
+/* 앵커태그 선택한곳 밑줄 그어짐 */
+a.router-link-exact-active {
+  text-decoration: underline;
+}
 /* Router Transition */
 .routing-fade-enter-active, .routing-fade-leave-active {
   transition: opacity 0.3s ease;
