@@ -19,15 +19,19 @@ export const router = new VueRouter({
         {
             //path: url 주소
             path: '/news',
+            // name: 분기처리에 사용
+            name: 'news',
             // component: url주소로 갔을 때 표시 될 컴포넌트
             component: NewsView,
         },
         {
             path: '/ask',
+            name: 'ask',
             component: AskView
         },
         {
             path: '/jobs',
+            name: 'jobs',
             component: JobsView
         },
         {
