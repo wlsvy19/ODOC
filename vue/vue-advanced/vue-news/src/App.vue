@@ -46,6 +46,7 @@ a {
 /* 앵커태그 커서 올려놨을 때 */
 a:hover {
   color: #42b883;
+  text-decoration: underline;
 }
 /* 앵커태그 선택한곳 밑줄 그어짐 */
 a.router-link-exact-active {

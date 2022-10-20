@@ -1,6 +1,6 @@
 <template>
   <div>
-    <list-item></list-item>
+    <ListItem />
 
     <!-- <ul class="news-list"> -->
     <!--  v-for디렉티브는 in 뒤에 오는 ask배열을 반복하여 div태그 돌림, 결과를 in 앞에 있는 변수로 받음 -->

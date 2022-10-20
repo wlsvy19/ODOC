@@ -1,9 +1,9 @@
-import { 
-    fetchNewsList, 
-    fetchAskList, 
-    fetchJobsList, 
-    fetchUserInfo, 
-    fetchCommentItem 
+import {
+    fetchNewsList,
+    fetchAskList,
+    fetchJobsList,
+    fetchUserInfo,
+    fetchCommentItem
 } from "../api/index.js";
 
 export default {

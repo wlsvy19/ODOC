@@ -1,42 +1,28 @@
-<!-- eslint-disable vue/return-in-computed-property -->
 <template>
-  <div>
-    <ul class="news-list">
-      <li v-for="item in listItems" class="post">
-        <!-- 포인트 영역(숫자나오는 영역)-->
-        <div class="points">
-          {{ item.points || 0 }}
-        </div>
-        <!-- 기타 정보 영역: 유저 내용들-->
-        <div>
-          <!--  타이틀 영역 -->
-          <p class="news-title">
-            <template v-if="item.user">
-              <a v-bind:href="item.url">
-                {{ item.title }}
-              </a>
-            </template>
-            <template v-else>
-              <router-link v-bind:to="`item/${item.id}`">
-                {{ item.title }}
-              </router-link>
-            </template>
-          </p>
-          <small class="link-text">
-            {{ item.time_ago }} by
-            <router-link 
-              v-if="item.user"
-              v-bind:to="`/user/${item.user}`"
-              class="link-text">{{ item.user }}
-            </router-link>
-            <a href="item.url" v-else>
-              {{ item.domain }}
-            </a>
-          </small>
-        </div>
-      </li>
-    </ul>
-  </div>
+  <ul class="news-list">
+    <li v-for="news in listItems" :key="news.id" class="post">
+      <div class="points">
+        {{ news.points || 0 }}
+      </div>
+      <div>
+        <p class="news-title">
+          <template v-if="news.domain">
+            <a :href="news.url">{{ news.title }}</a><small class="link-text" v-if="news.domain">({{ news.domain }})</small>
+          </template>
+          <template v-else>
+            <router-link :to="`/item/${news.id}`">{{ news.title }}</router-link><small><a class="link-text" :href="news.domain" v-if="news.domain">({{ news.domain }})</a></small>
+          </template>
+        </p>
+        <small v-if="news.user" class="link-text">
+          by
+          <router-link :to="`/user/${news.user}`" class="link-text">{{ news.user }}</router-link>
+        </small>
+        <small v-if="news.time_ago" class="link-text">
+          {{ news.time_ago }}
+        </small>
+      </div>
+    </li>
+  </ul>
 </template>
 
 <script>
