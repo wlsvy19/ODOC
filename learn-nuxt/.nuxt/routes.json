@@ -1,0 +1,30 @@
+[
+  {
+    "name": "cart",
+    "path": "/cart",
+    "component": "C:\\\\sw\\\\ODOC\\\\Learn-nuxt\\\\pages\\\\cart.vue",
+    "chunkName": "pages/cart",
+    "_name": "_1232c754"
+  },
+  {
+    "name": "product",
+    "path": "/product",
+    "component": "C:\\\\sw\\\\ODOC\\\\Learn-nuxt\\\\pages\\\\product.vue",
+    "chunkName": "pages/product",
+    "_name": "_375184a9"
+  },
+  {
+    "name": "detail-id",
+    "path": "/detail/:id?",
+    "component": "C:\\\\sw\\\\ODOC\\\\Learn-nuxt\\\\pages\\\\detail\\\\_id.vue",
+    "chunkName": "pages/detail/_id",
+    "_name": "_3c1b3b7a"
+  },
+  {
+    "name": "index",
+    "path": "/",
+    "component": "C:\\\\sw\\\\ODOC\\\\Learn-nuxt\\\\pages\\\\index.vue",
+    "chunkName": "pages/index",
+    "_name": "_a88e10e8"
+  }
+]

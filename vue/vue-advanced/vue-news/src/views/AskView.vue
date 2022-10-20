@@ -31,10 +31,14 @@
 // import { mapState } from "vuex";
 //import { mapGetters } from "vuex";
 import ListItem from "../components/ListItem.vue";
+import ListMixin from "../mixins/ListMixin.js";
+
+
 export default {
   components: {
     ListItem
   },
+  mixins: [ListMixin],
   //computed: {
     // 표현식의 여러가지 방법->computed 사용
 
@@ -58,7 +62,7 @@ export default {
       // 4. map 헬퍼 함수 사용-store getters 바로 사용
       //...mapGetters(['fetchedAsk'])
   //},
-  //created() {
+  created() {
     // var vm = this;
     // 속성에 함수 붙으면 : fuction 생략 가능
     // fetchAskList()
@@ -69,8 +73,18 @@ export default {
     //   .catch(function (error) {
     //     console.log(error);
     //   });
-    //this.$store.dispatch('FETCH_ASK');
-  //},
+
+    // bus.$emit("start:spinner"); // create되면 바로 스피너 호출
+    // setTimeout(()=> {
+    // this.$store.dispatch('FETCH_ASK')
+    //   .then(() => { // actions.js에 fetchNewsList반환값이 promise라서 then 게속 사용 가능
+    //     bus.$emit("end:spinner");
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+    // }, 1000);  // 타임아웃 걸어서 3초뒤에 받아옴
+  },
 };
 </script>
 

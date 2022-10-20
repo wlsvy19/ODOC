@@ -11,6 +11,7 @@ export const store = new Vuex.Store({
     news: [],
     ask_items: [],
     jobs: [],
+    list: [],
     user: {}, // 객체로
     item: {},
   },
@@ -24,7 +25,7 @@ export const store = new Vuex.Store({
     }
   },
 
-   // state에 접근하기 위해 사용->모듈화 해서 파일로 만듬
+  // state에 접근하기 위해 사용->모듈화 해서 파일로 만듬
   mutations: mutations,
 
   // mutations에 접근하기 위해 사용->모듈화 해서 파일로 만듬

@@ -5,23 +5,14 @@
 </template>
 
 <script>
-// import { fetchJobsList } from "../api/index.js";
 import ListItem from "../components/ListItem.vue";
+import ListMixin from "../mixins/ListMixin.js";
+
 export default {
   components: {
-    ListItem
-  }
-  // data: function () {
-  //   return {
-  //     jobs: [],
-  //   };
-  // },
-  //created: function () {
-    // fetchJobsList()
-    //   .then(response => this.jobs = response.data)
-    //   .catch(error => alert(error));
-    //this.$store.dispatch("FETCH_JOBS");
-  //},
+    ListItem,
+  },
+  mixins: [ListMixin], // -> ListMixin 내용이 그대로 들어감
 };
 </script>
 
