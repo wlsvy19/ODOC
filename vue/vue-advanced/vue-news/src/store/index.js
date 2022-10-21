@@ -8,7 +8,7 @@ Vue.use(Vuex)
 // Vuex: 상태(여러 컴포넌트 끼리 공유되는 데이터 속성)관리 라이브러리,
 export const store = new Vuex.Store({
   state: {
-    news: [],
+    news: [], // 배열
     ask_items: [],
     jobs: [],
     list: [],

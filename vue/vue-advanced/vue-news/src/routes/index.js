@@ -28,7 +28,7 @@ export const router = new VueRouter({
       //component: createListView('NewsView',) // 하이오더 컴포넌트 -> CreateListView.vue
 
       // 특정 URL로 접근할 때 인증 용도
-      beforeEnter: (to, from, next) => {
+      beforeEnter: (to, from, next) => { // 어디서 , 어디로, 인증용도
         bus.$emit("start:spinner");
 
         // 1. 데이터 호출 시점-> actions 호출
