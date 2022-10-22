@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prmomise Test</title>
+</head>
+<body>
+  <script>
+    // Promise() 체이닝 테스트
+
+      const getHendle = () =>
+        // eslint-disable-next-line no-unused-vars
+        new Promise((resolvee, reject) => {
+          setTimeout(() => resolvee("🐔"), 500);
+        });
+
+      const getEgg = (hen) =>
+        // eslint-disable-next-line no-unused-vars
+        new Promise((resolver, reject) => {
+          setTimeout(() => resolver(`${hen} => 🥚`), 500);
+
+          //에러처리
+          //setTimeout(() => reject(new Error(`${hen} => 🥚`), 500)); 
+        });
+      //
+      const cook = (egg) =>
+        // eslint-disable-next-line no-unused-vars
+        new Promise((resolves, reject) => {
+          setTimeout(() => resolves(`${egg}=> 🍳`), 500);
+        });
+
+      getHendle() //
+        .then(getEgg)
+        // eslint-disable-next-line no-unused-vars
+        .catch((error) => {
+          // 에러났을 때 다른 리턴값 줘서 처리 가능
+          return "빵";
+        })
+        .then(cook)
+        .then(console.log)
+        .catch(console.log);
+
+  </script>
+</body>
+</html>

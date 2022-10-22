@@ -11,7 +11,8 @@
 
 <script>
 import axios from "axios";
-import {handleException} from './utils/handleException.js'
+
+import { handleException } from "./utils/handleException.js";
 
 export default {
   data() {
