@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noImplicitAny": true // any라도 붙여라
+  },
+  "include": ["./src/**/*"]
+}
