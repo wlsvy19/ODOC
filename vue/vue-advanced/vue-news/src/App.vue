@@ -47,6 +47,9 @@ export default {
     },
   },
   created() {
+    // env파일 앞에 VUE_ 붙이면 저절로 읽어옴
+    console.log(process.env.VUE_APP_TITLE);
+    
     bus.$on("start:spinner", this.startSpinner);
     bus.$on("end:spinner", this.endSpinner);
   },
