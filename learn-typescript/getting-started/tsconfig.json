@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true, // @ts-check
+    "noImplicitAny": true // 최소한 any 타입은 넣자
+  }
+}
