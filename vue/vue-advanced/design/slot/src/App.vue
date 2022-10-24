@@ -1,26 +1,35 @@
 <!-- eslint-disable vue/valid-v-for -->
 <template>
   <div>
+
+    <!--
     <ul>
-      <!-- <Item v-for="item in items" :propsdata="item"></Item> -->
-      <ItemVue v-for="item in items">{{ item }}</ItemVue>
+      <ItemVue1 v-for="item in items">{{ item }}</ItemVue1>
     </ul>
+    -->
+
+    <!-- <ItemVue1>
+      ItemVue1
+    </ItemVue1>
+    <ItemVue1>
+      ItemVue2
+    </ItemVue1>
+    <ItemVue1 style="color: blue; font-size:20px;">
+      슬롯은 스타일도 지정 가능
+    </ItemVue1>
+    <item-vue1>
+      이미지 넣어주세요
+      <img src = "./assets/logo.png" alt="alt" width="50px" height="50px"/>
+    </item-vue1>
+    <item-vue1>
+      <button> 버튼넣고 클릭하게 해주세요</button>
+    </item-vue1> -->
 
     <ItemVue>
-      ItemVue1
+      <template v-slot:first>
+        <h1>App.vue....</h1>
+      </template>  
     </ItemVue>
-    <ItemVue>
-      ItemVue2
-    </ItemVue>
-    <ItemVue style="color: blue; font-size:20px;">
-      슬롯은 스타일도 지정 가능
-    </ItemVue>
-    <item-vue>
-      <img src = "./assets/logo.png" alt="alt" width="50px" height="50px"/>
-    </item-vue>
-    <item-vue>
-      <button> 버튼 추가 가능</button>
-    </item-vue>
   </div>
 </template>
 
