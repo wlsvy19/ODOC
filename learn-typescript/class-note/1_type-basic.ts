@@ -9,7 +9,7 @@ var str: string = "hello";
 // 2. TS 숫자 선언
 let num: number = 10;
 
-// 3. TS 배열 선언
+// 3. TS 배열 선언.
 let arr: Array<number> = [1, 2, 3];
 let items: number[] = [1, 2, 3]; // 배열 리터럴[] 사용
 let heroes: Array<string> = ["capt", "abc", "hello"];
