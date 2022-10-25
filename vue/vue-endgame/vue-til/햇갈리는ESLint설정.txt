@@ -1,0 +1,92 @@
+vscode에서 ctrl + .
+
+1. format on save 검색 후 체크x
+
+2. 설정들어가서 eslint 검색
+
+아래로 내리다보면 ESLinst Validate 있음
+setting.json 들어가
+
+아래가 vscode 세팅 파일인데 복붙 ㄱㄱ
+
+//시작
+{
+  "workbench.iconTheme": "material-icon-theme",
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.formatOnPaste": true,
+  "liveServer.settings.donotShowInfoMsg": true,
+  "editor.fontFamily": "Consolas, 'Courier New',  'Malgun Gothic', monospace",
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.renderWhitespace": "all",
+  "security.workspace.trust.untrustedFiles": "open",
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "workbench.colorTheme": "Night Owl (No Italics)",
+  "eslint.format.enable": true,
+  "editor.tabSize": 2,
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "editor.formatOnSave": true,
+  "eslint.runtime": "",
+  "eslint.validate": [
+  
+    
+    {
+      "language": "vue",
+      "autoFix": true
+    },
+    {
+      "language": "javascript",
+      "autoFix": true
+    },
+    {
+      "language": "javascriptreact",
+      "autoFix": true
+    },
+    {
+      "language": "typescript",
+      "autoFix": true
+    },
+    {
+      "language": "typescriptreact",
+      "autoFix": true
+    }
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  // don't format on save
+  "editor.formatOnSave": false
+}
+//끝
+
+
+
+.eslintrc.js  파일
+
+rules:[] 에 아래 코드 추가하면 저장 시 자동으로 에러, 포맷팅 되서 저장됨
+
+    "prettier/prettier": ['error', {
+      singleQuote: true,
+      semi: true,
+      useTabs: false,
+      tabWidth: 2,
+      trailingComma: 'all',
+      printWidth: 80,
+      bracketSpacing: true,
+      arrowParens: 'avoid',
+    }]
+
+vue.config.js 파일을 프로젝트 바로 아래 만들고 아래 코드 추가하면 에러 때문에
+화면 안나오는거 해결됨
+
+  devServer: {
+    overlay: false,
+  },
