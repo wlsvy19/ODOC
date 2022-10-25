@@ -1,6 +1,49 @@
 # Vue TIL 애플리케이션 Node.js 서버 코드
 
 
+1. vue-til-server 깃허브에서 다운로드
+```bash
+https://github.com/joshua1988/vue-til-server
+```
+
+2. 공식 nvm 깃허브
+```bash
+https://github.com/nvm-sh/nvm
+```
+
+아래 소스코드 복사 후 프로젝트 푼 경로에 bash로 붙여넣기
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+
+3. ~/.bashrc 파일에 아래 내용 붙여넣기
+```bash
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+```
+
+4. nvm버전 확인
+```bash
+nvm -v
+```
+
+5. nvm 설치
+```bash
+nvm i
+```
+
+6. 서버 실행->  무조건 bash로 실행 해줘야 함
+```bash
+npm run dev
+```
+
+7. localhost://3000
+
+8. 내 깃허브에서 클릭 안되는 문제: git저장소가 vue-til-server에도 있어서 생기는 문제
+vue-til-server 에서 .git 삭제 후 아래 명령어 실행
+```bash
+git rm --cached . -rf
+```
+
+
 [인프런 Vue.js 끝장내기 강좌](https://www.inflearn.com/course/vue-js-%EB%81%9D%EB%82%B4%EA%B8%B0-%EC%BA%A1%ED%8B%B4%ED%8C%90%EA%B5%90) TIL 애플리케이션의 백엔드 API를 제공하는 Node.js 코드 리포지토리입니다.
 
 ## 개발 환경
