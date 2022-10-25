@@ -18,10 +18,12 @@ import { authenticateUser } from './utils/auth.js';
 // mongo db
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+// 몽고DB node.js에 연결
 mongoose.connect(
-  'mongodb+srv://test:1234@cluster0-ypgh5.mongodb.net/test?retryWrites=true&w=majority',
+  'mongodb+srv://test:1234@cluster0.k4hqozh.mongodb.net/?retryWrites=true&w=majority',
   {
     useNewUrlParser: true,
+    useUnifiedTopology: true
   },
 );
 mongoose.Promise = global.Promise;
