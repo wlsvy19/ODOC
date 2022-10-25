@@ -1,12 +1,12 @@
 # Vue TIL 애플리케이션 Node.js 서버 코드
 
 
-1. vue-til-server 깃허브에서 다운로드
+## 1. vue-til-server 깃허브에서 다운로드
 ```bash
 https://github.com/joshua1988/vue-til-server
 ```
 
-2. 공식 nvm 깃허브
+# 2. 공식 nvm 깃허브
 ```bash
 https://github.com/nvm-sh/nvm
 ```
