@@ -1,20 +1,39 @@
 module.exports = {
   root: true,
   env: {
-    browser: true,
     node: true,
+  },
+  extends: ['plugin:vue/essential', '@vue/prettier'],
+  rules: {
+    'no-console': 'off',
+    // "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
+    // "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off"
+    'prettier/prettier': [
+      'error',
+      {
+        singleQuote: true,
+        semi: true,
+        useTabs: false,
+        tabWidth: 2,
+        trailingComma: 'all',
+        printWidth: 80,
+        bracketSpacing: true,
+        arrowParens: 'avoid',
+      },
+    ],
   },
   parserOptions: {
     parser: 'babel-eslint',
   },
-  extends: [
-    '@nuxtjs',
-    'plugin:prettier/recommended',
-    'plugin:nuxt/recommended',
+  overrides: [
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)',
+      ],
+      env: {
+        jest: true,
+      },
+    },
   ],
-  plugins: [],
-  // add your custom rules here
-  rules: {
-    "prettier/prettier": ["error", { "endOfLine": "auto" }],
-  },
 }
