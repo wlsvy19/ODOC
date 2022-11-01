@@ -14,8 +14,9 @@
           <TodoListItem
             v-for="(todoItem, index) in todoItems"
             :key="index"
-            :todoItem="todoItem"
             :index="index"
+            :todoItem="todoItem"
+            @toggle="toggleTodoItemComplete"
             @remove="removeTodoItem"
           ></TodoListItem>
           <!-- <li>아이템 1</li>
@@ -34,12 +35,12 @@ import TodoListItem from "./components/TodoListItem.vue";
 
 const STORAGE_KEY = "vue-todo-ts-v1";
 const storage = {
-  save(todoItems: any[]) {
+  save(todoItems: Todo[]) {
     // 배열->문자열 변환 후 넣어야함
     const parsed = JSON.stringify(todoItems);
     localStorage.setItem(STORAGE_KEY, parsed);
   },
-  fetch() {
+  fetch(): Todo[] {
     // item없으면 빈배열로 초기화
     const todoItems = localStorage.getItem(STORAGE_KEY) || "[]";
     const result = JSON.parse(todoItems);
@@ -88,8 +89,17 @@ export default Vue.extend({
       this.todoText = "";
     }, // end initTodoText()
 
+    // 데이터 가져오는 메소드
     fetchTodoItems() {
-      this.todoItems = storage.fetch();
+      this.todoItems = storage.fetch().sort((a, b) => {
+        if (a.title < b.title) {
+          return -1;
+        }
+        if (a.title > b.title) {
+          return 1;
+        }
+        return 0;
+      });
     }, // end fetchTodoItems()
 
     removeTodoItem(index: number) {
@@ -97,6 +107,14 @@ export default Vue.extend({
       this.todoItems.splice(index, 1);
       storage.save(this.todoItems);
     }, // end removeTodoItem()
+
+    toggleTodoItemComplete(todoItem: Todo, index: number) {
+      this.todoItems.splice(index, 1, {
+        ...todoItem,
+        done: !todoItem.done,
+      });
+      storage.save(this.todoItems);
+    },
   }, // end methods
 
   created() {

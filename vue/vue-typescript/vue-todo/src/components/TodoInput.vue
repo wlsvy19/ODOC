@@ -11,7 +11,6 @@ import Vue from "vue";
 
 export default Vue.extend({
   // props: ["item"],
-  // ts로 넘어오면서 타입과 필수여부 설정 가능
   props: {
     item: {
       type: String,
