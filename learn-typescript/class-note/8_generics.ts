@@ -96,7 +96,6 @@ function logTextLength1<T>(text: T[]): T[] {
 }
 logTextLength1(['hi', 'hello']);
 
-
 /* 제네릭 타입제한2 - 정의된 타입 이용 */
 interface LengthType{
   length: number;
@@ -106,8 +105,11 @@ function logTextLength2<T extends LengthType>(text: T):T{
   text.length;
   return text;
 }
-logTextLength2(10); // 숫자에는 length속성 없음
+logTextLength2("abc"); // 문자는 기본적으로 length 있음
+// logTextLength2(10.length);
+// logTextLength2(10); // 숫자에는 length속성 없음
 logTextLength2({length: 10});
+
 
 // 제네릭 타입 제한 3 - keyof
 interface ShoppingItem {
@@ -120,10 +122,9 @@ function getShoppingItemOption<T extends keyof ShoppingItem>(itemOption: T):T {
   return itemOption;
 }
 // <T>라서 다받을 수 있음->keyof사용시 에러
-// getShoppingItemOption(10);
+//getShoppingItemOption(10);
 // getShoppingItemOption('abc');
 
 getShoppingItemOption("name");
 getShoppingItemOption("price");
 getShoppingItemOption("stock");
-

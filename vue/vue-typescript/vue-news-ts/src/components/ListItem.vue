@@ -27,18 +27,37 @@
 
 <script>
 export default {
+  // created() {
+  //   const name = this.$route.name;
+  //   if (name === "news") {
+  //     this.$store.dispatch("FETCH_NEWS");
+  //   } else if (name === "ask") {
+  //     this.$store.dispatch("FETCH_ASK");
+  //   } else if (name === "jobs") {
+  //     this.$store.dispatch("FETCH_JOBS");
+  //   }
+  // },
   computed: {
     listItems() {
-      return this.$store.getters.fetchedList;
-    }
-  }
-}
+      // const name = this.$route.name;
+      // if (name === "news") {
+      //   return this.$store.state.news;
+      // } else if (name === "ask") {
+      //   return this.$store.state.ask_items;
+      // } else if (name === "jobs") {
+      //   return this.$store.state.jobs;
+      // }
+
+      return this.$store.state.list;
+    },
+  },
+};
 </script>
 
 <style scoped>
 .news-list {
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 .post {
   list-style: none;
@@ -49,15 +68,18 @@ export default {
 .points {
   width: 80px;
   height: 60px;
-  color: #42b883;
   display: flex;
+  /* 수평 정렬 */
   align-items: center;
+  /* 수직 정렬 */
   justify-content: center;
-}
-.link-text {
-  color: #828282;
+  /* vue logo hex color */
+  color: #42b883;
 }
 .news-title {
   margin: 0;
+}
+.link-text {
+  color: #828282;
 }
 </style>

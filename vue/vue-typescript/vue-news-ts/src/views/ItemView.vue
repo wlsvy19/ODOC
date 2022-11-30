@@ -1,54 +1,49 @@
 <template>
-  <div class="home">
-    <section class="header-container">
-      <UserProfile :user-info="fetchedItem"></UserProfile>
-    </section>
+  <div>
     <section>
-      <h2>{{ userQuestion }}</h2>
-      <div v-html="userContent" class="content"></div>
+      <!--  사용자 정보 영역-->
+      <user-profile :info="fetchedItem">
+        <router-link slot="username" :to="`/user/${fetchedItem.user}`">
+          {{fetchedItem.user}}
+        </router-link>
+        <template slot="time">Posted {{fetchedItem.time_ago}}</template>
+      </user-profile>
     </section>
+
     <section>
-      <h3>Comments</h3>
-      <div v-for="item in fetchedItem.comments" :key="item.id" class="content">
-        <UserProfile :user-info="item"></UserProfile>
-        <div v-html="item.content"></div>
-      </div>
+      <h2>{{ fetchedItem.title }}</h2>
+      <!-- 질문의 댓글 영역, v-html 디렉티브: <p>태그등 HTML태그 인식 시킴 -->
+      <div v-html="fetchedItem.content"></div>
     </section>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
-import UserProfile from '../components/UserProfile.vue';
-import bus from '../utils/bus.js';
+import { mapGetters } from "vuex";
+import UserProfile from "../components/UserProfile.vue";
 
 export default {
   components: {
-    UserProfile,
-  },
-  created() {
-    bus.$emit('off:progress');
+    UserProfile
   },
   computed: {
-    ...mapGetters([
-      'fetchedItem', 'userName', 'userTimeAgo', 
-      'userQuestion', 'userContent', 'contentPoints']),
+    ...mapGetters(["fetchedItem"]),
   },
-}
+  created() {
+    const itemId = this.$route.params.id;
+    console.log(itemId);
+    this.$store.dispatch("FETCH_ITEM", itemId);
+  },
+};
 </script>
 
 <style scoped>
-.home {
-  padding: 0 1.8rem;
-}
-.header-container {
-  padding-top: 1rem;
-}
 .user-container {
   display: flex;
   align-items: center;
+  padding: 0.6rem;
 }
-.fa-user-circle {
+.fa-user {
   font-size: 2.5rem;
 }
 .user-description {
@@ -56,13 +51,5 @@ export default {
 }
 .time {
   font-size: 0.7rem;
-}
-h3 {
-  margin-bottom: 0.5rem;
-  margin-left: 0.2rem;
-}
-.content {
-  border: ridge;
-  padding: 0.5rem;
 }
 </style>

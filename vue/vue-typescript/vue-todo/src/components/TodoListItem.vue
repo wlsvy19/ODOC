@@ -1,8 +1,6 @@
 <template>
   <li>
-    <span class="item" :class="todoItemClass" @click="toggleItem">{{
-      todoItem.title
-    }}</span>
+    <span class="item" :class="todoItemClass" @click="toggleItem">{{ todoItem.title }}</span>
     <button @click="removeItem">삭제</button>
   </li>
 </template>
