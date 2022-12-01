@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 // 깃 테스트: window
+// 깃 테스트: mac에서 브랜치 땀
 
 //@Controller // 까보면 @Component 있어서 component-scan에서 찾음
 public class HomeController {
