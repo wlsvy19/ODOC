@@ -1,16 +1,13 @@
 package com.fastcampus.ch3.diCopy3;
 
-import com.fastcampus.ch3.diCopy3.AppContext;
 import com.google.common.reflect.ClassPath;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
+
 
 @Component
 class Car {
