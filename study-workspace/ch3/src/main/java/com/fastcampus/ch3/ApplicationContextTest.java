@@ -3,6 +3,7 @@ package com.fastcampus.ch3;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.stereotype.Component;
@@ -61,6 +62,31 @@ class Car {
                 '}';
     }
 }
+@Component
+@PropertySource("setting.properties")
+class SysInfo{
+    @Value("#{systemProperties['user.timezone']}")
+    String timeZone;
+    @Value("#{systemEnvironment['PWD']}")
+    String currDir;
+    @Value("${autoSaveDir}")
+    String autoSaveDir;
+    @Value("${autoSaveInterval}")
+    int autoSaveInterval;
+    @Value("${autoSave}")
+    boolean autoSave;
+
+    @Override
+    public String toString() {
+        return "SysInfo{" +
+                "timeZone='" + timeZone + '\'' +
+                ", currDir='" + currDir + '\'' +
+                ", autoSaveDir='" + autoSaveDir + '\'' +
+                ", autoSaveInterval=" + autoSaveInterval +
+                ", autoSave=" + autoSave +
+                '}';
+    }
+}
 
 public class ApplicationContextTest {
     public static void main(String[] args) {
@@ -85,6 +111,10 @@ public class ApplicationContextTest {
 //        System.out.println("ac.findAnnotationOnBean(\"car\", Component.class) = " + ac.findAnnotationOnBean("car", Component.class)); // 빈 car에 @Component가 붙어있으면 반환
 //        System.out.println("ac.getBeanNamesForAnnotation(Component.class) = " + Arrays.toString(ac.getBeanNamesForAnnotation(Component.class))); // @Component가 붙은 빈의 이름을 배열로 반환
 //        System.out.println("ac.getBeanNamesForType(Engine.class) = " + Arrays.toString(ac.getBeanNamesForType(Engine.class))); // Engine 또는 그 자손 타입인 빈의 이름을 배열로 반환
+
+        System.out.println("ac.getBean(SysInfo.class) = " + ac.getBean(SysInfo.class));
+
+
     }
 }
 

@@ -1,6 +1,7 @@
 package com.fastcampus.ch3;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Locale;
 
-//@Controller
+//@Controller // 까보면 @Component 있어서 component-scan에서 찾음
 public class HomeController {
     @Autowired
     WebApplicationContext servletAC; // Servlet AC
