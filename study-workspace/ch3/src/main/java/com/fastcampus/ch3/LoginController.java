@@ -40,11 +40,11 @@ public class LoginController {
                         HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         // 1. id와 pwd를 확인
-        if(!loginCheck(id, pwd)) {
+        if (!loginCheck(id, pwd)) {
             // 2-1   일치하지 않으면, loginForm으로 이동
             String msg = URLEncoder.encode("id 또는 pwd가 일치하지 않습니다.", "utf-8");
 
-            return "redirect:/login/login?msg="+msg;
+            return "redirect:/login/login?msg=" + msg;
         }
         // 2-2. id와 pwd가 일치하면,
         //  세션 객체를 얻어오기
@@ -52,7 +52,7 @@ public class LoginController {
         //  세션 객체에 id를 저장
         session.setAttribute("id", id);
 
-        if(rememberId) {
+        if (rememberId) {
             //     1. 쿠키를 생성
             Cookie cookie = new Cookie("id", id); // ctrl+shift+o 자동 import
 //		       2. 응답에 저장
@@ -65,14 +65,14 @@ public class LoginController {
             response.addCookie(cookie);
         }
 //		       3. 홈으로 이동
-        toURL = toURL==null || toURL.equals("") ? "/" : toURL;
+        toURL = toURL == null || toURL.equals("") ? "/" : toURL;
 
-        return "redirect:"+toURL;
+        return "redirect:" + toURL;
     }
 
     private boolean loginCheck(String id, String pwd) {
         User user = userDao.selectUser(id);
-        if(user==null) return false;
+        if (user == null) return false;
 
         return user.getPwd().equals(pwd);
         //return "asdf".equals(id) && "1234".equals(pwd);
