@@ -65,6 +65,7 @@ public class DBConnectionTest2Test {
         PreparedStatement pstmt = conn.prepareStatement(sql); // SQL Injection 공격 방지, 성능 향상(SQL문 재사용 가능)
         return 0;
     }
+
     public int deleteUser(String id) throws SQLException {
         Connection conn = ds.getConnection();
         String sql = "DELETE FROM user_info WHERE id = ?";
@@ -102,6 +103,38 @@ public class DBConnectionTest2Test {
         String sql = "DELETE FROM user_info";
         PreparedStatement pstmt = conn.prepareStatement(sql); // SQL Injection 공격 방지, 성능 향상(SQL문 재사용 가능)
         pstmt.executeUpdate(); // INSERT, DELETE, UPDATE 할때 사용
+    }
+
+    @Test
+    public void transactionTest() throws Exception {
+        Connection conn = null;
+        try {
+            deleteAll();
+            conn = ds.getConnection();
+            conn.setAutoCommit(false);//트랜잭션 테스트를 위해 자동커밋 x
+
+
+            String sql = "INSERT INTO user_info VALUES(?, ?, ?, ?, ?, ?, now())";
+
+            PreparedStatement pstmt = conn.prepareStatement(sql); // SQL Injection 공격 방지, 성능 향상(SQL문 재사용 가능)
+            pstmt.setString(1, "qwer");
+            pstmt.setString(2, "1234");
+            pstmt.setString(3, "abc");
+            pstmt.setString(4, "aaa@aaa.com");
+            pstmt.setDate(5, new java.sql.Date(new Date().getTime()));
+            pstmt.setString(6, "facebook");
+
+            int rowCnt = pstmt.executeUpdate();
+
+            pstmt.setString(1, "qwer");
+            rowCnt = pstmt.executeUpdate();
+
+            conn.commit(); // 2번의 insert 가 성공하면 커밋
+        } catch (SQLException e) {
+            conn.rollback(); // 실패하면 롤백
+            throw new RuntimeException(e);
+        } finally {
+        }
     }
 
     public int insertUser(User user) throws SQLException {
