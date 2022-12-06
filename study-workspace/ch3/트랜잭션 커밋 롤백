@@ -22,4 +22,4 @@
  - Serializable: 직렬화, 고립도 가장 높음, 한번에 하나의 Tx만 독립적으로 수행, 직렬처리로 완성되면 일자임
  - Read Uncommitted: 커밋되지 않은 데이터도 읽기 가능
  - Read Committed: 커밋된 데이터만 읽기 가능
- - Repeatable Read: 기본 값,Tx의 시작 후 다른 Tx의 변경은 무시 됨
+ - Repeatable Read: 기본 값, Tx 시작 후 다른 Tx의 변경은 무시 됨, 커밋을 해야 다른 Tx 반영
