@@ -14,6 +14,8 @@
 		<org.slf4j-version>1.6.6</org.slf4j-version>
 	</properties>
 	<dependencies>
+
+		<!-- myBatis, spring과 mybatis를 연결하기 위한 mybatis-spring 2개 라이브러리 필요		 -->
 		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
 		<dependency>
 			<groupId>org.mybatis</groupId>

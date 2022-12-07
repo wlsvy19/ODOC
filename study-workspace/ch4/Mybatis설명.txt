@@ -3,3 +3,9 @@
  - 자바 코드로부터 SQL 문을 분리해서 관리
  - 매개변수 설정과 쿼리 결과를 읽어오는 코드 제거
  - 작성할 코드가 줄어 생산성 향상 & 유지 보수 편리
+
+2. SqlSessionFactoryBean 과 SqlSessionTemplate
+ - SqlSessionFactory: SqlSession을 생성해서 제공 - 인터페이스로 myBatis에서 제공
+ - SqlSession: SQL 명령을 수행하는데 필요한 메서드 제공 - 인터페이스로 myBatis에서 제공
+ - SqlSessionFactoryBean: SqlSessionFactory를 Spring에서 사용하기 위한 빈 - 구현체(클래스)로 myBatis-spring에서 제공
+ - SqlSessionTemplate: SQL명령을 수행하는데 필요한 메서드 제공 - 구현체(클래스)로 myBatis-spring에서 제공

@@ -18,15 +18,14 @@
 		<property name="password" value="1234"></property>
 	</bean>
 
-	<!--myBatis 설정 부분-->
-	<!-- 1. 설정파일 -->
+	<!-- myBatis 설정 부분 -->
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"/>
-		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<property name="configLocation"  value="classpath:mybatis-config.xml"/>
 <!--		<property name="mapperLocations" value="classpath:mapper/*Mapper.xml"/>-->
 	</bean>
 
-	<!-- 2. 실제 SQL 명령 수행, 여러 DAO가 공유하는데 thread-safe(멀티쓰레드 가능) -->
+	<!-- myBatis 설정 부분 -->
 	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
 		<constructor-arg ref="sqlSessionFactory"/>
 	</bean>
