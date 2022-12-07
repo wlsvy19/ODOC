@@ -1,0 +1,5 @@
+1. MyBatis란?
+ - SQL Mapping Framework - Easy & Simple : 자바코드와 SQL(XML파일) 과 매핑
+ - 자바 코드로부터 SQL 문을 분리해서 관리
+ - 매개변수 설정과 쿼리 결과를 읽어오는 코드 제거
+ - 작성할 코드가 줄어 생산성 향상 & 유지 보수 편리
