@@ -79,7 +79,7 @@ public class DBConnectionTest2Test {
 
     public User selectUser(String id) throws SQLException {
         Connection conn = ds.getConnection();
-        String sql = "SELECT * FROM user_info where id = ?";
+        String sql = "SELECT * FROM user_info WHERE id = ?";
         PreparedStatement pstmt = conn.prepareStatement(sql); // SQL Injection 공격 방지, 성능 향상(SQL문 재사용 가능)
         pstmt.setString(1, id);
         ResultSet rs = pstmt.executeQuery(); // 단순조회: executeQuery(), ResultSet 은 테이블 형태

@@ -23,4 +23,3 @@
  - Read Uncommitted: 커밋되지 않은 데이터도 읽기 가능
  - Read Committed: 커밋된 데이터만 읽기 가능
  - Repeatable Read: 기본 값,Tx 시작 후 다른 Tx의 변경은 무시 됨, 커밋을 해야 다른 Tx반영 됨(다른 Tx에서 커밋해도, 당사자가 커밋하지 않으면 안보임)
-

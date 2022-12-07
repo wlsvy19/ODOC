@@ -13,6 +13,7 @@ import java.util.Date;
 
 // imple의뜻은 실제로 구현 했다 정도?
 //@Component - @Controller, @Repository, @Service, @ControllerAdvie 등등
+// 실제 Data에 접근하는 계층: Persistence
 @Repository
 public class UserDaoImpl implements UserDao {
     @Autowired

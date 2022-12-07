@@ -1,12 +1,12 @@
 1. AOP(Aspect Oriented Programming)이란?
- - 중복제거, 관심사의 분리 -> 변경에 유리한 코드를 만드는게 목적
  - 관점 지향 프로그래밍
+ - 중복제거, 관심사의 분리 -> 변경에 유리한 코드를 만드는게 목적
  - 부가기능(advice)을 동적(실행중에)으로 추가해주는 기술
  - 메서드의 시작 또는 끝에 자동으로 코드(advice)를 추가
  - 로그 찍는거, 트랜잭션, 시큐어리티 등등 공통으로 쓰이는거를 추가함
 
 2. AOP 관련 용어
- - target: advice가 추가될 객체(힉심 기능)
+ - target: advice가 추가될 객체(핵심 기능)
  - advice: target에 동적으로 추가될 부가 기능(코드)
  - proxy: target + advice 객체
  - weaving: target과 advice를 합쳐 proxy를 만드는 과정
