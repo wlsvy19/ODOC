@@ -3,6 +3,9 @@ package com.fastcampus.ch4.domain;
 import java.util.Date;
 import java.util.Objects;
 
+/**
+ * DTO: 필드와 테이블 컬럼 1:1 매핑
+ */
 public class User {
     private String id;
     private String pwd;
