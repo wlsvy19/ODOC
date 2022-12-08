@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+/**
+ * Presentation layer: 표현 계층
+ */
+
 @Controller
 @RequestMapping("/login")
 public class LoginController {
