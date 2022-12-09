@@ -7,5 +7,6 @@
     <!-- ~mapper.xml 에서 resultType에서 사용-->
     <typeAliases>
         <typeAlias alias="BoardDto" type="com.fastcampus.ch4.domain.BoardDto"/>
+        <typeAlias alias="SearchCondition" type="com.fastcampus.ch4.domain.SearchCondition"/>
     </typeAliases>
 </configuration>

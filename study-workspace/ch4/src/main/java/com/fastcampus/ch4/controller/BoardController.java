@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -21,6 +22,13 @@ import java.util.Map;
 public class BoardController {
     @Autowired
     BoardService boardService;
+
+    private boolean loginCheck(HttpServletRequest request) {
+        // 1. 세션을 얻어서
+        HttpSession session = request.getSession();
+        // 2. 세션에 id가 있는지 확인, 있으면 true를 반환
+        return session.getAttribute("id") != null;
+    }
 
     @GetMapping("/list")
     public String list(Integer page, Integer pageSize, Model m, HttpServletRequest request) {
@@ -51,12 +59,6 @@ public class BoardController {
         return "boardList"; // 로그인을 한 상태이면, 게시판 화면으로 이동
     }
 
-    private boolean loginCheck(HttpServletRequest request) {
-        // 1. 세션을 얻어서
-        HttpSession session = request.getSession();
-        // 2. 세션에 id가 있는지 확인, 있으면 true를 반환
-        return session.getAttribute("id") != null;
-    }
 
     @GetMapping("/read")
     public String read(Integer bno, Integer page, Integer pageSize, Model m) {
@@ -75,23 +77,93 @@ public class BoardController {
     }
 
     @PostMapping("remove")
-    public String remove(Integer bno, Integer page, Integer pageSize, Model m, HttpSession session) {
+    public String remove(Integer bno, Integer page, Integer pageSize, Model m, HttpSession session, RedirectAttributes rattr) {
         String writer = (String) session.getAttribute("id");
         try {
             int rowCnt = boardService.remove(bno, writer);
             m.addAttribute("page", page);
             m.addAttribute("pageSize", pageSize);
 
-            if(rowCnt == 1) {
-                m.addAttribute("msg", "DEL_OK");
-                return "redirect:/board/list";
+            if (rowCnt != 1) {
+                // 삭제하다가 에러 발생시 catch구문으로 예외를 던짐
+                throw new Exception("[Board Remove Error!!]");
             }
+
+            //m.addAttribute("msg", "DEL_OK");
+            // 세션에 1번저장 후 사라짐 -> 메시지창 새로고침 해도 1번만 나옴
+            rattr.addFlashAttribute("msg", "DEL_OK");
         } catch (Exception e) {
             e.printStackTrace();
+            // 삭제 하면서 에러 발생시 예외처리
+            // m.addAttribute("msg", "DEL_ERROR");
+            // 삭제실패 후 URL에 &msg=DEL_ERROR 안보임
+            rattr.addFlashAttribute("msg", "DEL_ERROR");
         }
 
 
         // model에 담으면 redirect할때 뒤에 붙음
         return "redirect:/board/list";
+    }
+
+    // 게시물 보기 모드
+    @GetMapping("/write")
+    public String write(Model m) {
+        // 글쓰기일때만 mode값을 넘겨줌
+        m.addAttribute("mode", "new");
+        return "board"; // borad.jsp는 읽기와 쓰기에 사용, 쓰기일때 mode=new
+    }
+
+    // 게시물 쓰기 모드
+    @PostMapping("/write")
+    public String write(BoardDto boardDto, Model m, HttpSession session, RedirectAttributes rattr) {
+        String writer = (String)session.getAttribute("id");
+        boardDto.setWriter(writer);
+
+        try {
+            int rowCnt = boardService.write(boardDto); // insert
+
+            if(rowCnt != 1) {
+                // 예외1) 글write 에러시 예외로 보내서
+                throw new Exception("[Fail Write!!]");
+            }
+
+            // 글쓰기 성공
+            rattr.addFlashAttribute("msg", "WRITE_OK");
+            return "redirect:/board/list";
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // 예외2) 실패시 성한 내용 다시 보여줌
+            m.addAttribute("boardDto", boardDto);
+            m.addAttribute("msg", "WRITE_ERROR");
+            return "board";
+        }
+    }
+
+    // 게시물 수정 모드
+    @PostMapping("/modify")
+    public String modify(BoardDto boardDto, Model m, HttpSession session, RedirectAttributes rattr) {
+        String writer = (String)session.getAttribute("id");
+        boardDto.setWriter(writer);
+
+        try {
+            int rowCnt = boardService.modify(boardDto); // insert
+
+            if(rowCnt != 1) {
+                // 예외1) 글write 에러시 예외로 보내서
+                throw new Exception("[Fail Modify!!]");
+            }
+
+            // 글쓰기 성공
+            rattr.addFlashAttribute("msg", "MODIFY_OK");
+            return "redirect:/board/list";
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // 예외2) 실패시 성한 내용 다시 보여줌
+            m.addAttribute("boardDto", boardDto);
+            m.addAttribute("msg", "MODIFY_ERROR");
+            return "board";
+        }
     }
 }

@@ -30,11 +30,9 @@
     <insert id="insert" parameterType="BoardDto">
         INSERT INTO board
             (title, content, writer)
-        VALUES (
-                #{title}
+        VALUES ( #{title}
                , #{content}
-               , #{writer}
-               )
+               , #{writer})
     </insert>
 
     <update id="update" parameterType="BoardDto">
@@ -44,6 +42,7 @@
           , up_date = now()
         WHERE 1 = 1
           AND bno = #{bno}
+          AND writer = #{writer}
     </update>
 
     <delete id="delete" parameterType="map">
@@ -111,4 +110,30 @@
         WHERE 1 = 1
           AND bno = #{bno}
     </update>
+
+    <!--조건 넣어 검색-->
+    <select id="searchSelectPage" parameterType="SearchCondition" resultType="BoardDto">
+        SELECT bno
+             , title
+             , content
+             , writer
+             , view_cnt
+             , comment_cnt
+             , reg_date
+        FROM board
+        WHERE 1 = 1
+          AND title LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY reg_date DESC, bno DESC
+            LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!--검색 결과를 알아야 페이징 가능 -->
+    <select id="searchResultCnt" parameterType="SearchCondition" resultType="BoardDto">
+        SELECT count(*)
+        FROM board
+        WHERE 1 = 1
+          AND title LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY reg_date DESC, bno DESC
+            LIMIT #{offset}, #{pageSize}
+    </select>
 </mapper>
