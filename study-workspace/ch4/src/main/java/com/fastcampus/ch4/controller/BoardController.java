@@ -71,6 +71,7 @@ public class BoardController {
 
         } catch (Exception e) {
             e.printStackTrace();
+            m.addAttribute("msg", "READ_ERR");
         }
 
         return "board";
@@ -97,7 +98,7 @@ public class BoardController {
             // 삭제 하면서 에러 발생시 예외처리
             // m.addAttribute("msg", "DEL_ERROR");
             // 삭제실패 후 URL에 &msg=DEL_ERROR 안보임
-            rattr.addFlashAttribute("msg", "DEL_ERROR");
+            rattr.addFlashAttribute("msg", "DEL_ERR");
         }
 
 
@@ -128,14 +129,14 @@ public class BoardController {
             }
 
             // 글쓰기 성공
-            rattr.addFlashAttribute("msg", "WRITE_OK");
+            rattr.addFlashAttribute("msg", "WRT_OK");
             return "redirect:/board/list";
         } catch (Exception e) {
             e.printStackTrace();
 
             // 예외2) 실패시 성한 내용 다시 보여줌
             m.addAttribute("boardDto", boardDto);
-            m.addAttribute("msg", "WRITE_ERROR");
+            m.addAttribute("msg", "WRT_ERR");
             return "board";
         }
     }
@@ -155,14 +156,14 @@ public class BoardController {
             }
 
             // 글쓰기 성공
-            rattr.addFlashAttribute("msg", "MODIFY_OK");
+            rattr.addFlashAttribute("msg", "MOD_OK");
             return "redirect:/board/list";
         } catch (Exception e) {
             e.printStackTrace();
 
             // 예외2) 실패시 성한 내용 다시 보여줌
             m.addAttribute("boardDto", boardDto);
-            m.addAttribute("msg", "MODIFY_ERROR");
+            m.addAttribute("msg", "MOD_ERR");
             return "board";
         }
     }

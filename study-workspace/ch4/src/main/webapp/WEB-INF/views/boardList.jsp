@@ -239,7 +239,7 @@
                 <tr>
                     <td class="no">${boardDto.bno}</td>
                     <td class="title"><a
-                            href="<c:url value="/board/read${ph.sc.queryString}&bno=${boardDto.bno}"/>">${boardDto.title}</a>
+                            href="<c:url value="/board/read${ph.sc.queryString}&bno=${boardDto.bno}"/>"><c:out value="${boardDto.title}"/></a><%--c:out value를 써야 String 그대로 입력됨 -> 해커 방지 --%>
                     </td>
                     <td class="writer">${boardDto.writer}</td>
                     <c:choose>
