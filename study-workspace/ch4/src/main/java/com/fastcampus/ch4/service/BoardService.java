@@ -1,6 +1,7 @@
 package com.fastcampus.ch4.service;
 
 import com.fastcampus.ch4.domain.BoardDto;
+import com.fastcampus.ch4.domain.SearchCondition;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public interface BoardService {
 
     int modify(BoardDto boardDto) throws Exception;
 
-/*    int getSearchResultCnt(SearchCondition sc) throws Exception;
+    List<BoardDto> getSearchResultPage(SearchCondition sc) throws Exception;
 
-    List<BoardDto> getSearchResultPage(SearchCondition sc) throws Exception;*/
+    int getSearchResultCnt(SearchCondition sc) throws Exception;
 }

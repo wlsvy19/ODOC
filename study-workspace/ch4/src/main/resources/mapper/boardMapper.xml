@@ -111,6 +111,22 @@
           AND bno = #{bno}
     </update>
 
+    <sql id = "searchCondition">
+        <choose>
+            <when test='option=="T"'>
+                AND title LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <when test='option=="W"'>
+                AND writer LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <otherwise>
+                AND
+                (
+                title  LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </otherwise>
+        </choose>
+    </sql>
     <!--조건 넣어 검색-->
     <select id="searchSelectPage" parameterType="SearchCondition" resultType="BoardDto">
         SELECT bno
@@ -122,7 +138,8 @@
              , reg_date
         FROM board
         WHERE 1 = 1
-          AND title LIKE CONCAT('%', #{keyword}, '%')
+        <!-- 중복 제거:<sql> 태그로 뺌 -->
+        <include refid="searchCondition"/>
         ORDER BY reg_date DESC, bno DESC
             LIMIT #{offset}, #{pageSize}
     </select>
@@ -132,6 +149,7 @@
         SELECT count(*)
         FROM board
         WHERE 1 = 1
-          AND title LIKE CONCAT('%', #{keyword}, '%')
+        <!-- 중복 제거:<sql> 태그로 뺌 -->
+        <include refid="searchCondition"/>
     </select>
 </mapper>

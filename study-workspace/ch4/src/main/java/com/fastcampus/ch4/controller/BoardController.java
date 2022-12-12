@@ -2,17 +2,19 @@ package com.fastcampus.ch4.controller;
 
 import com.fastcampus.ch4.domain.BoardDto;
 import com.fastcampus.ch4.domain.PageHandler;
+import com.fastcampus.ch4.domain.SearchCondition;
 import com.fastcampus.ch4.service.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,29 +33,27 @@ public class BoardController {
     }
 
     @GetMapping("/list")
-    public String list(Integer page, Integer pageSize, Model m, HttpServletRequest request) {
+    public String list(@ModelAttribute SearchCondition sc, Model m, HttpServletRequest request) {
         if (!loginCheck(request))
             return "redirect:/login/login?toURL=" + request.getRequestURL();  // 로그인을 안했으면 로그인 화면으로 이동
 
-        if (page == null) page = 1;
-        if (pageSize == null) pageSize = 10;
+
         try {
-            int totalCnt = boardService.getCount();
-            PageHandler pageHandler = new PageHandler(totalCnt, page, pageSize);
+            int totalCnt = boardService.getSearchResultCnt(sc);
+            m.addAttribute("totalCnt", totalCnt);
 
-            Map map = new HashMap();
-            map.put("offset", (page - 1) * pageSize);
-            map.put("pageSize", pageSize);
+            PageHandler pageHandler = new PageHandler(totalCnt, sc);
 
-            List<BoardDto> list = boardService.getPage(map);
-
+            List<BoardDto> list = boardService.getSearchResultPage(sc);
             m.addAttribute("list", list);
             m.addAttribute("ph", pageHandler);
-            m.addAttribute("page", page);
-            m.addAttribute("pageSize", pageSize);
 
+            Instant startOfToday = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
+            m.addAttribute("startOfToday", startOfToday.toEpochMilli());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            m.addAttribute("msg", "LIST_ERR");
+            m.addAttribute("totalCnt", 0);
         }
 
         return "boardList"; // 로그인을 한 상태이면, 게시판 화면으로 이동
@@ -71,6 +71,7 @@ public class BoardController {
 
         } catch (Exception e) {
             e.printStackTrace();
+            m.addAttribute("msg", "READ_ERR");
         }
 
         return "board";
@@ -97,7 +98,7 @@ public class BoardController {
             // 삭제 하면서 에러 발생시 예외처리
             // m.addAttribute("msg", "DEL_ERROR");
             // 삭제실패 후 URL에 &msg=DEL_ERROR 안보임
-            rattr.addFlashAttribute("msg", "DEL_ERROR");
+            rattr.addFlashAttribute("msg", "DEL_ERR");
         }
 
 
@@ -128,14 +129,14 @@ public class BoardController {
             }
 
             // 글쓰기 성공
-            rattr.addFlashAttribute("msg", "WRITE_OK");
+            rattr.addFlashAttribute("msg", "WRT_OK");
             return "redirect:/board/list";
         } catch (Exception e) {
             e.printStackTrace();
 
             // 예외2) 실패시 성한 내용 다시 보여줌
             m.addAttribute("boardDto", boardDto);
-            m.addAttribute("msg", "WRITE_ERROR");
+            m.addAttribute("msg", "WRT_ERR");
             return "board";
         }
     }
@@ -155,14 +156,14 @@ public class BoardController {
             }
 
             // 글쓰기 성공
-            rattr.addFlashAttribute("msg", "MODIFY_OK");
+            rattr.addFlashAttribute("msg", "MOD_OK");
             return "redirect:/board/list";
         } catch (Exception e) {
             e.printStackTrace();
 
             // 예외2) 실패시 성한 내용 다시 보여줌
             m.addAttribute("boardDto", boardDto);
-            m.addAttribute("msg", "MODIFY_ERROR");
+            m.addAttribute("msg", "MOD_ERR");
             return "board";
         }
     }
