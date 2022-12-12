@@ -128,12 +128,10 @@
     </select>
 
     <!--검색 결과를 알아야 페이징 가능 -->
-    <select id="searchResultCnt" parameterType="SearchCondition" resultType="BoardDto">
+    <select id="searchResultCnt" parameterType="SearchCondition" resultType="Integer">
         SELECT count(*)
         FROM board
         WHERE 1 = 1
           AND title LIKE CONCAT('%', #{keyword}, '%')
-        ORDER BY reg_date DESC, bno DESC
-            LIMIT #{offset}, #{pageSize}
     </select>
 </mapper>
