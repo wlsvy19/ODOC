@@ -1,3 +1,4 @@
+# 게시판
 create table board
 (
     bno         int auto_increment comment '게시물 번호',
@@ -11,3 +12,18 @@ create table board
     constraint board_pk
         primary key (bno)
 );
+
+
+# 댓글
+CREATE TABLE `springbasic`.`comment` (
+  `cno` INT NOT NULL AUTO_INCREMENT COMMENT '댓글 번호',
+  `bno` INT NOT NULL COMMENT '게시물 번호',
+  `pcno` INT NULL COMMENT '대댓글 번호',
+  `comment` VARCHAR(3000) NULL COMMENT '댓글 내용',
+  `commenter` VARCHAR(30) NULL COMMENT '댓글 작성자',
+  `reg_date` DATETIME NULL DEFAULT now() COMMENT '게시일',
+  `up_date` DATETIME NULL DEFAULT now() COMMENT '수정일\n',
+  PRIMARY KEY (`cno`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT = '	';

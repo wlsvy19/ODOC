@@ -90,7 +90,7 @@
     <h2 class="writing-header">게시판 ${mode=="new" ? "글쓰기" : "읽기"}</h2>
     <form id="form" class="frm" action="" method="post">
         <input type="hidden" name="bno" value="${boardDto.bno}">
-
+        <%--c:out value를 써야 String 그대로 입력됨 -> 해커 방지 --%>
         <input name="title" type="text" value="<c:out value='${boardDto.title}'/>" placeholder="제목을 입력해 주세요." ${mode=="new" ? "" : "readonly='readonly'"}><br>
         <textarea name="content" rows="20" placeholder=" 내용을 입력해 주세요." ${mode=="new" ? "" : "readonly='readonly'"}>${boardDto.content}</textarea><br>
 
