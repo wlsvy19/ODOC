@@ -97,13 +97,6 @@
         LIMIT #{offset}, #{pageSize}
     </select>
 
-    <update id="updateCommentCnt" parameterType="map">
-        UPDATE board
-        SET comment_cnt = comment_cnt + #{cnt}
-        WHERE 1 = 1
-          AND bno = #{bno}
-    </update>
-
     <update id="increaseViewCnt" parameterType="int">
         UPDATE board
         SET view_cnt = view_cnt + 1
@@ -111,7 +104,7 @@
           AND bno = #{bno}
     </update>
 
-    <sql id = "searchCondition">
+    <sql id="searchCondition">
         <choose>
             <when test='option=="T"'>
                 AND title LIKE CONCAT('%', #{keyword}, '%')
@@ -122,7 +115,7 @@
             <otherwise>
                 AND
                 (
-                title  LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%')
+                title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%')
                 )
             </otherwise>
         </choose>
@@ -130,18 +123,18 @@
     <!--조건 넣어 검색-->
     <select id="searchSelectPage" parameterType="SearchCondition" resultType="BoardDto">
         SELECT bno
-             , title
-             , content
-             , writer
-             , view_cnt
-             , comment_cnt
-             , reg_date
+        , title
+        , content
+        , writer
+        , view_cnt
+        , comment_cnt
+        , reg_date
         FROM board
         WHERE 1 = 1
         <!-- 중복 제거:<sql> 태그로 뺌 -->
         <include refid="searchCondition"/>
         ORDER BY reg_date DESC, bno DESC
-            LIMIT #{offset}, #{pageSize}
+        LIMIT #{offset}, #{pageSize}
     </select>
 
     <!--검색 결과를 알아야 페이징 가능 -->
@@ -151,5 +144,13 @@
         WHERE 1 = 1
         <!-- 중복 제거:<sql> 태그로 뺌 -->
         <include refid="searchCondition"/>
+    </select>
+
+    <!--게시물 댓글 수-->
+    <select id="updateCommentCnt" parameterType="map">
+        UPDATE board
+        SET comment_cnt = comment_cnt + #{cnt}
+        WHERE 1 = 1
+          AND bno = #{bno}
     </select>
 </mapper>
