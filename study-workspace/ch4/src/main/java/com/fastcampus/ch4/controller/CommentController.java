@@ -38,7 +38,9 @@ public class CommentController {
     @PostMapping("/comments")
     //@ResponseBody
     public ResponseEntity<String> write(@RequestBody CommentDto dto, Integer bno, HttpSession session) { // @RequestBody 를 붙여야 JSON들어온걸 JAVA객체로 자동 변환함
-        String commenter = (String) session.getAttribute("id");
+        // String commenter = (String) session.getAttribute("id");
+        // TODO: 세션을 이용하여 로그인 후 댓글 작성 하도록 수정
+        String commenter = "asdf";
         dto.setCommenter(commenter); // 작성자 지정
         dto.setBno(bno); // 어느 게시물에 댓글 달았는지 지정
         try {
@@ -55,7 +57,11 @@ public class CommentController {
     // 댓글을 수정하는 메서드
     @PatchMapping("/comments/{cno}")   // 수정할 대상 필요
     //@ResponseBody
-    public ResponseEntity<String> modify(@PathVariable Integer cno, @RequestBody CommentDto dto) { // @RequestBody 를 붙여야 JSON들어온걸 JAVA객체로 자동 변환함
+    public ResponseEntity<String> modify(@PathVariable Integer cno, @RequestBody CommentDto dto, HttpSession session) { // @RequestBody 를 붙여야 JSON들어온걸 JAVA객체로 자동 변환함
+        // String commenter = (String) session.getAttribute("id");
+        // TODO: 세션을 이용하여 로그인 후 댓글 수정 하도록 수정
+        String commenter = "asdf";
+        dto.setCommenter(commenter); // 작성자 지정
         dto.setCno(cno);
         try {
             if (commentService.modify(dto) != 1) {
