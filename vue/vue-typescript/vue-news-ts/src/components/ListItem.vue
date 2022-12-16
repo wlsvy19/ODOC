@@ -7,15 +7,25 @@
       <div>
         <p class="news-title">
           <template v-if="news.domain">
-            <a :href="news.url">{{ news.title }}</a><small class="link-text" v-if="news.domain">({{ news.domain }})</small>
+            <a :href="news.url">{{ news.title }}</a
+            ><small class="link-text" v-if="news.domain"
+              >({{ news.domain }})</small
+            >
           </template>
           <template v-else>
-            <router-link :to="`/item/${news.id}`">{{ news.title }}</router-link><small><a class="link-text" :href="news.domain" v-if="news.domain">({{ news.domain }})</a></small>
+            <router-link :to="`/item/${news.id}`">{{ news.title }}</router-link
+            ><small
+              ><a class="link-text" :href="news.domain" v-if="news.domain"
+                >({{ news.domain }})</a
+              ></small
+            >
           </template>
         </p>
         <small v-if="news.user" class="link-text">
           by
-          <router-link :to="`/user/${news.user}`" class="link-text">{{ news.user }}</router-link>
+          <router-link :to="`/user/${news.user}`" class="link-text">{{
+            news.user
+          }}</router-link>
         </small>
         <small v-if="news.time_ago" class="link-text">
           {{ news.time_ago }}
@@ -27,27 +37,8 @@
 
 <script>
 export default {
-  // created() {
-  //   const name = this.$route.name;
-  //   if (name === "news") {
-  //     this.$store.dispatch("FETCH_NEWS");
-  //   } else if (name === "ask") {
-  //     this.$store.dispatch("FETCH_ASK");
-  //   } else if (name === "jobs") {
-  //     this.$store.dispatch("FETCH_JOBS");
-  //   }
-  // },
   computed: {
     listItems() {
-      // const name = this.$route.name;
-      // if (name === "news") {
-      //   return this.$store.state.news;
-      // } else if (name === "ask") {
-      //   return this.$store.state.ask_items;
-      // } else if (name === "jobs") {
-      //   return this.$store.state.jobs;
-      // }
-
       return this.$store.state.list;
     },
   },

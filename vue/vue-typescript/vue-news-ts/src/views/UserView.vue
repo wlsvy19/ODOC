@@ -2,7 +2,7 @@
   <div>
     <user-profile :info="userInfo">
       <div slot="username">ID: {{ userInfo.id }}</div>
-      <span slot="time">{{ 'Joined ' + userInfo.created }}, </span>
+      <span slot="time">{{ "Joined " + userInfo.created }}, </span>
       <span slot="karma">{{ userInfo.karma }}</span>
     </user-profile>
   </div>
@@ -27,5 +27,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

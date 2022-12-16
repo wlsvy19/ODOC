@@ -6,7 +6,6 @@ module.exports = {
     jest: true,
   },
   extends: [
-    'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
   ],
@@ -14,6 +13,9 @@ module.exports = {
   rules: {
     'prettier/prettier': [
       'error',
+      {
+        endOfLine: 'auto',
+      },
       {
         singleQuote: true,
         semi: true,
@@ -24,6 +26,9 @@ module.exports = {
         arrowParens: 'avoid',
       },
     ],
+    // '@typescript-eslint/no-explicit-any': 'off',
+    // "@typescript-eslint/explicit-function-return-type": 'off',
+    'prefer-const': 'off',
   },
   parserOptions: {
     parser: '@typescript-eslint/parser',

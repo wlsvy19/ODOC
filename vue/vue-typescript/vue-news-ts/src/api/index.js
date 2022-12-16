@@ -1,46 +1,38 @@
-import axios from 'axios';
+import axios from "axios";
 
-// 1. HTTP Request & Response와 관련된 기본 설정
-const config = {
-  baseUrl: 'https://api.hnpwa.com/v0/'
+const api = {
+  news: "https://api.hnpwa.com/v0/news/1.json",
+  ask: "https://api.hnpwa.com/v0/ask/1.json",
+  jobs: "https://api.hnpwa.com/v0/jobs/1.json",
+  user: "https://api.hnpwa.com/v0/user/",
+  item: "https://api.hnpwa.com/v0/item/",
+};
+
+function fetchNews() {
+  return axios.get(api.news);
 }
 
-// 2. API 함수 정리
-// function fetchNewsList() {
-//   // return axios.get(config.baseUrl + 'news/1.json')
-//   // ES6 템플릿 스트링 문법: 백틱 사용
-//   return axios.get(`${config.baseUrl}news/1.json`)
-// }
-
-// function fetchAskList() {
-//   return axios.get(`${config.baseUrl}ask/1.json`)
-// }
-
-// function fetchJobsList() {
-//   return axios.get(`${config.baseUrl}jobs/1.json`)
-// }
- 
-async function fetchList(pageName) {
-  console.log(pageName + 'List...', '[api/index.js]에서 처리')
-  // axios 리턴값: new Promise() -> .then().catch() 
-  try {
-    const response = await axios.get(`${config.baseUrl}${pageName}/1.json`);
-    return response;
-  } catch(error) {
-    alert('List axios 요청 에러!!',  error);
-  }
+function fetchAsk() {
+  return axios.get(api.ask);
 }
 
-function fetchUserInfo(userName) {
-  return axios.get(`${config.baseUrl}user/${userName}.json`)
+function fetchJobs() {
+  return axios.get(api.jobs);
 }
 
-function fetchCommentItem(id) {
-  return axios.get(`${config.baseUrl}item/${id}.json`)
+function fetchUser(id) {
+  const url = `${api.user}${id}.json`;
+  return axios.get(url);
 }
 
+function fetchItem(id) {
+  const url = `${api.item}${id}.json`;
+  return axios.get(url);
+}
 
-// ES6 모듈 문법: export 해야 다른데서 import 사용 가능
-//export { fetchNewsList, fetchAskList, fetchJobsList, fetchUserInfo, fetchCommentItem,  }
-export { fetchList, fetchUserInfo, fetchCommentItem, }
+function fetchList(type) {
+  const url = `https://api.hnpwa.com/v0/${type}/1.json`;
+  return axios.get(url);
+}
 
+export { fetchNews, fetchAsk, fetchJobs, fetchUser, fetchItem, fetchList };
