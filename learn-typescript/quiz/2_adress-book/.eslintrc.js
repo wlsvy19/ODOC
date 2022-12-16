@@ -13,6 +13,10 @@ module.exports = {
   rules: {
     'prettier/prettier': [
       'error',
+      // ! 문단끝에 빨간줄 나면 추가
+      {
+        endOfLine : 'auto',   
+      },
       {
         singleQuote: true,
         semi: true,
@@ -23,8 +27,8 @@ module.exports = {
         arrowParens: 'avoid',
       },
     ],
-    '@typescript-eslint/no-explicit-any': 'off',
-    "@typescript-eslint/explicit-function-return-type": 'off',
+    // '@typescript-eslint/no-explicit-any': 'off',
+    // "@typescript-eslint/explicit-function-return-type": 'off',
     'prefer-const': 'off',
   },
   parserOptions: {

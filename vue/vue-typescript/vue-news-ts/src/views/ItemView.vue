@@ -4,9 +4,9 @@
       <!--  사용자 정보 영역-->
       <user-profile :info="fetchedItem">
         <router-link slot="username" :to="`/user/${fetchedItem.user}`">
-          {{fetchedItem.user}}
+          {{ fetchedItem.user }}
         </router-link>
-        <template slot="time">Posted {{fetchedItem.time_ago}}</template>
+        <template slot="time">Posted {{ fetchedItem.time_ago }}</template>
       </user-profile>
     </section>
 
@@ -24,7 +24,7 @@ import UserProfile from "../components/UserProfile.vue";
 
 export default {
   components: {
-    UserProfile
+    UserProfile,
   },
   computed: {
     ...mapGetters(["fetchedItem"]),

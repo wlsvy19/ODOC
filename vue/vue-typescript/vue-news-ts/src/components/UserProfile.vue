@@ -1,33 +1,36 @@
 <template>
   <div class="user-container">
     <div>
-      <i class="fas fa-user"></i>
+      <i class="fas fa-user-circle"></i>
     </div>
     <div class="user-description">
-      <template v-if="info.id">
-        <!---- slot: 하위컴포넌트에서 정의만, 상위에서 name불러 사용-->
-        <!-- v-if 대신 사용 가능 -->
-        <slot name="username">
-          <!-- 상위 컴포넌트에서 정의할 영역-->
-        </slot>
-      </template>
-
+      <slot name="userName"></slot>
+      <router-link :to="'/user/' + userInfo.user">{{
+        userInfo.user
+      }}</router-link>
       <div class="time">
-        <slot name="time">
-          <!-- 상위 컴포넌트에서 정의할 영역-->
-        </slot>
-        <slot name="karma">
-           <!-- 상위 컴포넌트에서 정의할 영역-->
-        </slot>
-        </div>
+        {{ userInfo.time_ago || "Joined " + userInfo.created + "," }}
+        <span v-if="userInfo.points">, {{ userInfo.points }} points</span>
+        <slot name="userKarma"></slot>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+/* eslint-disable */
+import { mapGetters } from 'vuex';
+
 export default {
   props: {
-    info: Object,
+    userInfo: {
+      type: Object
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'userContent', 'userQuestion', 'userName', 'userTimeAgo', 'contentPoints',
+    ]),
   },
 };
 </script>
@@ -36,15 +39,15 @@ export default {
 .user-container {
   display: flex;
   align-items: center;
-  padding: 0.6rem;
 }
-.fa-user {
+.fa-user-circle {
   font-size: 2.5rem;
 }
 .user-description {
   padding-left: 8px;
 }
 .time {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
+  color: #828282;
 }
 </style>

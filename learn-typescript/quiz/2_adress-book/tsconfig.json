@@ -8,7 +8,9 @@
       "dom",
       "dom.iterable"
     ],
-    "noImplicitAny": true
+    "noImplicitAny": true, // 타입정의: any라도 붙여라
+    "strict": true,
+    "strictFunctionTypes": true
   },
   "include": [
     "./src/**/*"

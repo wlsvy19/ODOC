@@ -11,7 +11,7 @@ interface Todo {
   done: boolean;
 }
 
-// 할일목록 받는 배열
+// * 할일목록 받는 배열
 //let todoItems: object[];
 //let todoItems: {id: number; title: string; done: boolean;}[];
 let todoItems: Todo[];

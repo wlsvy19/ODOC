@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
-    "allowJs": true,
     "target": "esnext",
     "module": "esnext",
-    "strict": false,
+    "strict": false, // 추론에 따른 타입 검증
+    "noImplicitAny": false, // any라도 붙여라
+    "allowJs": true, // .js 파일 허용-> 빨간줄 사라지게
     "jsx": "preserve",
     "moduleResolution": "node",
     "skipLibCheck": true,
