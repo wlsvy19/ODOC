@@ -2,7 +2,7 @@ package com.example.hellospring.service;
 
 import com.example.hellospring.domain.Member;
 import com.example.hellospring.repository.MemberRepository;
-import com.example.hellospring.repository.MemoryMemberRepositry;
+import com.example.hellospring.repository.MemoryMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +13,12 @@ import java.util.Optional;
  * Service: Service 스러운, 사람 친화적인 용어
  */
 
-@Service
+// @Service // 컴포넌트 스캔 방법
 public class MemberService {
     private final MemberRepository memberRepository;
 
 
-    // repository의 실제 구현체를 찾음
+    // repository의 실제 구현체를 찾음, 스프링 컨테이너에서 서비스와 리포지토리를 자동 연결 해줌
     @Autowired
     public MemberService(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;

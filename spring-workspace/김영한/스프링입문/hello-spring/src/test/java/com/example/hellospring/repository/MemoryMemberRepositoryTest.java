@@ -1,20 +1,16 @@
 package com.example.hellospring.repository;
 
 import com.example.hellospring.domain.Member;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import javax.swing.text.html.Option;
-
 import java.util.List;
-import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-class MemoryMemberRepositryTest {
+class MemoryMemberRepositoryTest {
 
-    MemoryMemberRepositry repository = new MemoryMemberRepositry();
+    MemoryMemberRepository repository = new MemoryMemberRepository();
 
     // 같은 객체 공유로 인해 테스트 실패 방지 -> 테스트 하나 끝나면 map을 초기화
     @AfterEach
