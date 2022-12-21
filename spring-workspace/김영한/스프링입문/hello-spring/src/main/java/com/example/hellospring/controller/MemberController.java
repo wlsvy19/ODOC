@@ -26,6 +26,8 @@ public class MemberController {
     @Autowired // 컴포넌트 스캔 방법, DI 방법: * 생성자 주입: 의존관계가 실행중에 동적으로 변할경우가 없으므로 생성자 주입을 사용하는게 가장 좋음
     public MemberController(MemberService memberService) {
         this.memberService = memberService;
+        // 컨트롤러에서 프록시 서비스를 호출 -> 프록시 서비스가 실제 서비스 호출, 프록시 서비스에 실제 서비스를 DI 하기 때문에 AOP 가능
+        System.out.println("AOP: MemberService = " + memberService.getClass());
     }
 
     @GetMapping("/members/new")
