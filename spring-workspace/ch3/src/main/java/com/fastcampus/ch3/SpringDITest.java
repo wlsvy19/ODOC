@@ -1,4 +1,4 @@
-/*
+
 package com.fastcampus.ch3;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +96,3 @@ public class SpringDITest {
 //        System.out.println("engine2 = " + engine2);
     }
 }
-
-
- */
