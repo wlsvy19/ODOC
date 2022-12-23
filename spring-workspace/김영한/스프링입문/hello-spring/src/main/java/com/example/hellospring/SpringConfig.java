@@ -61,13 +61,12 @@ public class SpringConfig {
 
 /*    @Bean
     public MemberRepository memberRepository() {
-        // 인터페이스를 두고, 구현체를 바꿔끼기 할 수 있음 -> 다형성
+        // 인터페이스를 두고, 구현체를 바꿔끼기 할 수 있음 -> !다형성!
 
         // return new MemoryMemberRepository();
         // return new JdbcMemberRepository(dataSource);
         // return new JdbcTemplateMemberRepository(dataSource);
-        //return new JpaMemberRepository(em);
-        //
+        // return new JpaMemberRepository(em);
 
     }*/
     

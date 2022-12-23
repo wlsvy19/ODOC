@@ -1,9 +1,11 @@
 package com.example.hellospring.service;
 
 import com.example.hellospring.domain.Member;
+import com.example.hellospring.repository.JpaMemberRepository;
 import com.example.hellospring.repository.MemberRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +24,8 @@ import java.util.Optional;
 // @Service // 컴포넌트 스캔 방법
 @Transactional // JPA사용하여 데이터 저장&변경에 있어야 함
 public class MemberService {
-    private final MemberRepository memberRepository;
+    EntityManager em;
+    private final MemberRepository memberRepository = new JpaMemberRepository(em);
 
 
     // repository의 실제 구현체를 찾음, 스프링 컨테이너에서 서비스와 리포지토리를 자동 연결 해줌
