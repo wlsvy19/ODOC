@@ -5,25 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="95b59134-165a-4e59-b67e-89d03cb6545c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../../learn-typescript/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../learn-typescript/.idea/jpa-buddy.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../learn-typescript/.idea/learn-typescript.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../learn-typescript/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../learn-typescript/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../learn-typescript/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jpa-buddy.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/test.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/gradlew" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/gradlew.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/settings.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/BookmanagerApplication.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/src/main/resources/application.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../AllinOne/Part4-1_JPA/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/BookmanagerApplicationTests.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/.idea/jpa-buddy.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/designpattern/out/production/designpattern/com/company/design/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/../AllinOne/Part3_Spring-basic/designpattern/out/production/designpattern/com/company/design/Main.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/fastcampus/ch3/SpringDITest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fastcampus/ch3/SpringDITest.java" afterDir="false" />
     </list>
@@ -82,6 +69,7 @@
       <workItem from="1671078309158" duration="18000" />
       <workItem from="1671605429733" duration="2458000" />
       <workItem from="1671670142896" duration="7590000" />
+      <workItem from="1671752481741" duration="2037000" />
     </task>
     <servers />
   </component>
