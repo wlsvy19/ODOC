@@ -1,0 +1,98 @@
+# vue-todo
+
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+vue-todo 프로젝트 리팩토링
+초기 App.vue 에는 컴포넌트 등록만 해놨는데 메서드와 data가 많이 추가됨
+각각 하위 컴포넌트에서 각자 관리하던 데이터들이 동일한 성격을 지니기 때문에
+한개의 컴포넌트(App.vue)로 모아 처리
+
+이 과정에서 @emit -> 부모컴포넌트에서 v-on으로 받기
+props를 통해 하위 컴포넌트에 데이터 보내기
+
+많이 일어남
+
+ES6 강의 개요 및 목표 소개
+- ES6의 여러가지 문법 중 Vue.js 코딩을 간편하게 해주는 문법 학습
+- const & let, Arrow Function, Enhanced Object Literals, Modules 학습
+
+ES5
+- var 를 사용(호이스팅 등 여러 문제점)
+- {}에 상관 없이 스코프 설정(for문안에 선언한 i가 {}벗어나도 콘솔 출력 가능)
+- Hoisting: 선언한 함수와 변수를 해석기가 가장 상단에 있는 것 처럼 인식
+- js 해석기는 코드의 라인 순서와 관계 없이 함수선언식과 변수를 위한 메모리 공간을 먼저 확보
+
+ES6란?
+- ECMAScript 2015와 동일한 언어
+- 2015년은 ES5(2009년) 이래로 진행한 첫 메이저 업데이트가 승인된 해
+- 최신 Front-End Framework인 React, Angular, Vue에서 권고하는 언어 형식
+- ES5에 비해 문법이 간결해져서 익숙해지면 코딩을 훨씬 편하게 할 수 있음
+
+const & let 새로운 변수 선언 방식
+- 블록 단위 {} 로 변수의 범위가 제한되었음
+- const: 한번 선언한 값에 대해서 변경할 수 없음(상수 개념)
+  - 단, 객체{}, 배열[] 안에 선언한 값은 변경 가능
+- let: 한번 선언한 값에 대해서 다시 선언할 수 없음
+
+Arrow Function - 화살표 함수
+ - 함수를 정의할 때 function 키워드 사용x, => 로 대체
+ - 흔히 사용하는 콜백 함수의 문법 간결화
+
+ES5
+var sum = function(a, b) {
+  return a + b;
+}
+
+ES6
+var sum = (a, b) => {
+  return a + b;
+}
+
+Vuex - 상태 관리 라이브러리
+- 복잡한 애플리케이션의 컴포넌트들을 효율적으로 관리하는 라이브러리
+- React 의 Flux 패턴에서 기인함
+- Vue.js 중고급 개발자로 성장하기 위한 필수 관문
+
+Vuex 컨셉
+ - State: 컴포넌트 간에 공유하는 데이터 data()
+ - View: 데이터를 표시하는 화면 template
+ - Actions: 사용자의 입력에 따라 데이터를 변경하는 methods
+
+ Vuex 설치
+  - npm install vuex@3.6.2 --save
+src밑에 stroe폴더 만드는게 관행
+
+Vuex 기술 요소
+ - state: 여러 컴포넌트에서 공유되는 -> data
+ - getters: 연산된 state 값을 접근하는 속성 -> computed
+ - mutations: state 값을 변경하는 이벤트 로직 -> methods(state값 변경 유일한 방법)
+ - actions: 비동기 처리 로직을 선언하는 -> async methods->commit 으로 동작
+ 
+Helper - 각 속성들을 더 쉽게 사용하는 방법
+Store에 있는 아래 4가지 속성들을 간편하게 코딩하는 방법
+- state -> mapState
+- getters -> mapGetters
+- mutations -> mapMutations
+- actions -> mapActions

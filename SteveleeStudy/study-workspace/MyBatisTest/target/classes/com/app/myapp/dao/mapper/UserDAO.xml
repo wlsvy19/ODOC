@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.app.myapp.dao.UserDAO"> <!-- 인터페이스 들어있는 패키지 -->
+  	<select id="list" resultType="com.app.myapp.dto.UserDTO">
+  		SELECT * FROM user
+  	</select>
+  </mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fastcampus.ch4.dao.CommentMapper">
+    <!--모든 댓글 보기-->
+    <select id="selectAll" parameterType="int" resultType="CommentDto">
+        SELECT cno
+             , bno
+             , IFNULL(pcno, cno) AS pcno
+             , comment
+             , commenter
+             , reg_date
+             , up_date
+        FROM comment
+        WHERE 1 = 1
+          AND bno = #{bno}
+        ORDER BY pcno ASC, cno ASC;
+    </select>
+
+    <select id="select" parameterType="int" resultType="CommentDto">
+        SELECT cno
+             , bno
+             , pcno
+             , comment
+             , commenter
+             , reg_date
+             , up_date
+        FROM comment
+        WHERE 1 = 1
+          AND cno = #{cno}
+    </select>
+
+    <!-- 특정 게시물에 있는 댓글 개수 세기    -->
+    <select id="count" parameterType="int" resultType="int">
+        SELECT count(*)
+        FROM comment
+        WHERE 1 = 1
+          AND bno = #{bno}
+    </select>
+
+    <insert id="insert" parameterType="CommentDto">
+        INSERT INTO comment
+            (bno, pcno, comment, commenter, reg_date, up_date)
+        VALUES (#{bno}, #{pcno}, #{comment}, #{commenter}, now(), now())
+    </insert>
+
+    <!-- 작성자가 일치할 때만 댓글 수정 가능    -->
+    <update id="update" parameterType="CommentDto">
+        UPDATE comment
+        SET comment = #{comment}
+          , up_date = now()
+        WHERE 1 = 1
+          AND cno = #{cno}
+          AND commenter = #{commenter}
+    </update>
+
+    <!--  작성자가 일치할 때만 댓글 삭제 가능       -->
+    <delete id="delete" parameterType="map">
+        DELETE
+        FROM comment
+        WHERE 1 = 1
+          AND cno = #{cno}
+          AND commenter = #{commenter}
+    </delete>
+
+    <!-- 특정 게시물에 있는 댓글 모두 삭제   -->
+    <delete id="deleteAll" parameterType="int">
+        DELETE
+        FROM comment
+        WHERE 1 = 1
+          AND bno = #{bno}
+    </delete>
+</mapper>

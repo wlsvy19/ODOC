@@ -1,0 +1,47 @@
+var id = $.get('domain.com/id');
+if (id === 'leejp') {
+    var products = $.get('domain.com/products');
+}
+-> 특정 URL(서버)에서 데이터 호출하고, 그 값을 id에 담고
+먄약 그 값이 leejp면 다시 호출해서 products에 넣는다.
+이때, 문제점은 id에 값이 담겨 와야 그 다음 로직이 수행 된다는 점이다.
+
+비동기 처리를 하면 데이터를 요청한 다음 기다리지 않고 다음 로직을 수행할 수 있다.
+-> 콜백 처리
+$.get('domain.com/id', function(id){
+  if (id === 'leejp') {
+    $.get('domain.com/products', function(products){
+      console.log(products)
+    });
+  }
+});
+
+Promise()처리
+function getId() {
+  return new Promise(function(resolve, reject){
+    $.get('domain.com/id', function(id){
+      console.log(id)
+    })
+  })
+}
+
+function getProduct() {
+  ...
+}
+function logProduct() {
+  ...
+}
+
+getId()
+  .then(getProduct)
+  .then(logProduct)
+  .catch();
+-> 인자로 함수를 넘겨줘서 사용자가 보기 쉽게 할 수 있고 코드흐름이 명확해진다.
+
+Async & Await
+자바스크립트 비동기 처리 패턴의 최신 문법으로 Promise나 Callback 에서 주는 단점을
+해결하고 자바스크립트의 비동기적 사고 방식에서 벗어나 절차적으로 코드를 작성할 수 있다.
+비동기처리를 동기문법으로 구현하는 기법이다.
+
+
+https://joshua1988.github.io/web-development/javascript/js-async-await/

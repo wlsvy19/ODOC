@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fastcampus.ch4.dao.BoardMapper">
+    <select id="select" parameterType="int" resultType="BoardDto">
+        SELECT bno
+             , title
+             , content
+             , writer
+             , view_cnt
+             , comment_cnt
+             , reg_date
+             , up_date
+        FROM board
+        WHERE 1 = 1
+          AND bno = #{bno}
+    </select>
+
+    <!--    <select id="select" parameterType="int" resultType="BoardDto">
+            <include refid="selectFromBoard"/>
+            WHERE bno = #{bno}
+        </select>-->
+
+    <select id="count" resultType="int">
+        SELECT COUNT(*)
+        from board
+    </select>
+
+    <insert id="insert" parameterType="BoardDto">
+        INSERT INTO board
+            (title, content, writer)
+        VALUES ( #{title}
+               , #{content}
+               , #{writer})
+    </insert>
+
+    <update id="update" parameterType="BoardDto">
+        UPDATE board
+        SET title   = #{title}
+          , content = #{content}
+          , up_date = now()
+        WHERE 1 = 1
+          AND bno = #{bno}
+          AND writer = #{writer}
+    </update>
+
+    <delete id="delete" parameterType="map">
+        DELETE
+        FROM board
+        WHERE 1 = 1
+          AND bno = #{bno}
+          AND writer = #{writer}
+    </delete>
+
+    <!--TODO: 관리자 권한 체크해서 관리자는 다 삭제 가능 하게도록 구현-->
+    <delete id="deleteForAdmin" parameterType="map">
+        DELETE
+        FROM board
+        WHERE 1 = 1
+          AND bno = #{bno}
+    </delete>
+
+
+    <delete id="deleteAll">
+        DELETE
+        FROM board
+    </delete>
+
+    <!-- 등록일 역순, 최근 게시물이 제일 위에 오도록   -->
+    <select id="selectAll" resultType="BoardDto">
+        SELECT bno
+             , title
+             , content
+             , writer
+             , view_cnt
+             , comment_cnt
+             , reg_date
+        FROM board
+        ORDER BY reg_date DESC, bno DESC
+    </select>
+
+    <sql id="selectFromBoard">
+        SELECT bno
+             , title
+             , content
+             , writer
+             , view_cnt
+             , comment_cnt
+             , reg_date
+        FROM board
+    </sql>
+
+    <select id="selectPage" parameterType="map" resultType="BoardDto">
+        <include refid="selectFromBoard"/>
+        ORDER BY reg_date DESC, bno DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <update id="increaseViewCnt" parameterType="int">
+        UPDATE board
+        SET view_cnt = view_cnt + 1
+        WHERE 1 = 1
+          AND bno = #{bno}
+    </update>
+
+    <sql id="searchCondition">
+        <choose>
+            <when test='option=="T"'>
+                AND title LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <when test='option=="W"'>
+                AND writer LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <otherwise>
+                AND
+                (
+                title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </otherwise>
+        </choose>
+    </sql>
+    <!--조건 넣어 검색-->
+    <select id="searchSelectPage" parameterType="SearchCondition" resultType="BoardDto">
+        SELECT bno
+        , title
+        , content
+        , writer
+        , view_cnt
+        , comment_cnt
+        , reg_date
+        FROM board
+        WHERE 1 = 1
+        <!-- 중복 제거:<sql> 태그로 뺌 -->
+        <include refid="searchCondition"/>
+        ORDER BY reg_date DESC, bno DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!--검색 결과를 알아야 페이징 가능 -->
+    <select id="searchResultCnt" parameterType="SearchCondition" resultType="Integer">
+        SELECT count(*)
+        FROM board
+        WHERE 1 = 1
+        <!-- 중복 제거:<sql> 태그로 뺌 -->
+        <include refid="searchCondition"/>
+    </select>
+
+    <!--게시물 댓글 수-->
+    <select id="updateCommentCnt" parameterType="map">
+        UPDATE board
+        SET comment_cnt = comment_cnt + #{cnt}
+        WHERE 1 = 1
+          AND bno = #{bno}
+    </select>
+</mapper>

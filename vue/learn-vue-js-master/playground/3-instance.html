@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        var viewModel = new Vue({ // 생성자(앞에 대문자) 안에 객체들이 들어감
+            // Vue의 속성 들
+            el: '#app', // element 약자, html 태그에 붙이겠다
+            data: {
+                message: 'hi'
+            },
+            methods: {
+
+            },
+        });
+
+        console.log(viewModel);
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+// (타입, 타입, 반환타입)
+function add(a: number, b:number): number {
+  return a + b;
+}
+
+var result = add(10, 20);

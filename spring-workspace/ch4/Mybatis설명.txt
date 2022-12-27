@@ -1,0 +1,20 @@
+1. MyBatis란?
+ - SQL Mapping Framework - Easy & Simple : 자바코드와 SQL(XML파일) 과 매핑
+ - 자바 코드로부터 SQL 문을 분리해서 관리
+ - 매개변수 설정과 쿼리 결과를 읽어오는 코드 제거
+ - 작성할 코드가 줄어 생산성 향상 & 유지 보수 편리
+
+2. SqlSessionFactoryBean 과 SqlSessionTemplate
+ - SqlSessionFactory: SqlSession을 생성해서 제공 - 인터페이스로 myBatis에서 제공
+ - SqlSession: SQL 명령을 수행하는데 필요한 메서드 제공 - 인터페이스로 myBatis에서 제공
+ - SqlSessionFactoryBean: SqlSessionFactory를 Spring에서 사용하기 위한 빈 - 구현체(클래스)로 myBatis-spring에서 제공
+ - SqlSessionTemplate: SQL명령을 수행하는데 필요한 메서드 제공 - 구현체(클래스)로 myBatis-spring에서 제공
+
+3. DTO란?
+ - Data Transfer Object
+ - 계층간의 데이터를 주고 받기 위해 사용되는 객체
+ - DTO는 값을 주고 받으므로 변함, VO는 immutable 즉 read only이므로 잘못된 용어 -> DTO 라는 표현을 사용하자
+
+4. XML의 특수 문자 처리
+ - XML내 특수 문자 (<, >, &) 는 변환됨
+ - <![CDATA[ ]]>  감싸줌 -> Character Data로 문자 데이터 라는 의미, xml태그가 없음

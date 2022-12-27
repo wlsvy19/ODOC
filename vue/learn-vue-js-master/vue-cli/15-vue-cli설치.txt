@@ -1,0 +1,29 @@
+[node.js 버전 확인]
+node -v
+
+[npm 버전 확인]
+npm -v
+설치: npm install -g @vue/cli (관리자권한 필요)
+설치확인: vue --version
+
+[Vue CLI 2.x]
+vue init '프로젝트 템플릿 유형' '프로젝트 폴더 위치'
+vue init webpack-simple '프로젝트 폴더 위치'
+
+[Vue CLI 3.x]
+vue create '프로젝트 폴더 위치'
+
+[vue-cli 폴더 생성]
+vue create vue-cli
+
+[vue 실행]
+cd vue-cli
+npm run serve
+->package.json 에 있는 script: serve를 가리킴
+
+[실행되는 파일]
+public - index.html
+<div id="app"></div> 
+div 태그 안에서 실행 되는 건 src폴더 안에 있는 파일들이 하나로 묶여 
+주입되어 실행(main.js, App.vue 등등...)
+

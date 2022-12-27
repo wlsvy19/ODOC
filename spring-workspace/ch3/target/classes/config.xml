@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 기본값: 싱글톤(getBean()시 서버에서 같은 기능을 하는 객체는 하나만 있으면 됨(주소값 같음)) -->
+    <bean id="car" class="com.fastcampus.ch3.Car" scope="singleton">
+        <!-- 실제 사용시 set대신 여기서 property(속성) 로 사용가능 -> 반드시 setter 있어야함 -->
+        <property name="color" value="red"/>
+        <property name="oil" value="45"/>
+        <!-- engine은 Engine 객체로 선언 -> 타입이 참조변수 이기 때문에 ref 사용-> 아래 bean에서 id=engine을 갔다씀 -->
+        <property name="engine" ref="engine"/>
+        <!-- doors는 배열 -->
+        <property name="doors">
+            <array value-type="com.fastcampus.ch3.Door">
+                <ref bean="door"/>
+                <ref bean="door"/>
+            </array>
+        </property>
+    </bean>
+
+
+    <!-- prototype: getBean()시 주소값 다른 새로운 객체 생성 -->
+    <bean id="engine" class="com.fastcampus.ch3.Engine" scope="prototype"/>
+
+    <bean id="door" class="com.fastcampus.ch3.Door" scope="prototype"/>
+</beans>

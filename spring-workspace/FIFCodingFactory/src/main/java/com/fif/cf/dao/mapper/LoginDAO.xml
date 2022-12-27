@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.fif.cf.dao.LoginDAO">
+  	<select id="list" resultType="com.fif.cf.dto.LoginDTO">
+  		SELECT * FROM user
+  	</select>
+  </mapper>

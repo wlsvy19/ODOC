@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "chart.js": "^3.9.1",
+    "eslint": "^8.26.0",
+    "vue-cli": "^2.9.6"
+  }
+}
