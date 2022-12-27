@@ -1,4 +1,4 @@
-drop table if exists member CASCADE;
+drop table if exists member CASCADE;;
 
 create table member
 (
