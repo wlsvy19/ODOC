@@ -1,4 +1,4 @@
-package spring.core.service;
+package spring.core.member;
 
 import spring.core.member.Member;
 
