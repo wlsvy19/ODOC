@@ -39,6 +39,7 @@ public class MemberApp {
         /*ApplicationContext: Spring컨테이너 ->스프링 Bean 관리 -> AppConfig에서 @붙은거 관리 -> 스프링 컨테이너에서 Bean객체로 생성하여 관리*/
         ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
 
+
         /*메소드 명, 리턴타입*/
         MemberService memberService = applicationContext.getBean("memberService", MemberService.class);
 
