@@ -1,11 +1,10 @@
 package spring.core.order;
 
 import spring.core.discount.DiscountPolicy;
-import spring.core.discount.FixDiscountPolicy;
-import spring.core.discount.RateDiscountPolicy;
 import spring.core.member.Member;
 import spring.core.member.MemberRepository;
-import spring.core.member.MemoryMemberRepository;
+
+/*사용영역*/
 
 /*실질적인 할인 정책 클라이언트*/
 /*DIP위반-> 클라이언트가 추상화에 의존하지만, 구체화에도 의존중( = new ...)*/
@@ -28,7 +27,7 @@ public class OrderServiceImpl implements OrderService {
     /*DIP 만족(추상에만 의존하도록 변경) -> Null 값 -> 누군가 구현객체를 대신 생성하고 주입 -> AppConfig 등장(감독)*/
     private final DiscountPolicy discountPolicy;
 
-    /*생성자 주입을 통해 DIP 원칙 지키기 -> AppConfig에서 어떤거 사용할지 정함*/
+    /*생성자 주입을 통해 DIP 원칙 지키기 -> AppConfig에서 실행시 어떤거 사용할지 정함 -> 동적인 객체 인스턴스 의존 관계*/
     public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
         this.memberRepository = memberRepository;
         this.discountPolicy = discountPolicy;
