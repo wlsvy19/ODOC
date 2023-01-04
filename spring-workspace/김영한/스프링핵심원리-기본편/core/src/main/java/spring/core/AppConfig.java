@@ -15,6 +15,8 @@ import spring.core.order.OrderServiceImpl;
 
 /*앱 전체를 설정하고 구성하는 감독 역할 -> 실제 동작에 필요한 구현 객체 생성*/
 /*객체를 생성하고 연결하는 역할에만 집중 -> 관심사의 분리 완수*/
+
+/*팩토리 메소드 패턴 사용*/
 @Configuration
 public class AppConfig {
 
