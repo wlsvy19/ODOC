@@ -36,7 +36,7 @@ public class MemberApp {
 //        System.out.println("find Member = " + findMember.getName());
 
         /*---Spring을 사용하여 작성---*/
-        /*ApplicationContext: Spring컨테이너 ->스프링 Bean 관리 -> AppConfig에서 @붙은거 관리 -> 스프링 컨테이너에서 Bean객체로 생성하여 관리*/
+        /*ApplicationContext: Spring컨테이너 -> 스프링 Bean 관리 -> AppConfig에서 @붙은거 관리 -> 스프링 컨테이너에서 Bean객체로 생성하여 관리*/
         ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
 
 

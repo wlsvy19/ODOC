@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ApplicationContextExtendsFindTest {
+
     /*TestConfig 클래스를 구성 정보로하여 스프링 컨테이너 생성 */
     AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(TestConfig.class);
 
