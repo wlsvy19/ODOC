@@ -23,7 +23,7 @@ public class ApplicationContextBasicFindTest {
         System.out.println("memberService = " + memberService);
         System.out.println("memberService.getClass() = " + memberService.getClass());
 
-        /*검증 org.assertj*/
+        /*검증 org.assertj ~ */
         assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
     }
 
@@ -32,7 +32,7 @@ public class ApplicationContextBasicFindTest {
     void findBeanByType() {
         MemberService memberService = ac.getBean(MemberService.class);
 
-        /*검증 org.assertj*/
+        /*검증 org.assertj ~ */
         assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
     }
 
@@ -40,7 +40,7 @@ public class ApplicationContextBasicFindTest {
     @DisplayName("구체 타입으로 조회")
     void findBeanByName2() {
         MemberService memberService = ac.getBean("memberService", MemberServiceImpl.class);
-        /*검증 - org.assertj*/
+        /*검증 - org.assertj ~ */
         assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
     }
 
@@ -49,7 +49,7 @@ public class ApplicationContextBasicFindTest {
     void findBeanByNameX() {
         // MemberService memberService = ac.getBean("xxxx", MemberServiceImpl.class);
 
-        /* org.junit*/
+        /* org.junit ~ */
         /* 람다활용, -> 기점으로, 오른쪽 코드실행 시 왼쪽 예외가 터져야 테스트 성공 */
         /*예외가 던져지는 테스트(Throws)*/
         assertThrows(NoSuchBeanDefinitionException.class, () -> ac.getBean("xxxx", MemberServiceImpl.class));
