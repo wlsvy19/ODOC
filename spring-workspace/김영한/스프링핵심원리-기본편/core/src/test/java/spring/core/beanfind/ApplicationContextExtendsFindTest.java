@@ -3,7 +3,9 @@ package spring.core.beanfind;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,18 +53,6 @@ public class ApplicationContextExtendsFindTest {
         assertThat(beansOfType.size()).isEqualTo(2);
         for (String key : beansOfType.keySet()) {
             System.out.println("key = " + key + ", value = " + beansOfType.get(key));
-        }
-
-        List<String> str = new ArrayList<String>();
-        str.add("하나");
-        str.add("둘");
-        str.add("셋");
-        for (String s : str) {
-            System.out.println("s = " + s);
-        }
-        List<String> str2 = Arrays.asList("원", "투", "쓰리");
-        for (String v : str2) {
-            System.out.println("v = " + v);
         }
     }
 
