@@ -27,7 +27,11 @@ class StatefulServiceTest {
         /*Thread A: A사용자가 주문 금액 조회*/
         /*A금액 10000이 나와야 하는데 this.price=price 땜에 B사용자의 금액 20000이 나와버리는 문제*/
         int Aprice = statefulService1.getPrice();
+        int Bprice = statefulService2.getPrice();
+
         System.out.println("Aprice = " + Aprice);
+        System.out.println("Bprice = " + Bprice);
+
 
         Assertions.assertThat(statefulService2.getPrice()).isEqualTo(20000);
     }
@@ -51,7 +55,7 @@ class StatefulServiceTest {
     }
 
     static class TestConfig {
-        @Bean
+        @Bean /*싱긅톤 사용시 문제점*/
         public StatefulService statefulService() {
             return new StatefulService();
         }
