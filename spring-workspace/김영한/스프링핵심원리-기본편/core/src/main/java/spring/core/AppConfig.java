@@ -18,7 +18,7 @@ import spring.core.order.OrderServiceImpl;
 
 /*팩토리 메소드 패턴 사용*/
 
-/*있어야 싱글톤이 보장 됨*/
+/*있어야 싱글톤이 보장 됨!*/
 @Configuration
 public class AppConfig {
 
