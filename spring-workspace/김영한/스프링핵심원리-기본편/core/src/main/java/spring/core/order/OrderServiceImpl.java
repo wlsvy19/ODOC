@@ -1,5 +1,7 @@
 package spring.core.order;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import spring.core.discount.DiscountPolicy;
 import spring.core.member.Member;
 import spring.core.member.MemberRepository;
@@ -9,6 +11,7 @@ import spring.core.member.MemberRepository;
 /*실질적인 할인 정책 클라이언트*/
 /*DIP위반-> 클라이언트가 추상화에 의존하지만, 구체화에도 의존중( = new ...)*/
 /*여기서 사용하는 필드는 2개 */
+@Component
 public class OrderServiceImpl implements OrderService {
     /*어떤 회원이 주문 했는가?*/
     // private final MemberRepository memberRepository = new MemoryMemberRepository();
@@ -28,6 +31,7 @@ public class OrderServiceImpl implements OrderService {
     private final DiscountPolicy discountPolicy;
 
     /*생성자 주입을 통해 DIP 원칙 지키기 -> AppConfig에서 실행시 어떤거 사용할지 정함 -> 동적인 객체 인스턴스 의존 관계*/
+    @Autowired
     public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
         this.memberRepository = memberRepository;
         this.discountPolicy = discountPolicy;
