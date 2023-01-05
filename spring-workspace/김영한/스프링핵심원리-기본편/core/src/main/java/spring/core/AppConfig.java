@@ -17,6 +17,8 @@ import spring.core.order.OrderServiceImpl;
 /*객체를 생성하고 연결하는 역할에만 집중 -> 관심사의 분리 완수*/
 
 /*팩토리 메소드 패턴 사용*/
+
+/*있어야 싱글톤이 보장 됨*/
 @Configuration
 public class AppConfig {
 
@@ -24,6 +26,8 @@ public class AppConfig {
 
     @Bean
     public MemberService memberService() {
+        System.out.println("Call AppConfig.memberService");
+
         /*실제로 어떤 구현체를 쓸지 결정*/
         /*MemberServiceImpl 입장에선 AppConfig가 의존관계를 주입 -> 의존관계 주입 or 의존성 주입*/
         return new MemberServiceImpl(memberRepository());
@@ -31,11 +35,13 @@ public class AppConfig {
 
     @Bean
     public OrderService orderService() {
+        System.out.println("Call AppConfig.orderService");
         return new OrderServiceImpl(memberRepository(), discountPolicy());
     }
 
     @Bean
     public MemberRepository memberRepository() {
+        System.out.println("Call AppConfig.memberRepository");
         /*추후 DB 변경시 아래 한굴만 고쳐주면 됨*/
         /*리턴 타입만 보면 실제 구현이 보임*/
         return new MemoryMemberRepository();
@@ -43,6 +49,7 @@ public class AppConfig {
 
     @Bean
     public DiscountPolicy discountPolicy() {
+        System.out.println("Call AppConfig.discountPolicy");
         /*정액 할인 정책*/
         //return new FixDiscountPolicy();
 
