@@ -45,4 +45,9 @@ public class OrderServiceImpl implements OrderService {
         // discount정책 수정이 order에 영향을 주지 않음
         return new Order(memberId, itemName, itemPrice, discountPrice);
     }
+
+    /*싱글톤 테스트 용도*/
+    public MemberRepository getMemberRepository() {
+        return memberRepository;
+    }
 }
