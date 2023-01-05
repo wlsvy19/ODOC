@@ -1,9 +1,15 @@
 package spring.core.member;
 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.Map;
 
 // 어떤 DB를 사용할지 확정되지 않은 상태라고 가정
+
+/*스프링 빈으로 등록하기 위해 사용*/
+@Component
 public class MemoryMemberRepository implements MemberRepository {
 
     // Map에 데이터 저장
