@@ -16,7 +16,7 @@ public class OrderServiceImpl implements OrderService {
     /*어떤 회원이 주문 했는가?*/
     // private final MemberRepository memberRepository = new MemoryMemberRepository();
     /*DIP를 지키기 위해 인터페이스만 선언*/
-    /* * final키워드: 생성자를 통해 할당이 되야 함*/
+    /* !final키워드: 생성자를 통해 할당이 되야 함*/
     private final MemberRepository memberRepository;
 
     
@@ -33,6 +33,9 @@ public class OrderServiceImpl implements OrderService {
     /*생성자 주입을 통해 DIP 원칙 지키기 -> AppConfig에서 실행시 어떤거 사용할지 정함 -> 동적인 객체 인스턴스 의존 관계*/
     @Autowired
     public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        /*생성자주입 으로 인해 스프링 컨테이너에 빈으로 자동 등록 됨*/
+        System.out.println("memberRepository = " + memberRepository);
+        System.out.println("discountPolicy = " + discountPolicy);
         this.memberRepository = memberRepository;
         this.discountPolicy = discountPolicy;
     }

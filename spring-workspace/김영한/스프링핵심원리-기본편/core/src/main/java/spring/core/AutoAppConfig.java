@@ -1,8 +1,11 @@
 package spring.core;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import spring.core.member.MemberRepository;
+import spring.core.member.MemoryMemberRepository;
 
 /*컴포넌트 스캔이 적용 된 AppConfig*/
 @Configuration
@@ -17,4 +20,9 @@ import org.springframework.context.annotation.FilterType;
 )
 public class AutoAppConfig {
 
+    /*수동 빈 등록 -> Spring Boot로 돌리면 에러남*/
+    //@Bean(name="memoryMemberRepository")
+    MemberRepository memberRepository() {
+        return new MemoryMemberRepository();
+    }
 }
