@@ -9,7 +9,7 @@ public class AutowiredTest {
     @Test
     void autowiredOption() {
         ApplicationContext ac = new AnnotationConfigApplicationContext(TestBean.class);
-        ac.getBean();
+        
     }
 
     static class TestBean {
