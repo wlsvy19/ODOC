@@ -24,6 +24,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+	/*Provider 사용 하기 위해 라이브러리 추가*/
+	implementation 'javax.inject:javax.inject:1'
+
+	/*스프링에서 웹을 사용하기 위해 라이브러리 추가*/
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
 	//lombok 라이브러리 추가 시작
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
