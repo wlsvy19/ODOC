@@ -1,20 +1,5 @@
-interface PhoneNumberDictionary {
-  [phone: string]: {
-    num: number;
-  };
-}
-
-interface Contact {
-  name: string;
-  address: string;
-  phones: PhoneNumberDictionary;
-}
-
-enum PhoneType {
-  Home = "home",
-  Office = "office",
-  Studio = "studio",
-}
+// types.ts 파일로 이동 -> import 해서 불러
+import { PhoneType, Contact } from "./modules/types";
 
 // api
 // TODO: 아래 함수의 반환 타입을 지정해보세요.
