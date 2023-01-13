@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "strict": true,
+    "noImplicitAny": true, // any라도 붙여라
+    "strict": false, // 추론에 따른 타입 검증
+    "allowJs": true, // 설정변경
     "jsx": "preserve",
     "moduleResolution": "node",
     "skipLibCheck": true,
