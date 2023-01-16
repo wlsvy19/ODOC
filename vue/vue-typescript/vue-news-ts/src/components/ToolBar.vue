@@ -1,6 +1,6 @@
 <template>
-  <div class="header" :class="{ 'fixed': isFixed }" ref="appHeader">
-    <img src="../assets/logo.svg" alt="logo" class="logo">
+  <div class="header" :class="{ fixed: isFixed }" ref="appHeader">
+    <img src="../assets/logo.svg" alt="logo" class="logo" />
     <router-link to="/news">News</router-link> |
     <router-link to="/ask">Ask</router-link> |
     <router-link to="/jobs">Jobs</router-link>
@@ -13,21 +13,21 @@ export default {
     return {
       navHeight: 0,
       isFixed: false,
-    }
+    };
   },
   mounted() {
     this.navHeight = this.$refs.appHeader.offsetHeight;
-    window.addEventListener('scroll', this.checkHeight);
+    window.addEventListener("scroll", this.checkHeight);
   },
   methods: {
     checkHeight() {
       this.isFixed = window.scrollY > this.navHeight ? true : false;
-    }
+    },
   },
   beforeDestroy() {
-    window.removeEventListener('scroll', this.checkHeight);
-  }
-}
+    window.removeEventListener("scroll", this.checkHeight);
+  },
+};
 </script>
 
 <style scoped>
