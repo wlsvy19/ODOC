@@ -1,7 +1,9 @@
 import { NewsItem } from "@/api";
 
-export const state = {
+const state = {
   news: [] as NewsItem[],
 };
 
-export type RootState = typeof state;
+type RootState = typeof state;
+
+export { state, RootState };
