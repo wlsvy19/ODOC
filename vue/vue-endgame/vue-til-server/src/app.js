@@ -23,7 +23,7 @@ mongoose.connect(
   'mongodb+srv://test:1234@cluster0.k4hqozh.mongodb.net/?retryWrites=true&w=majority',
   {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   },
 );
 mongoose.Promise = global.Promise;
