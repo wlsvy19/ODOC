@@ -6,7 +6,15 @@
 </template>
 
 <script>
-export default {};
+// 상대 경로
+// import Demo1 from '../../demo/basic/Demo.vue';
+
+// 절대 경로 -> jsconfig.json 에서 설정
+// import Demo2 from '@/demo/basic/Demo.vue';
+
+export default {
+  components: {},
+};
 </script>
 
 <style></style>
