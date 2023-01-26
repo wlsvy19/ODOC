@@ -1,5 +1,5 @@
-import Chart from "chart.js";
-import { VueConstructor } from "vue";
+import Chart from "chart.js/auto";
+import { VueConstructor } from "vue/types/umd";
 
 export default {
   install(Vue: VueConstructor) {
