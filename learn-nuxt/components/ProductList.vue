@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from "axios";
 
 export default {
   // asyncData는 pages안에 파일들만 유효

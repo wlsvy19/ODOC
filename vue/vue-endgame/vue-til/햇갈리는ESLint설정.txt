@@ -1,4 +1,5 @@
-vscode에서 ctrl + .
+*
+vscode에서 ctrl + ,
 
 1. format on save 검색 후 체크x
 
@@ -10,6 +11,7 @@ setting.json 들어가
 아래가 vscode 세팅 파일인데 복붙 ㄱㄱ
 
 //시작
+
 {
   "workbench.iconTheme": "material-icon-theme",
   "editor.multiCursorModifier": "ctrlCmd",
@@ -34,10 +36,10 @@ setting.json 들어가
     "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "editor.formatOnSave": true,
+
   "eslint.runtime": "",
+
   "eslint.validate": [
-  
-    
     {
       "language": "vue",
       "autoFix": true
@@ -59,16 +61,18 @@ setting.json 들어가
       "autoFix": true
     }
   ],
+
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
   // don't format on save
   "editor.formatOnSave": false
 }
+
 //끝
 
 
-
+*
 .eslintrc.js  파일
 
 rules:[] 에 아래 코드 추가하면 저장 시 자동으로 에러, 포맷팅 되서 저장됨
@@ -84,9 +88,18 @@ rules:[] 에 아래 코드 추가하면 저장 시 자동으로 에러, 포맷�
       arrowParens: 'avoid',
     }]
 
+
+*
+에러때문에 화면조작 못할 경우에는??
 vue.config.js 파일을 프로젝트 바로 아래 만들고 아래 코드 추가하면 에러 때문에
 화면 안나오는거 해결됨
 
   devServer: {
     overlay: false,
   },
+
+
+*
+  ctrl + ,
+  format on save
+  Editor: Format On Save   체크 해제 해야 esLinst로 문법 정리 가능
