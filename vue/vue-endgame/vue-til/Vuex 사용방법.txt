@@ -1,0 +1,11 @@
+Vuex 는 여러 컴포넌트에서 사용되는 데이터들의 상태 관리를 하기 위해 사용 하는
+Vue에서 사용하는 '상태관리 라이브러리' 이다.
+
+1. vuex 설치 
+-> npm install vuex@3.6.2
+
+2. store 폴더를 만들고 index.js 파일을 만든 후 Vuex 의 Store를 사용하기 위해 문법 작성 -> export default 해주면 {}없이 사용 가능
+
+3. main.js 에서 store를 import 후 Vue 인스턴스에 등록
+
+4. this.$store 로 모든곳에서 사용 가능
