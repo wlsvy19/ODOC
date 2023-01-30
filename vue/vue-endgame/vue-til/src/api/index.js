@@ -3,7 +3,8 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  // .env.development 파일을 가리킴
+  // ! .env.development 파일을 가리킴 !
+  // baseURL: axios.create에서 기본제공 되는 속성
   baseURL: process.env.VUE_APP_API_URL,
 });
 
@@ -12,6 +13,7 @@ function registerUser(userData) {
   // const url = 'http://localhost:3000/signup';
   // return axios.post(url, userData);
 
+  // http://localhost:3000/signup  으로 데이터 보냄
   return instance.post('signup', userData);
 }
 

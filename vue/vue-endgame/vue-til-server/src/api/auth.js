@@ -43,7 +43,11 @@ router.post('/login', (req, res) => {
             token: token,
           });
         } else {
-          res.status(401).json('Authentication failed. Wrong password.');
+          res
+            .status(401)
+            .json(
+              'Authentication failed. Wrong password. - 비밀번호가 다릅니다.',
+            );
         }
       });
     })
