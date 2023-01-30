@@ -25,6 +25,10 @@ export default new VueRouter({
       redirect: '/login',
     },
     {
+      path: '/main',
+      component: () => import('@/views/MainPage.vue'),
+    },
+    {
       path: '/login',
       // 다이나믹 importing
       // 코드 스플리팅 기법: 호출 시점에 필요한 페이지만 로딩, 처음 페이지 로딩 빠름(lazy)
