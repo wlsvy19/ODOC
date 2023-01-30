@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="app">
     <!-- 
       <header>
       <router-link to="/login">로그인</router-link> |
@@ -8,9 +8,11 @@
   -->
 
     <AppHeader></AppHeader>
+    <div class="app-contents">
+      <RouterView></RouterView>
+    </div>
 
     <!--routes/index.js 에서 정의한 path에서 보여지는 실질적인 컴포넌트-->
-    <RouterView></RouterView>
   </div>
 </template>
 
@@ -24,4 +26,7 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+@import './css/reset.css';
+@import './css/common.css';
+</style>

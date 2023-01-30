@@ -1,16 +1,31 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <div>
-      <label for="username">ID: </label>
-      <input id="username" type="text" v-model="username" />
+  <div class="contents">
+    <div class="form-wrapper form-wrapper-sm">
+      <form @submit.prevent="submitForm" class="form">
+        <div>
+          <label for="username">id:</label>
+          <input id="username" type="text" v-model="username" />
+          <p class="validation-text">
+            <span class="warning" v-if="!isUsernameValid && username">
+              Please enter an email address
+            </span>
+          </p>
+        </div>
+        <div>
+          <label for="password">pw:</label>
+          <input id="password" type="text" v-model="password" />
+        </div>
+        <button
+          :disabled="!isUsernameValid || !password"
+          type="submit"
+          class="btn"
+        >
+          로그인
+        </button>
+      </form>
+      <p class="log">{{ logMessage }}</p>
     </div>
-    <div>
-      <label for="password">PW: </label>
-      <input id="password" type="text" v-model="password" />
-    </div>
-    <button type="submit">로그인</button>
-    <p>{{ logMessage }}</p>
-  </form>
+  </div>
 </template>
 
 <script>
@@ -39,21 +54,31 @@ export default {
   methods: {
     async submitForm() {
       try {
-        // 비즈니스 로직
+        // try: 비즈니스 로직
         const userData = {
           username: this.username,
           password: this.password,
         };
         //const response = await loginUser(userData);
         const { data } = await loginUser(userData);
-        // console.log('응답결과: ', data.user.username);
-        console.log('토큰: ', data.token);
-        this.logMessage = `${data.user.username}님이 로그인 했습니다.`;
+        console.log(data.user.username);
+
+        // commit: Vuex Store의 mutations를 호출 하는 API -> 데이터를 조작하기 위해 호출
+        this.$store.commit('setUsername', data.user.username);
+
+        // this.logMessage = `${data.user.username}님이 로그인 했습니다.`;
+
+        // 로그인 후 메인페이지로 바로 이동
+        // <router-link to="main"> 와 동일
+        // https://router.vuejs.org/guide/essentials/navigation.html#navigate-to-a-different-location
+        // 이동하면서 파라미터, 쿼리 등도 넘길 수 있음
+        this.$router.push('/main');
       } catch (error) {
-        // 에러 핸들링 코드
+        // catch: 에러 핸들링 코드
         // console.log(error.response.data);
         this.logMessage = error.response.data;
       } finally {
+        // finally: 무조건 실행되는 코드
         this.initForm();
       }
     }, // end submitForm()
@@ -65,4 +90,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.btn {
+  color: white;
+}
+</style>

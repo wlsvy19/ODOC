@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const instance = axios.create({
   // ! .env.development 파일을 가리킴 !
+  // baseURL: axios.create에서 기본제공 되는 속성
   baseURL: process.env.VUE_APP_API_URL,
 });
 
