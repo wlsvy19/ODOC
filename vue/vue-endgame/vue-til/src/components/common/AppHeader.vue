@@ -9,13 +9,13 @@
     <div class="navigations">
       <!-- ! 로그인 분기 처리 - 보여지는 화면 다름 -->
       <!--  $store.getters.isLogin로 접근할 수 있지만, 템플릿에는 최대한 간결하게 표현->computed 사용-->
-      <!-- 1 분기 -->
+      <!-- 1 분기 - 로그인o -->
       <template v-if="isUserLogin">
         <a href="javascript:;" @click="logoutUser" class="logout-button">
-          Logout
+          로그아웃
         </a>
       </template>
-      <!-- 2 분기 -->
+      <!-- 2 분기 - 로그인x-->
       <template v-else>
         <router-link to="/login">로그인</router-link>
         <router-link to="/signup">회원가입</router-link>
