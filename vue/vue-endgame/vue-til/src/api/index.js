@@ -42,4 +42,9 @@ function fetchPosts() {
   return instance.get('posts');
 }
 
-export { registerUser, loginUser, fetchPosts };
+//학습 노트 작성 하는 API
+function createPost(postdata) {
+  return instance.post('posts', postdata);
+}
+
+export { registerUser, loginUser, fetchPosts, createPost };
