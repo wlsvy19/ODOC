@@ -7,7 +7,19 @@
 </template>
 
 <script>
-export default {};
+import { fetchPosts } from '../api/index';
+export default {
+  methods: {
+    // 게시물 가져오는 API
+    async fetchData() {
+      const response = await fetchPosts();
+      console.log('게시물 response: ', response);
+    },
+  },
+  created() {
+    this.fetchData();
+  },
+};
 </script>
 
 <style></style>

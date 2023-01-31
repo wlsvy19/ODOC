@@ -61,7 +61,13 @@ export default {
         };
         //const response = await loginUser(userData);
         const { data } = await loginUser(userData);
-        console.log(data.user.username);
+        console.log('data token: ', data.token);
+
+        /**
+         * TODO: 다음 프로젝트 때 스프링에서 JWT 생성 후 여기다가 담아 줘야함
+         */
+        // 권한을 위해 토큰을 넘김
+        this.$store.commit('setToken', data.token);
 
         // commit: Vuex Store의 mutations를 호출 하는 API -> 데이터를 조작하기 위해 호출
         this.$store.commit('setUsername', data.user.username);
