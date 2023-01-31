@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import { loginUser } from '@/api/index';
 import { validateEmail } from '@/utils/validation';
 
 export default {
@@ -59,20 +58,34 @@ export default {
           username: this.username,
           password: this.password,
         };
-        //const response = await loginUser(userData);
-        const { data } = await loginUser(userData);
-        console.log('data token: ', data.token);
 
         /**
-         * TODO: 다음 프로젝트 때 스프링에서 JWT 생성 후 여기다가 담아 줘야함
+         * ! store의 index.js 에서 actions로 처리
          */
-        // 권한을 위해 토큰을 넘김
-        this.$store.commit('setToken', data.token);
+        // dispatch: actions를 호출
+        // async 붙여서 비동기 처리로 쿠키 값 저장 한 후 라우터 진입 해야 함
+        await this.$store.dispatch('LOGIN', userData);
 
-        // commit: Vuex Store의 mutations를 호출 하는 API -> 데이터를 조작하기 위해 호출
-        this.$store.commit('setUsername', data.user.username);
+        //const response = await loginUser(userData);
+        // const { data } = await loginUser(userData);
+        // console.log('data token: ', data.token);
 
-        // this.logMessage = `${data.user.username}님이 로그인 했습니다.`;
+        // /**
+        //  * TODO: 다음 프로젝트 때 스프링에서 JWT 생성 후 여기다가 담아 줘야함
+        //  */
+        // // 권한을 위해 토큰을 넘김
+        // this.$store.commit('setToken', data.token);
+
+        // // commit: Vuex Store의 mutations를 호출 하는 API -> 데이터를 조작하기 위해 호출
+        // this.$store.commit('setUsername', data.user.username);
+
+        // // 쿠키에 토큰과 유저id 저장
+        // saveAuthToCookie(data.token);
+        // saveUserToCookie(data.user.username);
+
+        /**
+         * ! 여기까지
+         */
 
         // 로그인 후 메인페이지로 바로 이동
         // <router-link to="main"> 와 동일
