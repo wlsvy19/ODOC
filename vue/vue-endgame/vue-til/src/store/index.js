@@ -7,6 +7,7 @@ export default new Vuex.Store({
   // state: 여러 컴포넌트간에 공유되는 데이터
   state: {
     username: '',
+    token: '',
   },
 
   // mutations: 데이터를 조작-> state를 바꿈
@@ -19,6 +20,11 @@ export default new Vuex.Store({
     // 로그아웃 했을 때 username 공백 처리
     clearUsername(state) {
       state.username = '';
+    },
+
+    // commit을 하면서 여기다가 토큰 넘길거임
+    setToken(state, token) {
+      state.token = token;
     },
   },
 
