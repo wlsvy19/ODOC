@@ -47,7 +47,7 @@ export default new Vuex.Store({
   },
 
   // LoginForm.vue 의 코드가 많아져서 actions 사용
-  // actions 인자에 context 있고, commit 있음
+  // actions 인자에 context 있고 그안에 commit 있음
   actions: {
     async LOGIN({ commit }, userData) {
       const { data } = await loginUser(userData);
