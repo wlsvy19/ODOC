@@ -31,7 +31,7 @@ export default new VueRouter({
     {
       path: '/login',
       // 다이나믹 importing
-      // 코드 스플리팅 기법: 호출 시점에 필요한 페이지만 로딩, 처음 페이지 로딩 빠름(lazy)
+      // 코드 스플리팅 기법: 미리 다 임포트 x -> 호출 시점에 필요한 페이지만 임포트해서 로딩, 처음 페이지 로딩 빠름(lazy)
       component: () => import('@/views/LoginPage.vue'),
     },
     {
