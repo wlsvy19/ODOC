@@ -29,8 +29,9 @@
 </template>
 
 <script>
-import { registerUser } from '@/api/index';
+import { registerUser } from '@/api/auth';
 import { validateEmail } from '@/utils/validation';
+import bus from '@/utils/bus.js';
 export default {
   computed: {
     isUsernameValid() {
@@ -64,6 +65,11 @@ export default {
         // const { data } = await registerUser(userData);
         // ``백틱표기법: 자바스크립트 변수를 문자열 안에서 사용 가능
         this.logMessage = `${response.data.username}님이 가입되었습니다.`;
+        bus.$emit(
+          'show:toast',
+          `${response.data.username} 님 회원가입을 축하드립니다!`,
+        );
+        this.$router.push('/login');
       } catch (error) {
         console.log(error.response.data);
         this.logMessage = `회원가입 중 에러가 발생했습니다!!`;

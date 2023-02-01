@@ -43,6 +43,10 @@ export default new VueRouter({
       component: () => import('@/views/PostAddPage.vue'),
     },
     {
+      path: '/post/:id',
+      component: () => import('@/views/PostEditPage.vue'),
+    },
+    {
       // 위에 없는 페이지일 경우 보여줄 페이지(사용자 친화적)
       path: '*',
       component: () => import('@/views/NotFoundPage.vue'),
