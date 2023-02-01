@@ -30,7 +30,7 @@
 
 <script>
 import { validateEmail } from '@/utils/validation';
-
+import bus from '@/utils/bus.js';
 export default {
   // computed 속성: props, data, store 등의 데이터 변화에 따라 값을 자동으로 계산 할 때 사용하는 연산식
   computed: {
@@ -64,7 +64,8 @@ export default {
          */
         // dispatch: actions를 호출
         // async 붙여서 비동기 처리로 쿠키 값 저장 한 후 라우터 진입 해야 함
-        await this.$store.dispatch('LOGIN', userData);
+        const response = await this.$store.dispatch('LOGIN', userData);
+        console.log('로그인 response:', response);
 
         //const response = await loginUser(userData);
         // const { data } = await loginUser(userData);
@@ -91,6 +92,10 @@ export default {
         // <router-link to="main"> 와 동일
         // https://router.vuejs.org/guide/essentials/navigation.html#navigate-to-a-different-location
         // 이동하면서 파라미터, 쿼리 등도 넘길 수 있음
+        bus.$emit(
+          'show:toast',
+          `${response.user.username} 님이 로그인 했습니다.`,
+        );
         this.$router.push('/main');
       } catch (error) {
         // catch: 에러 핸들링 코드
