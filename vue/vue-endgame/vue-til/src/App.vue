@@ -11,17 +11,23 @@
     <div class="app-contents">
       <RouterView></RouterView>
     </div>
-
     <!--routes/index.js 에서 정의한 path에서 보여지는 실질적인 컴포넌트-->
+
+    <AppFooter></AppFooter>
+    <ToastPopup></ToastPopup>
   </div>
 </template>
 
 <script>
 import AppHeader from '@/components/common/AppHeader.vue';
+import AppFooter from './components/common/AppFooter.vue';
+import ToastPopup from './components/common/ToastPopup.vue';
 
 export default {
   components: {
     AppHeader,
+    ToastPopup,
+    AppFooter,
   },
 };
 </script>

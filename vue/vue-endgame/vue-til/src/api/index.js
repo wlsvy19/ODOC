@@ -4,10 +4,11 @@ import axios from 'axios';
 
 import { setInterceptors } from '@/api/common/interceptors';
 
-// axios 객체 생성 함수
+// axios 객체 생성 및 초기화 함수
+
+// 로그인전 권한이 필요없는 경우 - 단순 URL만 생성
 function createInstance() {
-  // axios 관련 공통 코드
-  const instance = axios.create({
+  return axios.create({
     // ! .env.development 파일을 가리킴 !
     // baseURL: axios.create에서 기본제공 되는 속성
     baseURL: process.env.VUE_APP_API_URL,
@@ -17,34 +18,22 @@ function createInstance() {
     //   Authorization: store.state.token,
     // },
   });
+}
+
+// 로그인 이후 권한이 필요한 경우
+function createInstanceWithAuth(url) {
+  const instance = axios.create({
+    baseURL: `${process.env.VUE_APP_API_URL}${url}`,
+  });
   // 인터셉터 함수 안에 axios 들어감
   return setInterceptors(instance);
 }
 
-const instance = createInstance();
+export const instance = createInstance();
 
-// 회원가입 할 때 날리는 요청 API
-function registerUser(userData) {
-  // const url = 'http://localhost:3000/signup';
-  // return axios.post(url, userData);
-
-  // http://localhost:3000/signup  으로 데이터 보냄
-  return instance.post('signup', userData);
-}
-
-// 로그인 할 때 날리는 요청 API
-function loginUser(userData) {
-  return instance.post('login', userData);
-}
-
-// 학습 노트 데이터를 조회하는 API
-function fetchPosts() {
-  return instance.get('posts');
-}
-
-//학습 노트 작성 하는 API
-function createPost(postdata) {
-  return instance.post('posts', postdata);
-}
-
-export { registerUser, loginUser, fetchPosts, createPost };
+// RESTful 한 API 설계 - HTTP 메서드만 다르고 기본URL은 같도록 설계
+// GET - posts
+// POST - posts
+// PUT - posts/{id}
+// FETCH - posts/{id}
+export const posts = createInstanceWithAuth('posts');

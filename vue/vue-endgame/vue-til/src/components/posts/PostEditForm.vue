@@ -1,6 +1,6 @@
 <template>
   <div class="contents">
-    <h1 class="page-header">Create Post</h1>
+    <h1 class="page-header">Edit Post</h1>
     <div class="form-wrapper">
       <form class="form" @submit.prevent="submitForm">
         <div>
@@ -19,7 +19,7 @@
             게시물의 내용은 200글자 이하여야 합니다.
           </p>
         </div>
-        <button type="submit" class="btn">Create</button>
+        <button type="submit" class="btn">Edit</button>
       </form>
       <p class="log">
         {{ logMessage }}
@@ -29,9 +29,8 @@
 </template>
 
 <script>
-import { createPost } from '@/api/posts';
+import { fetchOnePost, editPost } from '@/api/posts';
 import bus from '@/utils/bus.js';
-
 export default {
   data() {
     return {
@@ -48,28 +47,35 @@ export default {
   },
   methods: {
     async submitForm() {
+      const id = this.$route.params.id;
       try {
-        // 게시물 Create 눌러서 생성
-        const response = await createPost({
+        const response = await editPost(id, {
           title: this.title,
           contents: this.contents,
         });
         bus.$emit(
           'show:toast',
-          `${response.data.data.title} 게시물이 등록되었습니다.`,
+          `${response.data.title} 게시글이 수정되었습니다.`,
         );
-        // 게시물 생성 후 main페이지로 이동
         this.$router.push('/main');
       } catch (error) {
-        this.logMessage = error.response.data.message;
+        this.logMessage = error;
+        alert('수정 실패');
       }
     },
+  },
+  // 수정 폼 컴포넌트 생성되자마자 호출 되야 함
+  async created() {
+    // 다이나믹 라우트 path에 명시한 id
+    const id = this.$route.params.id;
+    const { data } = await fetchOnePost(id);
+    this.title = data.title;
+    this.contents = data.contents;
   },
 };
 </script>
 
 <style scoped>
-/* form-wrapper 안에 form이 있는 경우 */
 .form-wrapper .form {
   width: 100%;
 }
