@@ -31,6 +31,8 @@
 // 절대 경로 -> jsconfig.json 에서 설정
 // import Demo2 from '@/demo/basic/Demo.vue';
 
+import bus from '@/utils/bus.js';
+
 export default {
   // computed 속성: props, data, store 등의 데이터 변화에 따라 값을 자동으로 계산 할 때 사용하는 연산식
   computed: {
@@ -41,6 +43,7 @@ export default {
   methods: {
     logoutUser() {
       this.$store.commit('clearUsername');
+      bus.$emit('show:toast', '로그아웃 했습니다.');
       this.$router.push('/login');
     },
   },

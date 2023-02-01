@@ -11,6 +11,7 @@
           v-for="postItem in postItems"
           v-bind:key="postItem._id"
           v-bind:postItem="postItem"
+          @refresh="fetchData"
         ></PostListItem>
       </ul>
     </div>
@@ -23,7 +24,7 @@
 <script>
 import PostListItem from '@/components/posts/PostListItem.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import { fetchPosts } from '../api/index';
+import { fetchAllPost } from '../api/posts';
 export default {
   components: {
     PostListItem,
@@ -41,7 +42,7 @@ export default {
       // 데이터 불러오는 동안 로딩창
       this.isLoading = true;
 
-      const { data } = await fetchPosts();
+      const { data } = await fetchAllPost();
       // 데이터 다 받아오면 로딩창 안보이게
       this.isLoading = false;
 
