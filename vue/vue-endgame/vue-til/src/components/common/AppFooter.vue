@@ -5,7 +5,7 @@
       target="_blank"
       >View GitHub source</a
     >
-    <div>© 2023 leejp</div>
+    <div>© 2023 Flame in Frozen</div>
   </footer>
 </template>
 

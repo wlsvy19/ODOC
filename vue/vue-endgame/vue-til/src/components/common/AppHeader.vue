@@ -1,7 +1,7 @@
 <template>
   <header>
     <div>
-      <router-link to="/" class="logo">
+      <router-link v-bind:to="logoLink" class="logo">
         TIL
         <span v-if="isUserLogin">by {{ $store.state.username }}</span>
       </router-link>
@@ -31,6 +31,7 @@
 // 절대 경로 -> jsconfig.json 에서 설정
 // import Demo2 from '@/demo/basic/Demo.vue';
 
+import { deleteCookie } from '@/utils/cookies';
 import bus from '@/utils/bus.js';
 
 export default {
@@ -39,10 +40,21 @@ export default {
     isUserLogin() {
       return this.$store.getters.isLogin;
     },
+    logoLink() {
+      return this.$store.getters.isLogin ? '/main' : '/login';
+    },
   },
   methods: {
     logoutUser() {
+      // commit: store의 mutations 호출
+      // state의 상태 초기화
       this.$store.commit('clearUsername');
+      this.$store.commit('clearToken');
+
+      // 브라우저 쿠키 값 삭제
+      deleteCookie('til_auth');
+      deleteCookie('til_user');
+
       bus.$emit('show:toast', '로그아웃 했습니다.');
       this.$router.push('/login');
     },
