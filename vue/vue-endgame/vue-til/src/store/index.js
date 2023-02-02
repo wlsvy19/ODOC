@@ -35,6 +35,11 @@ export default new Vuex.Store({
     setToken(state, token) {
       state.token = token;
     },
+
+    // JWT 초기화
+    clearToken(state) {
+      state.token = '';
+    },
   },
 
   // getters: state의 값을 가져옴 -> return 있어야함
