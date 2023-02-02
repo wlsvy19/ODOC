@@ -31,6 +31,7 @@
 <script>
 import { validateEmail } from '@/utils/validation';
 import bus from '@/utils/bus.js';
+
 export default {
   // computed 속성: props, data, store 등의 데이터 변화에 따라 값을 자동으로 계산 할 때 사용하는 연산식
   computed: {
