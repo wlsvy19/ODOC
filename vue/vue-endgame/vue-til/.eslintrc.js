@@ -1,7 +1,10 @@
 module.exports = {
   root: true,
   env: {
-    node: true
+    node: true,
+
+    // 테스트 코드 빨간밑줄 안나게 설정
+    jest: true
   },
   extends: ["plugin:vue/essential", "@vue/prettier"],
   rules: {
