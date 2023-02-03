@@ -15,10 +15,13 @@
           <label for="password">pw:</label>
           <input id="password" type="text" v-model="password" />
         </div>
+
+        <!-- class 바인딩에서 3항연산자의 값이 "btn x"  x자리에 붙음 -->
         <button
-          :disabled="!isUsernameValid || !password"
+          v-bind:disabled="!isUsernameValid || !password"
           type="submit"
           class="btn"
+          v-bind:class="!isUsernameValid || !password ? 'disabled' : null"
         >
           로그인
         </button>
