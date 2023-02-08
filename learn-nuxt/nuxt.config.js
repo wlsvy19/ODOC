@@ -39,6 +39,7 @@ export default {
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
 
+  // 서버포트 변경: https://nuxtjs.org/docs/features/configuration/#edit-host-and-port
   // server
   server: {
     port: isProduction ? null : 4000,
