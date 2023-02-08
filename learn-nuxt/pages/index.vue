@@ -39,22 +39,37 @@ import { fetchProductsByKeyword } from '@/api/index'
 
 export default {
   components: { SearchInput },
-  // asyncData는 pages폴더 안에 정의한 컴포넌트들에만 적용
+
+  // Nuxt의 비동기 데이터 호출 방법
+  // https://joshua1988.github.io/vue-camp/nuxt/data-fetching.html#asyncdata
+  // asyncData: pages폴더 안에 정의한 파일에서만 사용 가능, async 키워드 있어야 함
+  // 컴포넌트 그려지기 전이라 data의 this 사용 못함
+  // vue의 네비게이션 가드에서 비동기 데이터가 다 불러져 와야 next() 호출 하는 것과 비슷
   async asyncData() {
     const response = await axios.get('http://localhost:3000/products')
+    // console.log('응답 데이터: ', response)
     // asyncData는 this.products로 접근 불가->const 변수 선언 후 사용
-    const products = response.data.map((item) => ({
+    const resProducts = response.data.map((item) => ({
       ...item,
       imageUrl: `${item.imageUrl}?random=${Math.random()}`,
     }))
-    return { products }
-  },
+    // ES6 객체 축약 문법, 리턴 하자마자 vue 인스턴스로 사용 가능-> v-for에서 사용
+    return { products: resProducts }
+  }, // end asyncData
+
+  data() {
+    return {
+      searchKeyword: '',
+    }
+  }, // end data
+
   methods: {
     moveToDetailPage(id) {
       console.log('id: ' + id)
       // pages폴더 _id.vue -> _는 router의 파라미터, id는 넘길 id
       this.$router.push(`detail/${id}`) //  detail은 detail폴더 의미
-    },
+    }, // end moveToDetailPage()
+
     async searchProducts() {
       const response = await fetchProductsByKeyword(this.searchKeyword)
       console.log(response)
@@ -62,16 +77,12 @@ export default {
         ...item,
         imageUrl: `${item.imageUrl}?random=${Math.random()}`,
       }))
-    },
+    }, // end searchProducts()
+
     moveToCartPage() {
       this.$router.push('/cart')
-    },
-  },
-  data() {
-    return {
-      searchKeyword: '',
-    }
-  },
+    }, // end moveToCartPage()
+  }, // end methods
 }
 </script>
 

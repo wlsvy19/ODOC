@@ -2,29 +2,29 @@
   <div>
     <header>
       <header class="title">
-        <nuxt-link class="logo" to="/">Nuxt Shopping</nuxt-link>
+        <NuxtLink to="/" class="logo">Nuxt Shopping</NuxtLink>
       </header>
-      <!-- <router-link></router-link> -->
-      <!-- 아래와 동일 -->
-      <!-- <nuxt-link to="/">홈페이지</nuxt-link> -->
-      <!-- <nuxt-link to="/main">메인 페이지</nuxt-link> -->
-      <!-- <nuxt-link to="/product">상품 페이지</nuxt-link> -->
+      <nuxt-link to="main" class="logo">메인</nuxt-link>
+      <Nuxt-Link to="/board" class="logo">게시판 </Nuxt-Link>
+      <NuxtLink to="/register" class="logo"> 회원가입</NuxtLink>
+      <NuxtLink to="/login" class="logo"> 로그인</NuxtLink>
     </header>
-    <nuxt />
-    <!-- <router-view/> -->
+    <Nuxt />
+    <!-- page폴더 안에 index.vue -->
   </div>
 </template>
 
 <style scoped>
 /* 헤더 관련 스타일 */
 header {
-  height: 60px;
+  height: 70px;
   display: flex;
   align-items: center;
   padding: 0 0.5rem;
 }
 .logo {
   font-weight: 900;
+  margin-left: 100px;
 }
 .logo:visited {
   color: inherit;
