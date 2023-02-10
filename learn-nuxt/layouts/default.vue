@@ -2,15 +2,16 @@
   <div>
     <header>
       <header class="title">
-        <NuxtLink to="/" class="logo">Nuxt Shopping</NuxtLink>
+        <!-- <router-link> 와 동일-->
+        <NuxtLink to="/" class="logo">Nuxt</NuxtLink>
       </header>
       <nuxt-link to="main" class="logo">메인</nuxt-link>
       <Nuxt-Link to="/board" class="logo">게시판 </Nuxt-Link>
       <NuxtLink to="/register" class="logo"> 회원가입</NuxtLink>
       <NuxtLink to="/login" class="logo"> 로그인</NuxtLink>
     </header>
-    <Nuxt />
-    <!-- page폴더 안에 index.vue -->
+    <!-- <Nuxt>: page폴더 안에 루트 / 라우터 -> index.vue -->
+    <nuxt />
   </div>
 </template>
 
