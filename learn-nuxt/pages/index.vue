@@ -67,7 +67,7 @@ export default {
       imageUrl: `${item.imageUrl}?random=${Math.random()}`,
     }))
     // console.log('resProducts:', resProducts)
-    // ES6 객체 축약 문법, 리턴 하자마자 vue 인스턴스로 사용 가능-> v-for에서 사용
+    // ES6 객체 축약 문법, 리턴 하자마자 vue 인스턴스로 사용 가능-> v-for와 searchProducts()에서 사용
     return { products: resProducts }
   }, // end asyncData
 
@@ -97,7 +97,7 @@ export default {
      */
     async searchProducts() {
       const response = await fetchProductsByKeyword(this.searchKeyword)
-      console.log('검색결과:', response)
+      // asyncData의 return 값
       this.products = response.data.map((item) => ({
         ...item,
         imageUrl: `${item.imageUrl}?random=${Math.random()}`,
