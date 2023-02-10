@@ -19,6 +19,7 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
+  // * 전역 css 설정
   css: ['@/assets/css/reset.css'],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
@@ -39,13 +40,12 @@ export default {
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
 
-  // 서버포트 변경: https://nuxtjs.org/docs/features/configuration/#edit-host-and-port
-  // server
+  // * 서버포트 변경: https://nuxtjs.org/docs/features/configuration/#edit-host-and-port
   server: {
     port: isProduction ? null : 4000,
   },
 
-  // env
+  // * env
   env: {
     baseURL: isProduction
       ? 'https://my-json-server.typicode.com/joshua1988/nuxt-shopping-api'
