@@ -2,7 +2,7 @@
 
 `npm run dev`로 넉스트 서버 실행
 
-
+<img src="./Learn-Nuxt.png">
 
 
 ## 개발 환경 구성

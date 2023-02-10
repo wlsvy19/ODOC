@@ -13,7 +13,7 @@
         v-on:input="$emit('input', $event.target.value)"
         v-on:keyup.enter="$emit('search')"
       />
-      <button class="btn" type="button" @click="$emit('search')">찾기</button>
+      <button class="btn" type="button" @click="$emit('search')">검색</button>
     </div>
 
     <div style="margin-left: 40px">
