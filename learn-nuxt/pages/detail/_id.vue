@@ -18,28 +18,30 @@
 </template>
 
 <script>
-import { fetchProductById } from '~/api'
+import { fetchProductById } from '@/api/index'
+/**
+ * ! _id.vue: _는 라우터의 파라미터, id는 파라미터로 넘길 값 -> http://localhost:4000/detail/2
+ */
 export default {
-  //   created() {
-  //     const id = console.log(this.$route.params.id)
-  //     fetchProductById();
-  //   },
-
-  // create말고 nuxt에서 제공하는 asyncData 사용
-  // asyncData 속성은 페이지 진입하기 전에 호출되는 로직이라서(컴포넌트 그려지기전) this사용x
-  // -> router에서 제공하는 parmas 인자 받아 사용
-  // asyncData가 서버에서 데이터 받아옴
+  // this.$route.params = {params}
   async asyncData({ params }) {
-    // const id = console.log(this.$route.params.id)
+    console.log('_id.vue-> asyncData() params', params)
     const response = await fetchProductById(params.id)
+    console.log('response:', response)
     const product = response.data
-    return { product } //
+
+    // 위에 HTML 템플릿에서 바로 사용 가능
+    return { product }
+  },
+  created() {
+    // console.log('created: ', this.$route.params)
   },
   methods: {
     addToCart() {
       // pages폴더 car.vue생성->.nuxt에 router.js 에 cart path 자동 라우팅
       this.$router.push('/cart')
-      // mutation 호출
+
+      // commit: mutation 호출
       // vue cli생성 시 new Vue({store: '', router: ''}) 이 구조가 nuxt에서 자동
       this.$store.commit('addCartItem', this.product)
     },

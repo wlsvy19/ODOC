@@ -1,24 +1,30 @@
+<!-- eslint-disable vue/v-bind-style -->
+<!-- eslint-disable vue/v-on-style -->
+<!-- eslint-disable vue/attribute-hyphenation -->
 <template>
   <div class="app">
+    <!-- 시맨틱 마크업 사용(div ㄴㄴ) -->
     <main>
-      <!--@input은 SearchInput컴포넌트에서 보낸 이벤트 받음-->
-      <!--:search-keyword="searchKeyword" @input="updateSearchKeyword"-->
       <SearchInput
         v-model="searchKeyword"
-        @search="searchProducts"
+        v-bind:parentsData="searchKeyword"
+        v-on:input="searchProducts"
+        v-on:search="searchProducts"
       ></SearchInput>
+      <EmitTest v-on:myEmitTest="parentEmit"></EmitTest>
     </main>
+
     <ul>
       <li
         v-for="product in products"
         :key="product.id"
         class="item flex"
-        @click="moveToDetailPage(product.id)"
+        @click="routeToProductDetailPage(product.id)"
       >
         <img
           class="product-image"
-          :src="product.imageUrl"
-          :alt="product.name"
+          v-bind:src="product.imageUrl"
+          v-bind:alt="product.name"
         />
         <p>{{ product.name }}</p>
         <span>{{ product.price }}$</span>
@@ -36,9 +42,14 @@ import axios from 'axios'
 import SearchInput from '../components/SearchInput.vue'
 // import fetchProductsByKeyword from '@/api/index'
 import { fetchProductsByKeyword } from '@/api/index'
+import EmitTest from '~/components/EmitTest.vue'
+
+/**
+ * ! 이 파일은 루트 URL 로 라우터에 자동 등록
+ */
 
 export default {
-  components: { SearchInput },
+  components: { SearchInput, EmitTest },
 
   // Nuxt의 비동기 데이터 호출 방법
   // https://joshua1988.github.io/vue-camp/nuxt/data-fetching.html#asyncdata
@@ -50,9 +61,12 @@ export default {
     // console.log('응답 데이터: ', response)
     // asyncData는 this.products로 접근 불가->const 변수 선언 후 사용
     const resProducts = response.data.map((item) => ({
+      // Spread Operator: response.data의 속성들 (id, name, price 등...)을 item에 키:값 형태로 넣음
       ...item,
+      // imageUrl을 랜덤 으로 설정, http://placeimg.com/640/480/tech?random=0.6045700411882764
       imageUrl: `${item.imageUrl}?random=${Math.random()}`,
     }))
+    // console.log('resProducts:', resProducts)
     // ES6 객체 축약 문법, 리턴 하자마자 vue 인스턴스로 사용 가능-> v-for에서 사용
     return { products: resProducts }
   }, // end asyncData
@@ -64,15 +78,26 @@ export default {
   }, // end data
 
   methods: {
-    moveToDetailPage(id) {
-      console.log('id: ' + id)
-      // pages폴더 _id.vue -> _는 router의 파라미터, id는 넘길 id
-      this.$router.push(`detail/${id}`) //  detail은 detail폴더 의미
-    }, // end moveToDetailPage()
+    /**
+     * * 클릭한 사진의 상세페이지로 이동 하는 메서드
+     * @param {*} id: 클릭한 사진 id
+     */
+    routeToProductDetailPage(id) {
+      console.log('클릭한 사진 id: ' + id)
 
+      // this.$router 정의 안했는데? -> Nuxt에서 라우터 기본 제공
+      // pages폴더 _id.vue -> _는 router의 파라미터, id는 넘길 id
+      // detail: detail 폴더를 의미(파라미터)
+      // ``는 템플릿 리터럴->백틱 문자 사용
+      this.$router.push(`detail/${id}`)
+    }, // end routeToProductDetailPage()
+
+    /**
+     * * 특정 키워드를 찾는 메서드
+     */
     async searchProducts() {
       const response = await fetchProductsByKeyword(this.searchKeyword)
-      console.log(response)
+      console.log('검색결과:', response)
       this.products = response.data.map((item) => ({
         ...item,
         imageUrl: `${item.imageUrl}?random=${Math.random()}`,
@@ -82,10 +107,16 @@ export default {
     moveToCartPage() {
       this.$router.push('/cart')
     }, // end moveToCartPage()
+
+    parentEmit(data) {
+      alert(`부모:Data 받아요!! -> ${data}`)
+      console.log('부모: Data 받아요~! -> ', data)
+    }, // end parentEmit()
   }, // end methods
 }
 </script>
 
+<!-- 복붙 https://github.com/joshua1988/learn-nuxt/blob/master/pages/index.vue -->
 <style scoped>
 .flex {
   display: flex;
