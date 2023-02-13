@@ -20,6 +20,7 @@
 <script>
 import { fetchProductById } from '@/api/index'
 /**
+ * ! 이 파일은 다이나믹 라우팅이 적용된 파일입니다.
  * ! _id.vue: _는 라우터의 파라미터, id는 파라미터로 넘길 값 -> http://localhost:4000/detail/2
  */
 export default {
@@ -41,8 +42,9 @@ export default {
       // pages폴더 car.vue생성->.nuxt에 router.js 에 cart path 자동 라우팅
       this.$router.push('/cart')
 
-      // commit: mutation 호출
-      // vue cli생성 시 new Vue({store: '', router: ''}) 이 구조가 nuxt에서 자동
+      // commit: store/index.js mutations 호출
+      // vue cli생성 시 new Vue({store: store, router: router}) 이 구조가 nuxt에서 자동
+      // store 파일밑에 만든 js 파일 자동 인식
       this.$store.commit('addCartItem', this.product)
     },
   },
