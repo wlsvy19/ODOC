@@ -29,7 +29,11 @@
 </template>
 
 <script>
-export default {}
+export default {
+  /**
+   * ! 장바구니에 담은 아이템이 보이는 페이지
+   */
+}
 </script>
 
 <style scoped>

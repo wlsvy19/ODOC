@@ -32,7 +32,7 @@
       </li>
     </ul>
     <div class="cart-wrapper">
-      <button class="btn" @click="moveToCartPage">장바구니 바로가기</button>
+      <button class="btn" v-on:click="moveToCartPage">장바구니 바로가기</button>
     </div>
   </div>
 </template>
