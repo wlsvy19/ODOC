@@ -1,25 +1,7 @@
 <template>
   <div class="container">
     <h1 class="list-title">카트페이지</h1>
-    <div class="list-wrapper">
-      <ul>
-        <li
-          v-for="cartItem in $store.state.cartItems"
-          :key="cartItem.id"
-          class="list-item"
-        >
-          <img
-            class="thumbnail"
-            :src="cartItem.imageUrl"
-            :alt="cartItem.name"
-          />
-          <div class="description">
-            <p>{{ cartItem.name }}</p>
-            <span>{{ cartItem.price }}$</span>
-          </div>
-        </li>
-      </ul>
-    </div>
+    <CartList></CartList>
     <div>
       <div class="extra-panel">
         <button>구매하기</button>
@@ -29,10 +11,21 @@
 </template>
 
 <script>
+import CartList from '~/components/CartList.vue'
+// import { FETCH_CART_ITEMS } from '@/store/index'
+
 export default {
+  components: { CartList },
   /**
    * ! 장바구니에 담은 아이템이 보이는 페이지
    */
+  // nuxtServerInit 으로 SSR 구현 ->  아래 코드 생략
+  /*
+  async asyncData({ store }) {
+    // store/index.js 에서 actions 호출
+    await store.dispatch(FETCH_CART_ITEMS)
+  }, // -> nuxtServerInit 호출로 스토어에 데이터 미리 불러옴
+  */
 }
 </script>
 

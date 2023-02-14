@@ -5,7 +5,18 @@
 </template>
 
 <script>
-export default {};
+export default {
+  data() {
+    return {
+      key: '',
+    };
+  },
+  methods: {
+    testFunction() {
+      console.log('test');
+    },
+  },
+};
 </script>
 
 <style scoped>
