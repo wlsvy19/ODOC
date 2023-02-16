@@ -33,6 +33,46 @@ export default {
     // 위에 HTML 템플릿에서 바로 사용 가능
     return { product }
   },
+
+  // head(): 페이지 별 메타 태그 설정 - 노출될때 보여지는 내용
+  // head를 function으로 하면 값 가져올 수 있음
+  head() {
+    return {
+      title: `Shopping Item Detail - ${this.product.name}`,
+      meta: [
+        {
+          // nuxt.config.js 의 hid값과 똑같아야 페이지별로 description 태그 한개임
+          hid: 'description',
+          name: 'description',
+          content: `이 상품은 ${this.product.name} 입니다.`,
+        },
+        // OG태그 사용
+        // 카톡 OG태그 캐시 비우기: https://developers.kakao.com/tool/debugger/sharing
+        {
+          hid: 'og:title',
+          property: 'og:title',
+          content: '상품 상세 페이지',
+        },
+        {
+          hid: 'og:description',
+          property: 'og:description',
+          content: '상품의 상세 정보를 확인해보세요',
+        },
+        {
+          hid: 'og:image',
+          property: 'og:image',
+          content: 'http://placeimg.com/640/480/fashion',
+        },
+      ],
+      link: [
+        {
+          rel: 'stylesheet',
+          href: '#',
+        },
+      ],
+    }
+  },
+
   created() {
     // console.log('created: ', this.$route.params)
   },
