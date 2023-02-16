@@ -38,8 +38,8 @@
 </template>
 
 <script>
-import axios from 'axios'
 import SearchInput from '../components/SearchInput.vue'
+import { fetchProducts } from '@/api/index'
 // import fetchProductsByKeyword from '@/api/index'
 import { fetchProductsByKeyword } from '@/api/index'
 import EmitTest from '~/components/EmitTest.vue'
@@ -57,7 +57,9 @@ export default {
   // 컴포넌트 그려지기 전이라 data의 this 사용 못함
   // vue의 네비게이션 가드에서 비동기 데이터가 다 불러져 와야 next() 호출 하는 것과 비슷
   async asyncData() {
-    const response = await axios.get('http://localhost:3000/products')
+    // const response = await axios.get('http://localhost:3000/products')
+    const response = await fetchProducts()
+
     // console.log('응답 데이터: ', response)
     // asyncData는 this.products로 접근 불가->const 변수 선언 후 사용
     const resProducts = response.data.map((item) => ({

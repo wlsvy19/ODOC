@@ -1,6 +1,7 @@
 export default {
   // Target: https://go.nuxtjs.dev/config-target
-  // target: 'static',
+  // ! Static Site Generator 방식: netlify 사용
+  target: 'static',
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -46,7 +47,9 @@ export default {
     port: process.env.NODE_ENV === 'production' ? null : 4000,
   },
 
-  // * env
+  // * env: api폴더 에 있는 axios 관련 URL 설정
+  // 배포할땐 https 로 배포
+  // 개발할 땐 로컬 3000번 포트
   env: {
     baseURL:
       process.env.NODE_ENV === 'production'
