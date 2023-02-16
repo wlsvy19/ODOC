@@ -15,6 +15,7 @@ backend 폴더로 이동 후 터미널 열기(backend README.md 참고)
 
 ## 실행 화면
 <img src="./img/main화면.png">
+https://learn-nuxt-shop.netlify.app/
 
 ## SSG 방식 배포-Netlify 사용
 1. nuxt.config.js 에서 target을 static으로 설정
