@@ -1,4 +1,10 @@
-# vue-news
+# Open API를 사용하여 만든 vue-news 사이트
+
+
+# 완성된 사이트 주소
+https://leejp.netlify.app
+
+
 
 ## 뷰 프로젝트 생성
 ```
