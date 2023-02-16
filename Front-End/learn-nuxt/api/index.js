@@ -1,8 +1,20 @@
 import axios from 'axios'
 
+// 추후 실서버에 배포시 여기만 바꾸면 됨
+// 커밋 후 push하면 히로쿠에 연동된 깃에 의해 배포됨
 const instance = axios.create({
   baseURL: 'http://localhost:3000',
+  // nuxt.config.js 파일의 env 쪽 가져옴
+  // baseURL: process.env.baseURL,
 })
+
+/**
+ * pages/index.vue 의 asyncData에서 사용
+ * @returns 전체 물건 불러오기
+ */
+function fetchProducts() {
+  return instance.get('/products')
+}
 
 /**
  *
@@ -45,6 +57,7 @@ function fetchCartItems() {
 }
 
 export {
+  fetchProducts,
   fetchProductById,
   fetchProductsByKeyword,
   createCartItem,
