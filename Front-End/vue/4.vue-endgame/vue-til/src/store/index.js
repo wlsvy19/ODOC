@@ -46,6 +46,8 @@ export default new Vuex.Store({
   // 인자: (state, )
   getters: {
     isLogin(state) {
+      var a = 'string';
+      console.log(a);
       // 빈문자열이 아니면 로그인 상태임
       return state.username !== '';
     },
