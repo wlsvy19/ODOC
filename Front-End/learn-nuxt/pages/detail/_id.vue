@@ -46,7 +46,7 @@ export default {
           name: 'description',
           content: `이 상품은 ${this.product.name} 입니다.`,
         },
-        // OG태그 사용
+        // OG태그 사용: SNS 노출 시 나오는 그림등등 설정
         // 카톡 OG태그 캐시 비우기: https://developers.kakao.com/tool/debugger/sharing
         {
           hid: 'og:title',

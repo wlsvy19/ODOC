@@ -1,5 +1,10 @@
 import { fetchCartItems } from '~/api'
 
+// * constants 영역: 어플 규모가 커져서 동일한 actions호출이 많거나 할 경우 상수로 관리하는게 편함
+// ES6+ 문법: 동적키값 정의 방식 -> 변수로 관리, [] 로 사용
+export const FETCH_CART_ITEMS = 'FETCH_CART_ITEMS'
+
+// * store 영역
 // state: 여러 컴포넌트 간에 공유되는 데이터
 export const state = () => ({
   cartItems: [],
@@ -26,9 +31,6 @@ export const mutations = {
     state.cartItems = cartItems
   },
 }
-
-// ES6+ 문법: 동적키값 정의 방식 -> 변수로 관리, [] 로 사용
-export const FETCH_CART_ITEMS = 'FETCH_CART_ITEMS'
 
 export const actions = {
   // {commit} -> context.commit
