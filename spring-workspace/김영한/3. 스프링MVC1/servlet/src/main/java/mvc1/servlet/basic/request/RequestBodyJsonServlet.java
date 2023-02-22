@@ -26,7 +26,7 @@ public class RequestBodyJsonServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletInputStream inputStream = request.getInputStream();
         String messageBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
-        // 여기까지는 단순 Text 데이터 임
+        // 여기까지는 단순 Text 데이터
         System.out.println("messageBody = " + messageBody);
 
         //  {"username": "hello", "age":20} -> JSON형식으로 변환(파싱) -> HelloData 객체 타입(자바 객체)으로 변환
