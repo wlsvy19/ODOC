@@ -32,18 +32,13 @@ public class FrontControllerServletV2 extends HttpServlet {
         String requestURI = request.getRequestURI();
         System.out.println("requestURI = " + requestURI);
 
-        // key: /front-controller/v1/ ~~~  ,  value: 각각의 컨트롤러 로직 결과들
         ControllerV2 controller = controllerMap.get(requestURI);
 
-        // 요청한 URL 정보 없을 경우
         if (controller == null) {
-            // 헤더에서 상태 코드 확인
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
-            // response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
-
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
-        // 각각의 호출된 컨트롤러에서 상속받은 process 메서드 실행
+
         MyView view = controller.process(request, response);
         view.render(request, response);
     }
