@@ -22,4 +22,14 @@ public class MvcMemberFormServlet extends HttpServlet {
         // 서블릿에서 jsp 파일 호출
         dispatcher.forward(request, response);
     }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doGet(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doPost(req, resp);
+    }
 }
