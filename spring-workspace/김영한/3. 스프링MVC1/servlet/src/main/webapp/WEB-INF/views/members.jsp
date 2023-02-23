@@ -8,6 +8,7 @@
 </head>
 <body>
 <a href="/index.html">메인</a>
+<h1>${form}</h1>
 <table>
     <thead>
     <th>id</th>
