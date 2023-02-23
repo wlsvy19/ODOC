@@ -19,6 +19,7 @@ public class MvcMemberFormServlet extends HttpServlet {
         String viewPath = "/WEB-INF/views/new-form.jsp";
         RequestDispatcher dispatcher = request.getRequestDispatcher(viewPath);
 
+        request.setAttribute("form", "서블릿 MVC 형태");
         // 서블릿에서 jsp 파일 호출
         dispatcher.forward(request, response);
     }
