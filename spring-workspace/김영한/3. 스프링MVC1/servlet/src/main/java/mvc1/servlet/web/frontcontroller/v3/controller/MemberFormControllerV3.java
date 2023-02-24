@@ -8,6 +8,9 @@ import java.util.Map;
 public class MemberFormControllerV3 implements ControllerV3 {
     @Override
     public ModelView process(Map<String, String> paramMap) {
-        return new ModelView("new-form");
+        ModelView mv = new ModelView("new-form");
+        mv.getModel().put("form", "Front 컨트롤러 버전3 - 회원가입 폼");
+
+        return mv;
     }
 }
