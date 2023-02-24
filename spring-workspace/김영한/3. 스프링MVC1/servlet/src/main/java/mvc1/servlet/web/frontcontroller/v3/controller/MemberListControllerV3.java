@@ -17,7 +17,7 @@ public class MemberListControllerV3 implements ControllerV3 {
 
         ModelView mv = new ModelView("members");
         mv.getModel().put("members", members);
-        mv.getModel().put("form", "Front 컨트롤러 버전3");
+        mv.getModel().put("form", "Front 컨트롤러 버전3 - 회원 리스트");
 
         return mv;
     }
