@@ -12,6 +12,7 @@ public class SpringMemberFormControllerV1 {
     public ModelAndView process() {
         ModelAndView mv = new ModelAndView("new-form");
         mv.addObject("form", "Spring MVC 방식 V1 컨트롤러 - 로그인 폼");
+        mv.addObject("");
         return mv;
     }
 }
