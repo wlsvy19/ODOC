@@ -2,6 +2,7 @@ package mvc1.springmvc.basic.requestmapping;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -86,6 +87,56 @@ public class MappingController {
     @GetMapping(value = "/mapping-param", params = "mode=debug")
     public String mappingParam() {
         log.info("mappingParam");
+        return "ok";
+    }
+
+    /**
+     * 특정 헤더로 추가 매핑
+     * postmad으로 테스트 - 요청할 때 헤더에 mode=debug 를 해야 요청 가능
+     * headers="mode",
+     * headers="!mode"
+     * headers="mode=debug"
+     * headers="mode!=debug" (! = )
+     * http://localhost:8082/mapping-header?mode=debug
+     */
+    @GetMapping(value = "/mapping-header", headers = "mode=debug")
+    public String mappingHeader() {
+        log.info("mappingHeader");
+        return "ok";
+    }
+
+    /**
+     * 미디어 타입 조건 매핑 - HTTP 요청 Content-Type, consume
+     * Content-Type 헤더 기반 추가 매핑 Media Type
+     * consumes가 Content-Type 을 의미함, 서버 입장에서 보면 소비자
+     * consumes="application/json"
+     * consumes="!application/json"
+     * consumes="application/*"
+     * consumes="*\/*"
+     * MediaType.APPLICATION_JSON_VALUE
+     * POST 방식으로 Body에 JSON데이터 넣고 postman 테스트
+     * http://localhost:8082/mapping-consume
+     */
+    @PostMapping(value = "/mapping-consume", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public String mappingConsumes() {
+        log.info("mappingConsumes");
+        return "ok";
+    }
+
+    /**
+     * 미디어 타입 조건 매핑 - HTTP 요청 Accept, produce
+     * Accept 헤더 기반 Media Type
+     * Header에 Accept를 바꿔서 테스트-> (text/html) 형태만 가능
+     * 클라이언트(여기서는 postman)가 text/html 형태만 받을 수 있음
+     * produces = "text/html"
+     * produces = "!text/html"
+     * produces = "text/*"
+     * produces = "*\/*"
+     * http://localhost:8082/mapping-produce
+     */
+    @PostMapping(value = "/mapping-produce", produces = MediaType.TEXT_HTML_VALUE)
+    public String mappingProduces() {
+        log.info("mappingProduces");
         return "ok";
     }
 }

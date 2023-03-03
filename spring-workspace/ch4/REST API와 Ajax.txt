@@ -8,8 +8,8 @@
 2. stringif()와 parse()
  - HTTP는 TEXT기반 프로토콜이므로 JS 객체를 서버로 전송하려면 직렬화가 필요
  - 서버가 보낸 데이터(JSON문자열)을 JS 객체로 변환할 때, 역직렬화가 필요
- - JSON.stringify(): 객체를 JSON 문자열로 변환(직렬화, JS객체 -> 문자열)
- - JSON.parse(): JSON 문자열을 객체로 변환(역직렬화, 문자열 -> JS객체)
+ - JSON.stringify(): 객체를 JSON형태의 문자열로 변환(직렬화, JS객체 -> 문자열)
+ - JSON.parse(): JSON형태의 문자열을 객체로 변환(역직렬화, 문자열 -> JS객체)
  - {name: "leejp", age:30}     <-----> '{"name":"leejp", "age":30}'
 
 3. Ajax란?
