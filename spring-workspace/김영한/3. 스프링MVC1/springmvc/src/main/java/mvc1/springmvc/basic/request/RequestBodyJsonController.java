@@ -103,8 +103,8 @@ public class RequestBodyJsonController {
     /**
      * 정리
      * @RequestBody 요청
-     * JSON 요청 -> HTTP 메시지 컨버터 -> 객체
+     * JSON 요청 들어옴 -> HTTP 메시지 컨버터 -> 객체
      * @ResponseBody 응답
-     * 객체 -> HTTP 메시지 컨버터 -> JSON 응답
+     * 객체 -> HTTP 메시지 컨버터 -> JSON 응답 보내줌
      */
 }
