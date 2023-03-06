@@ -125,7 +125,7 @@ public class RequestParamController {
     }
 
     /**
-     * @ModelAttribute 사용
+     * @ModelAttribute 사용: 객체를 파라미터로 받음
      * 참고: model.addAttribute(helloData) 코드도 함께 자동 적용됨, 뒤에 model을 설명할 때 자세히 설명
      * http://localhost:8082/model-attribute-v1?username=hello&age=20
      */
