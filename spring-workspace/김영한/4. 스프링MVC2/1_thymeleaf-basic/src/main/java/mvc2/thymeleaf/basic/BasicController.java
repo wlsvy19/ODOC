@@ -1,0 +1,68 @@
+package mvc2.thymeleaf.basic;
+
+import lombok.Data;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 타임리프 기본 문법을 다루는 컨트롤러
+ */
+@Controller
+@RequestMapping("/basic")
+public class BasicController {
+    @GetMapping("/text-basic")
+    public String textBasic(Model model) {
+        model.addAttribute("data", "Hello Spring!");
+        return "basic/text-basic";
+    }
+
+    /**
+     * unescaped: HTML 태그 노출 허용
+     */
+    @GetMapping("text-unescaped")
+    public String textUnescaped(Model model) {
+        model.addAttribute("data", "Hello <b>Spring!</b>");
+        return "basic/text-unescaped";
+    }
+
+    /**
+     * 타임리프에서 변수를 사용할 때는 변수 표현식을 사용함
+     */
+    @GetMapping("variable")
+    public String variable(Model model) {
+        User userA = new User("userA", 10);
+        User userB = new User("userB", 25);
+
+        List<User> list = new ArrayList<>();
+        list.add(userA);
+        list.add(userB);
+
+        Map<String, User> map = new HashMap<>();
+        map.put("userA", userA);
+        map.put("userB", userB);
+
+        model.addAttribute("user", userA);
+        model.addAttribute("users", list);
+        model.addAttribute("userMap", map);
+
+        return "basic/variable";
+    }
+
+    @Data
+    static class User {
+        private String username;
+        private int age;
+
+        public User(String username, int age) {
+            this.username = username;
+            this.age = age;
+        }
+    }
+}
