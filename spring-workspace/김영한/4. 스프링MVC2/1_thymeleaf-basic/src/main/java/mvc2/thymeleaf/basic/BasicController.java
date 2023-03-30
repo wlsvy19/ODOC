@@ -19,6 +19,7 @@ import java.util.Map;
 /**
  * 타임리프 기본 문법을 다루는 컨트롤러
  */
+
 @Controller
 @RequestMapping("/basic")
 public class BasicController {
@@ -112,10 +113,101 @@ public class BasicController {
         return "basic/date";
     }
 
+    /**
+     * URL 링크 사용 방법
+     */
     @GetMapping("/link")
     public String link(Model model) {
         model.addAttribute("param1", "data1");
         model.addAttribute("param2", "data2");
         return "basic/link";
     }
+
+    /**
+     * 리터럴: 소스 코드상에 고정된 값
+     */
+    @GetMapping("literal")
+    public String literal(Model model) {
+        model.addAttribute("data", "Spring!");
+        return "basic/literal";
+    }
+
+    /**
+     * 여러가지 연산
+     */
+    @GetMapping("operation")
+    public String operation(Model model) {
+        model.addAttribute("nullData", null);
+        model.addAttribute("data", "Spring");
+        return "basic/operation";
+    }
+
+    /**
+     * 속성 값 설정
+     */
+    @GetMapping("attribute")
+    public String attribute() {
+        return "basic/attribute";
+    }
+
+    private void addUsers(Model model) {
+        List<User> list = new ArrayList<>();
+        list.add(new User("userA", 10));
+        list.add(new User("userB", 20));
+        list.add(new User("userC", 30));
+        list.add(new User("userD", 40));
+        list.add(new User("userE", 50));
+
+        model.addAttribute("users", list);
+    }
+
+    /**
+     * 반복 - each
+     */
+    @GetMapping("/each")
+    public String each(Model model) {
+        addUsers(model);
+        ;
+        return "basic/each";
+    }
+
+    /**
+     * 조건부 평가 - if~unless, switch~case
+     */
+    @GetMapping("condition")
+    public String condition(Model model) {
+        addUsers(model);
+        return "basic/condition";
+    }
+
+    /**
+     * 주석
+     */
+    @GetMapping("comments")
+    public String comments(Model model) {
+        model.addAttribute("data", "Spring!");
+        return "basic/comments";
+    }
+
+    /**
+     * 블록
+     */
+    @GetMapping("block")
+    public String block(Model model) {
+        addUsers(model);
+        return "basic/block";
+    }
+
+    /**
+     * 자바스크립트 인라인: 자바스크립트에서 타임리프를 편리하게 사용 할 수 있는 기능 제공
+     * 소스보기로 확인
+     */
+    @GetMapping("javascript")
+    public String javascript(Model model) {
+        model.addAttribute("user", new User("userA", 10));
+        addUsers(model);
+        return "basic/javascript";
+    }
+
+
 }
