@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--base.html로 공통 레이아웃을 쓰되, css등 다르게 적용 하고 싶음, ~{::} title태그를 base.html에 common_header에 넣어버림-->
+<!--
+common_header(~{::title},~{::link}) 이 부분이 핵심
+::title 은 현재 페이지의 title 태그들을 전달
+::link 는 현재 페이지의 link 태그들을 전달
+-->
+<head th:replace="template/layout/base :: common_header(~{::title},~{::link})">
+    <title>메인 타이틀</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/themes/smoothness/jquery-ui.css}">
+</head>
+<body>
+메인 컨텐츠
+</body>
+</html>
