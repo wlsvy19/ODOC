@@ -1,7 +1,9 @@
 package hello.itemservice.web.form;
 
+import hello.itemservice.domain.item.DeliveryCode;
 import hello.itemservice.domain.item.Item;
 import hello.itemservice.domain.item.ItemRepository;
+import hello.itemservice.domain.item.ItemType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -9,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +34,25 @@ public class FormItemController {
         regions.put("JEJU", "제주");
         return regions;
     }
+    
+    // 이넘 사용하여 뷰로 데이터 전달하는 방법
+    @ModelAttribute("itemTypes")
+    public ItemType[] itemTypes() {
+        // values: 해당 ENUM의 모든 정보를 배열로 반환
+        return ItemType.values();
+    }
 
+    // 자바 객체 사용하여 뷰로 데이터 전달 하는 방법
+    @ModelAttribute("deliveryCodes")
+    public List<DeliveryCode> deliveryCodes() {
+        List<DeliveryCode> deliveryCodes = new ArrayList<>();
+        deliveryCodes.add(new DeliveryCode("FAST", "빠른 배송"));
+        deliveryCodes.add(new DeliveryCode("ROCKET", "로켓 배송"));
+        deliveryCodes.add(new DeliveryCode("NORMAL", "일반 배송"));
+        return deliveryCodes;
+    }
+    
     @GetMapping
-
     public String items(Model model) {
         List<Item> items = itemRepository.findAll();
         model.addAttribute("items", items);
@@ -58,8 +77,11 @@ public class FormItemController {
 
     @PostMapping("/add")
     public String addItem(@ModelAttribute Item item, RedirectAttributes redirectAttributes) {
+        log.info("============================================================");
         log.info("상품 판매여부 싱글 체크박스 = {}", item.getOpen());
         log.info("상품 등록지역 멀티 체크박스 = {}", item.getRegions());
+        log.info("상품 타입 = {}", item.getItemType());
+        log.info("배송 종류 = {}", item.getDeliveryCode());
 
         Item savedItem = itemRepository.save(item);
         redirectAttributes.addAttribute("itemId", savedItem.getId());
@@ -83,9 +105,12 @@ public class FormItemController {
      */
     @PostMapping("/{itemId}/edit")
     public String edit(@PathVariable Long itemId, @ModelAttribute Item item) {
+        log.info("============================================================");
         log.info("상품 판매여부 싱글 체크박스 = {}", item.getOpen());
         log.info("상품 등록지역 멀티 체크박스 = {}", item.getRegions());
-        
+        log.info("상품 타입 = {}", item.getItemType());
+        log.info("배송 종류 = {}", item.getDeliveryCode());
+
         itemRepository.update(itemId, item);
         return "redirect:/form/items/{itemId}";
     }
