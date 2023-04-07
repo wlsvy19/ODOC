@@ -187,7 +187,6 @@ comment: <input type="text" name="comment">
         $("#replyForm").appendTo($(this).parent());
         // 2. 답글 입력할 폼 보여주기
         $("#replyForm").css("display", "block");
-
     });
 </script>
 </body>
