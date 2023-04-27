@@ -6,6 +6,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
+/**
+ * 추후 이 클래스는 Bean Validator에 의해 사용되지 않음
+ */
+
 @Component // 스프링 컨테이너에 스프링 빈으로 등록
 public class ItemValidator implements Validator {
     @Override
