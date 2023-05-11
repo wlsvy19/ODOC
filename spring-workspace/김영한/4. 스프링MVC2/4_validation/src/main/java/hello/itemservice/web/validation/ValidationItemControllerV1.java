@@ -33,80 +33,80 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ValidationItemControllerV1 {
 
-    private final ItemRepository itemRepository;
+	private final ItemRepository itemRepository;
 
-    @GetMapping
-    public String items(Model model) {
-        List<Item> items = itemRepository.findAll();
-        model.addAttribute("items", items);
-        return "validation/v1/items";
-    }
+	@GetMapping
+	public String items(Model model) {
+		List<Item> items = itemRepository.findAll();
+		model.addAttribute("items", items);
+		return "validation/v1/items";
+	}
 
-    @GetMapping("/{itemId}")
-    public String item(@PathVariable long itemId, Model model) {
-        Item item = itemRepository.findById(itemId);
-        model.addAttribute("item", item);
-        return "validation/v1/item";
-    }
+	@GetMapping("/{itemId}")
+	public String item(@PathVariable long itemId, Model model) {
+		Item item = itemRepository.findById(itemId);
+		model.addAttribute("item", item);
+		return "validation/v1/item";
+	}
 
-    @GetMapping("/add")
-    public String addForm(Model model) {
-        // 상품추가 폼인데도 빈 Item을 뷰단으로 보낸 이유: 검증 실패시 입력한 값 그대로 노출(재사용)
-        model.addAttribute("item", new Item());
-        return "validation/v1/addForm";
-    }
+	@GetMapping("/add")
+	public String addForm(Model model) {
+		// 상품추가 폼인데도 빈 Item을 뷰단으로 보낸 이유: 검증 실패시 입력한 값 그대로 노출(재사용)
+		model.addAttribute("item", new Item());
+		return "validation/v1/addForm";
+	}
 
-    @PostMapping("/add")
-    // @ModelAttribute Item item ->  model.addAttribute("item", item);
-    public String addItem(@ModelAttribute Item item, RedirectAttributes redirectAttributes, Model model) {
-        // 검증 오류 결과를 보관하는 객체를 맵으로 생성
-        Map<String, String> errors = new HashMap<>();
+	@PostMapping("/add")
+	// @ModelAttribute Item item ->  model.addAttribute("item", item);
+	public String addItem(@ModelAttribute Item item, RedirectAttributes redirectAttributes, Model model) {
+		// 검증 오류 결과를 보관하는 객체를 맵으로 생성
+		Map<String, String> errors = new HashMap<>();
 
-        if (!StringUtils.hasText(item.getItemName())) {
-            errors.put("itemName", "상품 이름은 필수 입니다.");
-        }
+		if (!StringUtils.hasText(item.getItemName())) {
+			errors.put("itemName", "상품 이름은 필수 입니다.");
+		}
 
-        if (item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000) {
-            errors.put("price", "가격은 1,000원 ~ 1,000,000원 까지 허용 합니다.");
-        }
+		if (item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000) {
+			errors.put("price", "가격은 1,000원 ~ 1,000,000원 까지 허용 합니다.");
+		}
 
-        if (item.getQuantity() == null || item.getQuantity() >= 9999) {
-            errors.put("quantity", "수량은 최대 9,999개 까지 허용합니다.");
-        }
+		if (item.getQuantity() == null || item.getQuantity() >= 9999) {
+			errors.put("quantity", "수량은 최대 9,999개 까지 허용합니다.");
+		}
 
-        // 특정 필드가 아닌 복합적인 룰 검증
-        if (item.getPrice() != null && item.getQuantity() != null) {
-            int resultPrice = item.getPrice() * item.getQuantity();
-            if (resultPrice < 10000) {
-                errors.put("globalError", "가격 * 수량의 합은 10,000원 이상이어야 합니다. 현재값 = " + resultPrice);
-            }
-        }
+		// 특정 필드가 아닌 복합적인 룰 검증
+		if (item.getPrice() != null && item.getQuantity() != null) {
+			int resultPrice = item.getPrice() * item.getQuantity();
+			if (resultPrice < 10000) {
+				errors.put("globalError", "가격 * 수량의 합은 10,000원 이상이어야 합니다. 현재값 = " + resultPrice);
+			}
+		}
 
-        // 검증에 실패하면 다시 입력 폼으로
-        if (!errors.isEmpty()) { // 뭔가 오류가 있다면
-            log.info("errors = {}", errors);
-            model.addAttribute("errors", errors);
-            return "validation/v1/addForm";
-        }
+		// 검증에 실패하면 다시 입력 폼으로
+		if (!errors.isEmpty()) { // 뭔가 오류가 있다면
+			log.info("errors = {}", errors);
+			model.addAttribute("errors", errors);
+			return "validation/v1/addForm";
+		}
 
-        // 성공 로직
-        Item savedItem = itemRepository.save(item);
-        redirectAttributes.addAttribute("itemId", savedItem.getId());
-        redirectAttributes.addAttribute("status", true);
-        return "redirect:/validation/v1/items/{itemId}";
-    }
+		// 성공 로직
+		Item savedItem = itemRepository.save(item);
+		redirectAttributes.addAttribute("itemId", savedItem.getId());
+		redirectAttributes.addAttribute("status", true);
+		return "redirect:/validation/v1/items/{itemId}";
+	}
 
-    @GetMapping("/{itemId}/edit")
-    public String editForm(@PathVariable Long itemId, Model model) {
-        Item item = itemRepository.findById(itemId);
-        model.addAttribute("item", item);
-        return "validation/v1/editForm";
-    }
+	@GetMapping("/{itemId}/edit")
+	public String editForm(@PathVariable Long itemId, Model model) {
+		Item item = itemRepository.findById(itemId);
+		model.addAttribute("item", item);
+		return "validation/v1/editForm";
+	}
 
-    @PostMapping("/{itemId}/edit")
-    public String edit(@PathVariable Long itemId, @ModelAttribute Item item) {
-        itemRepository.update(itemId, item);
-        return "redirect:/validation/v1/items/{itemId}";
-    }
+	@PostMapping("/{itemId}/edit")
+	public String edit(@PathVariable Long itemId, @ModelAttribute Item item) {
+		itemRepository.update(itemId, item);
+		return "redirect:/validation/v1/items/{itemId}";
+	}
 
 }
