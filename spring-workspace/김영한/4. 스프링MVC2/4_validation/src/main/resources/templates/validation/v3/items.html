@@ -1,49 +1,106 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8">
-    <link th:href="@{/css/bootstrap.min.css}"
-          href="../css/bootstrap.min.css" rel="stylesheet">
+	<meta charset="UTF-8">
+	<link th:href="@{/css/bootstrap.min.css}" href="../css/bootstrap.min.css" rel="stylesheet">
+
+	<!-- Vue.js CDN -->
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+	<!-- Element UI CDN -->
+	<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+
 </head>
 <body>
 
 <div class="container" style="max-width: 600px">
-    <div class="py-5 text-center">
-        <h2 th:text="#{page.items}">상품 목록</h2>
-    </div>
+	<div class="py-5 text-center">
+		<h2 th:text="#{page.items}">상품 목록</h2>
+	</div>
 
-    <div class="row">
-        <div class="col">
-            <button class="btn btn-primary float-end"
-                    onclick="location.href='addForm.html'"
-                    th:onclick="|location.href='@{/validation/v3/items/add}'|"
-                    type="button" th:text="#{page.addItem}">상품 등록</button>
-        </div>
-    </div>
+	<div class="row">
+		<div class="col">
+			<button class="btn btn-primary float-end"
+					onclick="location.href='addForm.html'"
+					th:onclick="|location.href='@{/validation/v3/items/add}'|"
+					type="button" th:text="#{page.addItem}">상품 등록
+			</button>
+		</div>
+	</div>
 
-    <hr class="my-4">
-    <div>
-        <table class="table">
-            <thead>
-            <tr>
-                <th th:text="#{label.item.id}">ID</th>
-                <th th:text="#{label.item.itemName}">상품명</th>
-                <th th:text="#{label.item.price}">가격</th>
-                <th th:text="#{label.item.quantity}">수량</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="item : ${items}">
-                <td><a href="item.html" th:href="@{/validation/v3/items/{itemId}(itemId=${item.id})}" th:text="${item.id}">회원id</a></td>
-                <td><a href="item.html" th:href="@{|/validation/v3/items/${item.id}|}" th:text="${item.itemName}">상품명</a></td>
-                <td th:text="${item.price}">10000</td>
-                <td th:text="${item.quantity}">10</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+	<hr class="my-4">
+	<div>
+		<table class="table">
+			<thead>
+			<tr>
+				<th th:text="#{label.item.id}">ID</th>
+				<th th:text="#{label.item.itemName}">상품명</th>
+				<th th:text="#{label.item.price}">가격</th>
+				<th th:text="#{label.item.quantity}">수량</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr th:each="item : ${items}">
+				<td><a href="item.html" th:href="@{/validation/v3/items/{itemId}(itemId=${item.id})}"
+					   th:text="${item.id}">회원id</a></td>
+				<td><a href="item.html" th:href="@{|/validation/v3/items/${item.id}|}"
+					   th:text="${item.itemName}">상품명</a></td>
+				<td th:text="${item.price}">10000</td>
+				<td th:text="${item.quantity}">10</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
 
 </div> <!-- /container -->
+
+<div>
+	<h1>-------------------------------------Test Test-------------------------------------</h1>
+</div>
+
+<div id="app">
+	<el-button type="primary" v-on:click="handleClick">Click</el-button>
+</div>
+
+<div id="app1">
+	<el-button type="success" v-on:click="handleClick1">Click me 1</el-button>
+	<input type="button" v-model="testData">
+</div>
+
+<div id="app2">
+	<!-- 버튼 클릭시 handleClick 메소드 실행 -->
+	<el-button type="danger" @click="handleClick2">Click me 2</el-button>
+
+</div>
+
+<script>
+      new Vue({
+        el: '#app1',
+        data: {
+        	testData: "test Data test Data"
+        },
+        methods: {
+          handleClick1() {
+            console.log('버튼이 클릭되었습니다. 1 ');
+            alert('버튼이 클릭되었습니다. 1 ');
+          }
+        }
+      })
+
+      new Vue({
+        el: '#app2',
+        methods: {
+          handleClick2() {
+            console.log('버튼이 클릭되었습니다. 2 ');
+            alert("버튼이 클릭되었습니다. 2 ");
+          }
+        }
+      })
+</script>
+
+
+
 
 </body>
 </html>

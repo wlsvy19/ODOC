@@ -12,17 +12,18 @@ import javax.validation.constraints.NotNull;
 // @ScriptAssert(lang = "javascript", script = "_this.price * _this.quantity >= 10000", message = "총합이 10000원 넘게 입력해야 함") // 권장x
 public class Item {
 
+	// @NotNull(groups = UpdateCheck.class)
     private Long id;
 
-    @NotBlank(message = "공백x!!!!")
+    // @NotBlank(groups = {SaveCheck.class, UpdateCheck.class})
     private String itemName;
 
-    @NotNull
-    @Range(min = 1000, max = 1000000)
+    // @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+    // @Range(min = 1000, max = 1000000)
     private Integer price;
 
-    @NotNull
-    @Max(9999)
+    // @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+    // @Max(value = 9999, groups = SaveCheck.class) // 수정시 요구사항으로 추가
     private Integer quantity;
 
     public Item() {
@@ -32,8 +33,5 @@ public class Item {
         this.itemName = itemName;
         this.price = price;
         this.quantity = quantity;
-
-
-
     }
 }
