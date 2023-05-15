@@ -21,10 +21,6 @@ import java.util.List;
  * Bean Validation 사용 -> groups 사용x -> 폼 데이터 전달을 위한 별도의 객체 사용(등록, 폼 객체를 다르게 만들기)
  * 검증 애노테이션 공식문서(ID검증, 이메일 검증 등 다양함)
  * https://docs.jboss.org/hibernate/validator/6.2/reference/en-US/html_single/#validator-defineconstraints-spec
- *
- *  Bean Validation을 @RequestBody에 적용해보기
- *  @ModelAttribute 는 HTTP 요청 파라미터(URL 쿼리 스트링, POST Form)를 다룰 때 사용한다.
- *  @RequestBody 는 HTTP Body의 데이터를 객체로 변환할 때 사용한다. 주로 API JSON 요청을 다룰 때 사용한다.
  */
 @Slf4j
 @Controller
