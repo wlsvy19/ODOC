@@ -27,21 +27,21 @@ public class TestDataInit {
 		itemRepository.save(new Item("itemD", 50000, 5));
 
 		Member member1 = new Member();
-		member1.setLoginId("test1");
-		member1.setPassword("test!");
-		member1.setName("테스트1");
+		member1.setLoginId("1");
+		member1.setPassword("1");
+		member1.setName("테스트1 유저");
 		memberRepository.save(member1);
 
 		Member member2 = new Member();
-		member2.setLoginId("test2");
-		member2.setPassword("test@");
-		member2.setName("테스트2");
+		member2.setLoginId("2");
+		member2.setPassword("2");
+		member2.setName("테스트2 유저");
 		memberRepository.save(member2);
 
 		Member member3 = new Member();
-		member2.setLoginId("1");
-		member2.setPassword("1");
-		member2.setName("테스트3");
+		member3.setLoginId("3");
+		member3.setPassword("3");
+		member3.setName("테스트3 유저");
 		memberRepository.save(member3);
 	} // end init()
 
