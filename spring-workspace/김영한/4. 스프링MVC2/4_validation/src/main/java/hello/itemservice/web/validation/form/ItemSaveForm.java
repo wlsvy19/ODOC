@@ -13,7 +13,7 @@ public class ItemSaveForm {
 	@NotBlank
 	private String itemName;
 
-	@NotNull
+	@NotNull(message = "필수값 입니다.")
 	@Range(min = 1000, max = 1000000)
 	private Integer price;
 
