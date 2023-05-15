@@ -1,0 +1,1173 @@
+[33mcommit a72c47ad53680d464e80df5548457e7405f5f6ba[m[33m ([m[1;36mHEAD -> [m[1;32mhome[m[33m)[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Apr 27 10:13:27 2023 +0900
+
+    Bean Validation 에러코드
+
+[33mcommit e8733cf3719185268f0c1fd186f4128a2af32393[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Apr 26 16:39:11 2023 +0900
+
+    검증1 Validation 끝
+
+[33mcommit 4d8999f991cbc6e91503badb1d073f3da9df809c[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Apr 13 15:03:36 2023 +0900
+
+    오류 코드와 메시지 처리 끝
+
+[33mcommit d138b7a4a052a27654c8baf76c4d35f91ed98c50[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Apr 12 11:27:41 2023 +0900
+
+    오류 코드와 메시지 처리3
+
+[33mcommit d6aa0b35dd441f92881859c0ccd71d6b850ab99a[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Apr 7 16:04:17 2023 +0900
+
+    Binding Result 2 까지
+
+[33mcommit ef1b3e8cee088c2a2f2e42d6d1b916a5e6fff59b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Apr 6 17:50:36 2023 +0900
+
+    검증 V2 프로젝트 준비
+
+[33mcommit 6e9155f17a9d83a2a7b3ae5348e28644559e2a12[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Apr 6 15:39:37 2023 +0900
+
+    메시지, 국제화 까지 끝
+
+[33mcommit b829f7ab91dac8ccc38e5adac6d90a51efaad1df[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Apr 6 11:31:31 2023 +0900
+
+    타임리프 기본 기능 끝
+
+[33mcommit 883bebf30f801943efb074205c14a57905e603cc[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Apr 6 11:24:30 2023 +0900
+
+    타임리프 SELECT 박스
+
+[33mcommit 78fe979e3c24d4660f3e32e51c17d6ae76ddd2d0[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Apr 4 17:32:39 2023 +0900
+
+    타임리프 다중 체크박스
+
+[33mcommit 12e780d3f5fb7405e5b82c98d0a02cce80f3dac9[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Apr 3 10:03:41 2023 +0900
+
+    타임리프-스프링 통합과 폼 시작
+
+[33mcommit 8433c09b85a10074247606e1803712a34784ee0d[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Mar 31 17:07:55 2023 +0900
+
+    타임리프 기본기능 까지 끝
+
+[33mcommit d653c1288c10f928e819953bdeee9926e167513d[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Mar 30 17:54:16 2023 +0900
+
+    타임리프 템플릿 레이아웃1
+
+[33mcommit 7f275801815e01c590c9099e00a92c2d9ce8d939[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Mar 28 16:54:11 2023 +0900
+
+    타임리프 유틸리티 객체와 날짜
+
+[33mcommit b29c63afddb30797e856b746a3b164bf7ad3ab79[m
+Merge: 30cc91ac 1ae25dce
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Mar 21 17:29:13 2023 +0900
+
+    Merge pull request #97 from wlsvy19/window
+    
+    Spring EL
+
+[33mcommit 1ae25dcee14850a8a2e08b72659e0068b895347f[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Mar 21 17:28:04 2023 +0900
+
+    Spring EL
+
+[33mcommit 30cc91ac0ca45f5b6d9054f03b3c80fdea241b3a[m
+Merge: 33a913bd 9762db6a
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Mar 20 09:41:41 2023 +0900
+
+    Merge pull request #96 from wlsvy19/window
+    
+    Spring MVC2 시작
+
+[33mcommit 9762db6a036ad3a53802139ee34ed360c67d42aa[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Mar 20 09:41:02 2023 +0900
+
+    Spring MVC2 시작
+
+[33mcommit 33a913bdd6afcdd7251aa48c83b0e7bcf8ef2f69[m
+Merge: 9fe67e86 b8e69b23
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Mar 7 19:45:05 2023 +0900
+
+    Merge pull request #95 from wlsvy19/window
+    
+    스프링 MVC - 웹 페이지 만들기 끝
+
+[33mcommit b8e69b233fcb348e340ea24cfe1afe3e2935a690[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Mar 7 19:44:02 2023 +0900
+
+    스프링 MVC - 웹 페이지 만들기 끝
+
+[33mcommit 9fe67e86ba42f90a6ee6d8c3489d6c3310218565[m
+Merge: c4fcba55 5cec2ee5
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Mar 6 18:55:25 2023 +0900
+
+    Merge pull request #94 from wlsvy19/window
+    
+    Spring MVC 기능 정리 끝
+
+[33mcommit 5cec2ee5ffdbebc04067d5e659956c25c8736c5c[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Mar 6 18:54:57 2023 +0900
+
+    Spring MVC 기능 정리 끝
+
+[33mcommit c4fcba55863149bef99d2b8185688ef32a5c5359[m
+Merge: b48e80d8 0503860e
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Mar 6 11:55:26 2023 +0900
+
+    Merge pull request #93 from wlsvy19/window
+    
+    Http Request 유형 정리 끝
+
+[33mcommit 0503860e499b7a43761ee887158a907393233bd7[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Mar 6 11:55:06 2023 +0900
+
+    Http Request 유형 정리 끝
+
+[33mcommit b48e80d8556e040808ec5904e21493e5de910d4a[m
+Merge: d00a0fba 87e60e59
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Mar 3 16:58:13 2023 +0900
+
+    Merge pull request #92 from wlsvy19/window
+    
+    HTTP Request에 대한 유형들 공부중
+
+[33mcommit 87e60e59136357132eee6bf4aa8b6348cdf89eca[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Mar 3 16:57:07 2023 +0900
+
+    HTTP Request에 대한 유형들 공부중
+
+[33mcommit d00a0fbae99ac43a267809dcf74fe1dc8a3f76b0[m
+Merge: a71ce8b5 3b64c111
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Mar 2 18:05:04 2023 +0900
+
+    Merge pull request #91 from wlsvy19/window
+    
+    request mapping type
+
+[33mcommit 3b64c1111fe737bc685bea0cf501eb1caf6edf2e[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Mar 2 18:01:52 2023 +0900
+
+    request mapping type
+
+[33mcommit a71ce8b502d31fdc7f72ad00ebd83351f79f859a[m
+Merge: 52e5ba13 f79ce850
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Mar 2 16:15:45 2023 +0900
+
+    Merge pull request #90 from wlsvy19/window
+    
+    Spring MVC structure
+
+[33mcommit f79ce850b90113702b2ddf934eee67cce894b7a1[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Mar 2 16:15:03 2023 +0900
+
+    spring mvc project setting
+
+[33mcommit 60b3f5089708c858895f81864e6b29bb034469b2[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Mar 2 14:50:23 2023 +0900
+
+    Spring MVC structure
+
+[33mcommit 52e5ba137d13856911dc621e22d19bdad2e89afe[m
+Merge: 20805982 e04fbcab
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Feb 28 20:27:51 2023 +0900
+
+    Merge pull request #89 from wlsvy19/home
+    
+    Home merge
+
+[33mcommit e04fbcabcfcec2535838185325102ae1e98b7c5c[m[33m ([m[1;31morigin/home[m[33m)[m
+Merge: e17549f9 20805982
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Feb 28 20:26:04 2023 +0900
+
+    Merge branch 'master' of https://github.com/wlsvy19/ODOC
+
+[33mcommit e17549f9d281279963c30f9f3247c54a753699a9[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Feb 28 20:25:57 2023 +0900
+
+    home merge
+
+[33mcommit 2080598236ba94cc8a292a229961862e1d7261f1[m
+Merge: 52fb2758 06d37727
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Feb 28 17:19:57 2023 +0900
+
+    Merge pull request #88 from wlsvy19/window
+    
+    Spring MVC
+
+[33mcommit 06d37727dac870ebe15b2f476817c25f799ca47c[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Feb 28 17:19:31 2023 +0900
+
+    Spring MVC
+
+[33mcommit 52fb2758f41b57f5434df1bd70284d5dea76ca0c[m
+Merge: 7dfaee96 630a6869
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 24 16:46:04 2023 +0900
+
+    Merge pull request #87 from wlsvy19/window
+    
+    MVC framework
+
+[33mcommit 630a6869fcd920fb011e12f9651bf9b4c2a5a04d[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 24 16:45:13 2023 +0900
+
+    MVC framework
+
+[33mcommit 7dfaee96c0539108a7a5a7aa5ab9a2dd75226735[m
+Merge: cb823a46 6afcee7e
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 23 16:50:27 2023 +0900
+
+    Merge pull request #86 from wlsvy19/window
+    
+    front controller version 2
+
+[33mcommit 6afcee7e3bad0a22e6add58d652728343e03658b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 23 16:49:46 2023 +0900
+
+    front controller version 3
+
+[33mcommit 39f9fe9fe9240b6693b79e8b06215149927150dc[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 23 14:02:21 2023 +0900
+
+    front controller version 2
+
+[33mcommit cb823a4638893eebcd292803e0dfabb1e945a3c1[m
+Merge: 6df04c6c 066e309e
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 23 10:34:02 2023 +0900
+
+    Merge pull request #85 from wlsvy19/window
+    
+    Servlet, JSP, MVC
+
+[33mcommit 066e309e2c2b4d9ead500dc04cc6423f186acbdb[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 23 10:33:27 2023 +0900
+
+    Servlet, JSP, MVC
+
+[33mcommit 6df04c6c56bb3a6c0c9ee8d860f086d2159acad6[m
+Merge: fe663130 40445326
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Feb 22 17:57:18 2023 +0900
+
+    Merge pull request #84 from wlsvy19/window
+    
+    "servlet mvc ing....
+
+[33mcommit 40445326e13f752f5fc6fa2fdd585c052c7b4004[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Feb 22 17:56:30 2023 +0900
+
+    servlet mvc ing....
+
+[33mcommit 3d9c0ce71d1ebad42519a9ffef8402c81704afbc[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Feb 21 16:43:55 2023 +0900
+
+    HTTP Servlet Request
+
+[33mcommit fe66313043c288a4ff8c3a6ac491aacc3cfad593[m
+Merge: 255d6874 b8728e05
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Feb 20 18:01:56 2023 +0900
+
+    Merge pull request #83 from wlsvy19/window
+    
+    servlet test
+
+[33mcommit b8728e05f4415e331155964daaf1ac3d61cf579a[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Feb 20 18:01:27 2023 +0900
+
+    servlet test
+
+[33mcommit 255d68745af5a0a49369cd6210c313c3bbfed6d8[m
+Merge: e29903d3 b54c4c46
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Feb 20 16:09:43 2023 +0900
+
+    Merge pull request #82 from wlsvy19/window
+    
+    mvc1 servlet project create
+
+[33mcommit b54c4c46bbf26c007c08c76e3ac44a3555702594[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Feb 20 16:09:07 2023 +0900
+
+    mvc1 servlet project create
+
+[33mcommit e29903d37a5162a5344534fb299ff2eabff4480c[m
+Merge: 2d107ff0 ca03c18b
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 17 11:03:43 2023 +0900
+
+    Merge pull request #81 from wlsvy19/window
+    
+    vue todo readme add
+
+[33mcommit ca03c18b1ecb3f5c521f7d62fe5e901d9f809358[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 17 11:02:32 2023 +0900
+
+    vue todo readme add
+
+[33mcommit 2d107ff081618900c6616229572e6767e1ec2969[m
+Merge: 5299d0f3 1cc6133f
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 16 14:13:31 2023 +0900
+
+    Merge pull request #80 from wlsvy19/window
+    
+    Nuxt finish
+
+[33mcommit 1cc6133f571294ee27a89fa6ea58e4094871b62a[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 16 14:09:16 2023 +0900
+
+    Nuxt finish
+
+[33mcommit 5299d0f3a3233169816c2b2103b203080cdc82d9[m
+Merge: 804eb969 265b8804
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 16 11:04:45 2023 +0900
+
+    Merge pull request #79 from wlsvy19/window
+    
+    Nuxt project SSG Netlify deployment
+
+[33mcommit 265b88049d81a238c3a8bf206081924c6dcc626b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 16 11:02:04 2023 +0900
+
+    Nuxt project SSG Netlify deployment
+
+[33mcommit 804eb96970d7a295500f76bcc54a0b38bf5dd655[m
+Merge: 5712f1ca 6a1c8e64
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 16 10:35:49 2023 +0900
+
+    Merge pull request #77 from wlsvy19/window
+    
+    SSG Netlify deployment
+
+[33mcommit 6a1c8e64c7d51f8f246d3da3a4e038648a110dfb[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 16 10:35:13 2023 +0900
+
+    SSG Netlify deployment
+
+[33mcommit 5712f1ca89e520736fa5e69690631d3dd69d30f3[m
+Merge: 4a3241f2 b4cd2c6b
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 16 09:26:44 2023 +0900
+
+    Merge pull request #76 from wlsvy19/window
+    
+    front end directory structure organizing
+
+[33mcommit b4cd2c6baf14f165f04319dcc6da3c7d95d01677[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 16 09:26:13 2023 +0900
+
+    front end directory structure organizing
+
+[33mcommit 4a3241f2f6a1f0015fc11bb62e1df6d450470aed[m
+Merge: ca356078 6d21a75c
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Feb 14 14:28:28 2023 +0900
+
+    Merge pull request #75 from wlsvy19/window
+    
+    asyncData & fetch
+
+[33mcommit 6d21a75cb4c33b60bb36292eda1b049852e14eca[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Feb 14 14:27:35 2023 +0900
+
+    asyncData & fetch
+
+[33mcommit ca3560780dbcc18bc2558f9d44c6f4afb1bc6d86[m
+Merge: 64e00b65 ee5db108
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Feb 13 16:55:07 2023 +0900
+
+    Merge pull request #74 from wlsvy19/window
+    
+    use vuex stroe where cart
+
+[33mcommit ee5db1084d67bfd4c8c20057c06cde815fd898fe[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Feb 13 16:54:37 2023 +0900
+
+    use vuex stroe where cart
+
+[33mcommit 64e00b65937003e59da327336242db85021e8c10[m
+Merge: 17929736 90ad7319
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 10 16:05:32 2023 +0900
+
+    Merge pull request #73 from wlsvy19/window
+    
+    add vue-til image file
+
+[33mcommit 90ad7319df1643c526a6243b0dfd144a66f25e1d[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 10 16:05:02 2023 +0900
+
+    add vue-til image file
+
+[33mcommit 17929736e6741f374af471c6229e816f77242f46[m
+Merge: fae06184 b1691b84
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 10 15:57:38 2023 +0900
+
+    Merge pull request #72 from wlsvy19/window
+    
+    search keyword use props & emit
+
+[33mcommit b1691b840e8c656b2efebf80bdaf3dc5532eae3f[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 10 15:57:15 2023 +0900
+
+    search keyword use props & emit
+
+[33mcommit fae061844b981d4219c15c9a97a66681a142f4de[m
+Merge: 53880e11 26db9ead
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 10 14:32:54 2023 +0900
+
+    Merge pull request #71 from wlsvy19/window
+    
+    search keyword use props & emit
+
+[33mcommit 26db9ead2ad02f95c4d4f9b6dd362bd53d03c9a4[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 10 14:32:15 2023 +0900
+
+    search keyword use props & emit
+
+[33mcommit 53880e11ae23419cf73238ab310e093c78d886cd[m
+Merge: 6163e748 be3725b6
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Feb 8 17:46:21 2023 +0900
+
+    Merge pull request #70 from wlsvy19/window
+    
+    Nuxt AsyncData
+
+[33mcommit be3725b6614a7fcfa97e14c7190abd42ff5b4c28[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Feb 8 17:45:17 2023 +0900
+
+    Nuxt AsyncData
+
+[33mcommit 6163e7483279ada3698da945fff0bae49ed22dd4[m
+Merge: 0d7bc914 d2bfeb26
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Feb 8 17:43:52 2023 +0900
+
+    Merge pull request #69 from wlsvy19/window
+    
+    Nuxt AsyncData
+
+[33mcommit d2bfeb2685d65786b24e6b75f2b34eaca69e49c9[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Feb 8 17:43:22 2023 +0900
+
+    Nuxt AsyncData
+
+[33mcommit 0d7bc91460168088a44b07393bc12e6d58324725[m
+Merge: e3a20b1e 83e85fb2
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Feb 7 14:58:04 2023 +0900
+
+    Merge pull request #68 from wlsvy19/window
+    
+    Spring MVC 1 Start
+
+[33mcommit 83e85fb246c8aefd7aa7abb097bf90aa5f9809d9[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Feb 7 14:57:11 2023 +0900
+
+    Spring MVC 1 Start
+
+[33mcommit e3a20b1eb4e917690e405578f9b6d34892f89745[m
+Merge: 8984453e 88e8a094
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 3 16:43:41 2023 +0900
+
+    Merge pull request #67 from wlsvy19/window
+    
+    vue endgame summary.md add
+
+[33mcommit 88e8a094044850d0fbc5eb773c2ab4211b96fa2d[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 3 16:42:37 2023 +0900
+
+    vue endgame summary.md add
+
+[33mcommit 8984453ee39b158bdbe82bd6caaf4d5fb2517865[m
+Merge: 123b7489 b91aafe3
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Feb 3 16:30:39 2023 +0900
+
+    Merge pull request #66 from wlsvy19/window
+    
+    vue endgame finish
+
+[33mcommit b91aafe3d30deecfa83cc48b0d2af55343e70f05[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Feb 3 16:27:51 2023 +0900
+
+    vue endgame finish
+
+[33mcommit 123b7489392089104df50db84348ea9f5f8eb736[m
+Merge: aa0a4e7a 33f5ba6b
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Feb 2 17:59:22 2023 +0900
+
+    Merge pull request #65 from wlsvy19/window
+    
+    Date format use filter and Login-Logout use router navigation guard
+
+[33mcommit 33f5ba6bb118f8198122281889494f1d52b775bd[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Feb 2 17:57:59 2023 +0900
+
+    Date format use filter and Login-Logout use router navigation guard
+
+[33mcommit aa0a4e7a3a8ea09f1c1214fd8363b6913b8e6ea8[m
+Merge: 13bb72cd 07d5dd2d
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Feb 1 18:07:59 2023 +0900
+
+    Merge pull request #64 from wlsvy19/window
+    
+    Posts CURD finish & ToastPopup apply
+
+[33mcommit 07d5dd2da1049432932feb29acbdbeb09d70e1d5[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Feb 1 18:07:30 2023 +0900
+
+    Posts CURD finish & ToastPopup apply
+
+[33mcommit 13bb72cda274086f5a15b8efe71844906fc8333e[m
+Merge: 6f87d9a4 c8373142
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 31 17:30:33 2023 +0900
+
+    Merge pull request #63 from wlsvy19/mac
+    
+    add posts and exception handling
+
+[33mcommit c83731426abeb9d9362650ea92c2af19890ab5e4[m[33m ([m[1;31morigin/mac[m[33m)[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 31 17:29:29 2023 +0900
+
+    add posts and exception handling
+
+[33mcommit 6f87d9a418aaec0b24b07e991cb1c59f370e5b71[m
+Merge: 47eab383 a7c94210
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 31 17:17:46 2023 +0900
+
+    Merge pull request #62 from wlsvy19/mac
+    
+    intermediate review
+
+[33mcommit a7c9421019e83eb99312c5af49e99af41cf63d5a[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 31 17:17:14 2023 +0900
+
+    intermedidate review
+
+[33mcommit 47eab383df04e5fac64b3bc1b8b2615eee1a9e4f[m
+Merge: 0b4f98d6 22ce4812
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 31 15:49:22 2023 +0900
+
+    Merge pull request #61 from wlsvy19/mac
+    
+    use cookie, Authorization
+
+[33mcommit 22ce4812729182a1fd21467b9bbe392749e25627[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 31 15:47:14 2023 +0900
+
+    use cookie, Authorization
+
+[33mcommit 0b4f98d60e5eef2eb070725c1889ffe7d1591d32[m
+Merge: 4035c134 1a77c8ec
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 31 11:19:27 2023 +0900
+
+    Merge pull request #60 from wlsvy19/mac
+    
+    Use Token Autorization
+
+[33mcommit 1a77c8ecf05551234cd859dee43da8ab73460cd6[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 31 11:19:02 2023 +0900
+
+    Use Token Autorization
+
+[33mcommit 4035c1345208e26638bd7eafb0b05a44dc10b8e2[m
+Merge: 5287a60f 43209441
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Jan 30 18:01:16 2023 +0900
+
+    Merge pull request #59 from wlsvy19/window
+    
+    Use Vuex(store- state, mutation, getter) and Login & Logout
+
+[33mcommit 432094413a82573cdac1e169369236ad3d7df67f[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Jan 30 18:00:28 2023 +0900
+
+    Use Vuex(store- state, mutation, getter) and Login & Logout
+
+[33mcommit 5287a60fb49f109e4f6d08a80c2c9f82a7c25f6f[m
+Merge: 8df7450d 0d1ea587
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Jan 30 17:12:24 2023 +0900
+
+    Merge pull request #58 from wlsvy19/window
+    
+    Use Vuex(store- state, mutation, getter) and Login & Logout
+
+[33mcommit 0d1ea587561ca3c8bc9185c517d616eea5418906[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Jan 30 17:11:00 2023 +0900
+
+    Use Vuex(store- state, mutation, getter) and Login & Logout
+
+[33mcommit a5417f599af5f57d8ba403f1ed37b47a2a030659[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Jan 27 16:52:27 2023 +0900
+
+    vue endgame_ ~register form
+
+[33mcommit 8df7450d1effe3dde802c17669f77c1f1d8d3621[m
+Merge: 82a5911d b76e2f90
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 26 17:39:50 2023 +0900
+
+    Merge pull request #57 from wlsvy19/window
+    
+    vue til restart -> server connect success
+
+[33mcommit b76e2f9076535c2a443ed7a56719576328e2317b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 26 17:39:18 2023 +0900
+
+    vue til restart -> server connect success
+
+[33mcommit 82a5911dcedbb6b74b96391cfdce05332f70cef9[m
+Merge: 7e2d1762 5adbee5b
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 26 14:07:00 2023 +0900
+
+    Merge pull request #56 from wlsvy19/window
+    
+    vue-ts finish
+
+[33mcommit 5adbee5b4bdbd857e04bcd5a9551e617631e2a46[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 26 14:06:20 2023 +0900
+
+    vue-ts finish
+
+[33mcommit 7e2d17624b903aed393d6de57c39e151aa5b11af[m
+Merge: 80d58907 40f9a7ce
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 26 10:28:52 2023 +0900
+
+    Merge pull request #55 from wlsvy19/window
+    
+    vue ref custom
+
+[33mcommit 40f9a7ce8d6895cc541ba3e8f9c5f1bafe82a688[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 26 10:27:35 2023 +0900
+
+    vue ref custom
+
+[33mcommit 80d58907dafff6d1f375006bf95cfd2146e85fd4[m
+Merge: b626c7eb dc5b3524
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Jan 25 17:45:50 2023 +0900
+
+    Merge pull request #54 from wlsvy19/window
+    
+    chart.js error solve
+
+[33mcommit dc5b3524ebfb9f43e412588a10a23ca512040b9b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Jan 25 17:45:31 2023 +0900
+
+    chart.js error solve
+
+[33mcommit b626c7eb4769e9fdeb0dbb1363728025cccf3e2d[m
+Merge: 94b85f00 b0242885
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Jan 25 15:27:06 2023 +0900
+
+    Merge pull request #53 from wlsvy19/window
+    
+    vue news -> ts
+
+[33mcommit b02428858d21145c995fdccee159dd15712581e1[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Jan 25 15:26:35 2023 +0900
+
+    vue news -> ts
+
+[33mcommit 94b85f0011c8b117e7843b1149c054c53e7477b4[m
+Merge: d093ddc1 7d4de064
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Jan 16 17:37:49 2023 +0900
+
+    Merge pull request #52 from wlsvy19/window
+    
+    mutations type custom
+
+[33mcommit 7d4de064f188aab84fcce2ec8adad3486639546f[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Jan 16 17:36:58 2023 +0900
+
+    mutations type custom
+
+[33mcommit d093ddc19159dcf4db8893a3c8c1fa4b1c6c1ee2[m
+Merge: ae01707a d60c3fee
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Jan 13 16:44:08 2023 +0900
+
+    Merge pull request #51 from wlsvy19/window
+    
+    index.js -> index.ts
+
+[33mcommit d60c3fee41d5b331a4f0dc6def7b945e95700c8e[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Jan 13 16:43:31 2023 +0900
+
+    index.js -> index.ts
+
+[33mcommit ae01707a12914dd47a622a4d5800b1f2443f0b6b[m
+Merge: 7dab963c 833f18b5
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 12 18:01:53 2023 +0900
+
+    Merge pull request #50 from wlsvy19/window
+    
+    vue news js -> ts start
+
+[33mcommit 833f18b5acaf31b5a06b3b8f5683652922505885[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 12 18:00:01 2023 +0900
+
+    vue news js -> ts start
+
+[33mcommit 7dab963c70154ad7908f98bd2f448308b20ffec3[m
+Merge: f2eaa9f5 d7c20c30
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 12 16:48:00 2023 +0900
+
+    Merge pull request #49 from wlsvy19/window
+    
+    type script basic finish
+
+[33mcommit d7c20c30dce4009bbcd540e1656a2aeece82197f[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 12 16:47:32 2023 +0900
+
+    type script basic finish
+
+[33mcommit f2eaa9f5ce89af5b76aa51a3d71c1bc006c5ad53[m
+Merge: c5e20a2c aff8b716
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 12 11:26:01 2023 +0900
+
+    Merge pull request #48 from wlsvy19/window
+    
+    spring basic core finish
+
+[33mcommit aff8b716f9c7df498027a5151ebc4e61ec414f22[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 12 11:23:29 2023 +0900
+
+    spring basic core finish
+
+[33mcommit c5e20a2c402d8fb2ba126f1071a806e1171ec130[m
+Merge: 6f1badb4 56fbd91b
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Jan 11 17:37:14 2023 +0900
+
+    Merge pull request #47 from wlsvy19/window
+    
+    Http Request Scope
+
+[33mcommit 56fbd91bef6b477e8965e16162b411ec2cec7e51[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Jan 11 17:34:08 2023 +0900
+
+    Http Request Scope
+
+[33mcommit 6f1badb4da983e06396f68b0af74e443c9cc8e21[m
+Merge: 1d51921d 30c16c9b
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 10 16:10:16 2023 +0900
+
+    Merge pull request #46 from wlsvy19/window
+    
+    Single Bean With Prototype Bean -> Scope
+
+[33mcommit 30c16c9bf10bdd01388c410cb5878576abf76bd3[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 10 16:09:45 2023 +0900
+
+    Single Bean With Prototype Bean -> Scope
+
+[33mcommit 1d51921d4e2cba769a899bee6eddd5427e01be86[m
+Merge: 54ceb4d3 0ec3bbf6
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Jan 9 17:48:59 2023 +0900
+
+    Merge pull request #45 from wlsvy19/window
+    
+    의존관계 주입까지 끝
+
+[33mcommit 0ec3bbf652f86353075cb426257d6cb30b7987ad[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Jan 9 17:48:40 2023 +0900
+
+    의존관계 주입까지 끝
+
+[33mcommit 54ceb4d35a6154959d662fe0fc1b23f4f3ae41d8[m
+Merge: df0e71a0 31c24e75
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Jan 6 17:08:47 2023 +0900
+
+    Merge pull request #44 from wlsvy19/window
+    
+    다양한 의존관계 주입 방법
+
+[33mcommit 31c24e751d1bc46d1c4719239b41c1cdb3de237e[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Jan 6 17:07:54 2023 +0900
+
+    다양한 의존관계 주입 방법
+
+[33mcommit df0e71a096d5c73424ceffdea112fd0e584dbd12[m
+Merge: 0cd00324 44e2721c
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Jan 6 17:02:12 2023 +0900
+
+    Merge pull request #43 from wlsvy19/window
+    
+    다양한 의존관계 주입 방법
+
+[33mcommit 44e2721c76990f3650184391c36322101b27a8b6[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Jan 6 16:59:22 2023 +0900
+
+    다양한 의존관계 주입 방법
+
+[33mcommit 0cd0032470b01407541dd98e8d3d7175a8c1b349[m
+Merge: 54dcd88e 2aef59fe
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Fri Jan 6 11:29:31 2023 +0900
+
+    Merge pull request #42 from wlsvy19/window
+    
+    component scan filter
+
+[33mcommit 2aef59fe396685570d48d62c29b7312540d7433c[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Fri Jan 6 11:29:09 2023 +0900
+
+    component scan filter
+
+[33mcommit 54dcd88e29164e2435fe997edc3b4f885c4d821b[m
+Merge: d7baa6bc 09a0d692
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 5 23:27:27 2023 +0900
+
+    Merge pull request #41 from wlsvy19/mac
+    
+    component scan & @Autowired
+
+[33mcommit 09a0d692f68325d8e74fc05876090e088719fc4b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 5 23:25:49 2023 +0900
+
+    component scan & @Autowired
+
+[33mcommit d7baa6bcc300b164c9b7205ba68967ec0c41b7af[m
+Merge: 512caf44 68fb617e
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 5 22:43:39 2023 +0900
+
+    Merge pull request #40 from wlsvy19/mac
+    
+    from mac
+
+[33mcommit 68fb617e28cd8f4b9c8db345f35466bacf5dbbd7[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 5 22:42:08 2023 +0900
+
+    from mac
+
+[33mcommit 512caf44d1f04eafcb6da20e7a2fb223fd9edb60[m
+Merge: bab2275b 81bae570
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Thu Jan 5 16:20:46 2023 +0900
+
+    Merge pull request #39 from wlsvy19/window
+    
+    Spring SingleTon
+
+[33mcommit 81bae57091c0fcd6baf81165047c7184b85f5271[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Thu Jan 5 16:20:17 2023 +0900
+
+    Spring SingleTon
+
+[33mcommit bab2275b6145bbda917c02b34fc88065db5ccd5c[m
+Merge: a2cb2404 73ddf64f
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Jan 4 18:10:10 2023 +0900
+
+    Merge pull request #38 from wlsvy19/window
+    
+    싱글톤 주의점
+
+[33mcommit 73ddf64f383b5c3f0b336660475a156cdb523d27[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Jan 4 18:05:53 2023 +0900
+
+    싱글톤 주의점
+
+[33mcommit a2cb240432f3f9ed64cb109f48ec55e5a77e1136[m
+Merge: bcff3f3d c1ce48ea
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Jan 4 15:29:48 2023 +0900
+
+    Merge pull request #37 from wlsvy19/window
+    
+    스프링 컨테이너와 스프링 빈
+
+[33mcommit c1ce48eaaed27fc22e1b4595a42617b3a85edc4f[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Jan 4 15:27:38 2023 +0900
+
+    스프링 컨테이너와 스프링 빈
+
+[33mcommit bcff3f3d787d5cf1c39b872e60c3092f0d2e5dc9[m
+Merge: f38b4cfa 6df850fc
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Jan 4 11:11:01 2023 +0900
+
+    Merge pull request #36 from wlsvy19/window
+    
+    스프링 빈 조회
+
+[33mcommit 6df850fc27148e7d7c9d5340c5b775980babdf8b[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Jan 4 11:10:30 2023 +0900
+
+    스프링 빈 조회
+
+[33mcommit f38b4cfa779ead9a00126ff264d82a11b2e3c6ac[m
+Merge: f5815f4e 66907fa9
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 3 17:40:04 2023 +0900
+
+    Merge pull request #35 from wlsvy19/window
+    
+    스프링 빈 조회
+
+[33mcommit 66907fa9ad2d5c2961c80d3b23e96fd03ba272f5[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 3 17:39:35 2023 +0900
+
+    스프링 빈 조회
+
+[33mcommit f5815f4e837ca4d7720cda9c57dc82524bc1136b[m
+Merge: 7cc3b57a 18d78449
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 3 15:00:08 2023 +0900
+
+    Merge pull request #34 from wlsvy19/window
+    
+    JAVA코드->Spring을 사용한 코드로 변경
+
+[33mcommit 18d78449acb4923926004f9c925689e6fb7358d0[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 3 14:59:33 2023 +0900
+
+    JAVA코드->Spring을 사용한 코드로 변경
+
+[33mcommit 7cc3b57a85c6e018fb6b88b0eb21fe22cdfa5f7d[m
+Merge: e34f57d8 81aa8f66
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Jan 3 11:12:16 2023 +0900
+
+    Merge pull request #33 from wlsvy19/window
+    
+    관심사의 분리 완료
+
+[33mcommit 81aa8f660f76204604c63ba6f2e0e552b93c290c[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Jan 3 11:11:51 2023 +0900
+
+    관심사의 분리 완료
+
+[33mcommit e34f57d80e0b918bc1b2270c9463b1a67c8eee02[m
+Merge: 9d2b143e 1f7435cd
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Mon Jan 2 16:44:33 2023 +0900
+
+    Merge pull request #32 from wlsvy19/window
+    
+    할인정책 %로 변경
+
+[33mcommit 1f7435cd87a20bbdf43fd45a51ed606a132a5325[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Mon Jan 2 16:43:56 2023 +0900
+
+    할인정책 %로 변경
+
+[33mcommit 9d2b143e60ccf3cdeae97bccaf1da1aa1fa31998[m
+Merge: 67943281 ffc1b702
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Wed Dec 28 18:02:46 2022 +0900
+
+    Merge pull request #31 from wlsvy19/window
+    
+    Window
+
+[33mcommit ffc1b7025738672de61434ee90ef887eb2d916dd[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Wed Dec 28 18:00:34 2022 +0900
+
+    회원 도메인 실행과 테스트
+
+[33mcommit 810c5cdbf2308f70c7d237153f469e4d9333acbb[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Dec 27 16:59:57 2022 +0900
+
+    회원 프로젝트 세팅
+
+[33mcommit 67943281d85f48bbeb009ddc43d61a578a8f91ce[m
+Merge: 1ae0fb9c 015317c9
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Dec 27 16:04:39 2022 +0900
+
+    Merge pull request #30 from wlsvy19/window
+    
+    회원 프로젝트 세팅
+
+[33mcommit 015317c990619f4a86c18aad38db6a733d76a4f9[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Dec 27 16:04:06 2022 +0900
+
+    회원 프로젝트 세팅
+
+[33mcommit 1ae0fb9c2a9077cf04c8baf0e4fe357e25cc2ce4[m
+Merge: ea1ef0db 7281c9b6
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Dec 27 10:56:57 2022 +0900
+
+    Merge pull request #29 from wlsvy19/window
+    
+    why spring?
+
+[33mcommit 7281c9b688b3218bbd279eed13141640f85878c7[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Dec 27 10:56:20 2022 +0900
+
+    why spring?
+
+[33mcommit ea1ef0db5d5d704153562378ec4ec739d2ec88ff[m
+Merge: e682ba22 ddd18d9e
+Author: leejp <48007459+wlsvy19@users.noreply.github.com>
+Date:   Tue Dec 27 10:27:17 2022 +0900
+
+    Merge pull request #28 from wlsvy19/window
+    
+    test1
+
+[33mcommit ddd18d9ee814a79dced683750fee68a5fee06a58[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Dec 27 10:26:58 2022 +0900
+
+    test1
+
+[33mcommit e682ba227a5f26d78dfae2656db43b60ac579dd5[m
+Author: leejp <jinpyolee19@naver.com>
+Date:   Tue Dec 27 10:00:39 2022 +0900
+
+    test...
+
+[33mcommit 585031231960ce962b961eede9db84a6c5189351[m
+Author: company window <jinpyolee19@naver.com>
+Date:   Tue Dec 27 09:49:23 2022 +0900
+
+    test...
+
+[33mcommit 449b8c55dc4160b94b99e0441ffe6166e63dda45[m
+Author: company window <jinpyolee19@naver.com>
+Date:   Tue Dec 27 09:47:02 2022 +0900
+
+    프로젝트 클론 후 첫 커밋
