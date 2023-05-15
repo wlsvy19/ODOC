@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Slf4j
@@ -25,7 +27,7 @@ public class LoginController {
 	}
 
 	@PostMapping("/login")
-	public String login(@Valid@ModelAttribute LoginForm form, BindingResult bindingResult) {
+	public String login(@Valid@ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
 		// 로그인 실패시
 		if (bindingResult.hasErrors()) {
 			return "/login/loginForm";
@@ -37,6 +39,9 @@ public class LoginController {
 		}
 		
 		// Todo 로그인 성공 처리: 보여지는 화면이 달라짐 -> 쿠키 사용해서 정보 저장
+		// 세션쿠키: 쿠키에 시간정보를 주지 않음, 브라우저 종료시 소멸
+		Cookie idCookie = new Cookie("memberId", String.valueOf(loginMember.getId()));
+		response.addCookie(idCookie);
 		return "redirect:/";
 	}
 
