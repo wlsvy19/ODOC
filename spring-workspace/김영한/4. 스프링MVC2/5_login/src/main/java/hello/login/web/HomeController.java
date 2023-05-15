@@ -16,7 +16,7 @@ public class HomeController {
 
 	private final MemberRepository memberRepository;
 
-    // @GetMapping("/")
+    //@GetMapping("/")
     public String home() {
 		// localhost:8089 입력시 localhost:8089/items 로 이동됨
         // return "redirect:/items";
