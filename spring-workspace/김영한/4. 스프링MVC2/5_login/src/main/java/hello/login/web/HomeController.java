@@ -26,7 +26,7 @@ public class HomeController {
 
 	// 로그인 유무에 따라 보여지는 화면 다르도록
 	@GetMapping("/")
-	public String homeLogin(@CookieValue(name = "memberId", required = true) Long memberId, Model model) {
+	public String homeLogin(@CookieValue(name = "memberId", required = false) Long memberId, Model model) {
 		// @CookieValue: Spring에서 제공하는 쿠키정보 쉽게 가져오는 어노테이션
 		
 		// 1. 로그인 정보가 없으면
