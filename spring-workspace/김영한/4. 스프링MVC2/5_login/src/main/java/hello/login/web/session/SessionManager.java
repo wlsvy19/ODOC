@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 세션 관리 객체
+ * 세션 관리 객체 - 쿠키에 세션ID(랜덤)를 담아 클라이언트에 전달 
  */
 @Component // 스프링 컨테이너에 이 클래스를 스프링빈 으로 등록
 public class SessionManager {
@@ -53,7 +53,6 @@ public class SessionManager {
 	 */
 	public void expire(HttpServletRequest request) {
 		Cookie sessionCookie = findCookie(request, SESSION_COOKIE_NAME);
-
 		// 세션이 있으면 세션을 제거
 		if (sessionCookie != null) {
 			sessionStore.remove(sessionCookie.getValue());
