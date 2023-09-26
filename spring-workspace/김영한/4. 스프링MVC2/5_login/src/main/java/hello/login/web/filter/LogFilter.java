@@ -25,6 +25,9 @@ public class LogFilter implements Filter {
 
 		// HTTP 요청을 구분하기 위해 생성
 		String uuid = UUID.randomUUID().toString();
+		System.out.println("#### System Out - uuid: " + uuid);
+		log.info("##### 1. log.info에서 uuid: " , uuid);
+		log.info("##### 2. log.info에서 넣은 uuid: {}" , uuid);
 
 		try{
 			log.info("###############요청: [{}] [{}]", uuid, requestURI);
