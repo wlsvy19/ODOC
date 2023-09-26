@@ -49,7 +49,7 @@ public class ValidationItemControllerV4 {
 	// 상품등록 버튼 클릭시 단순 페이지 이동
 	@GetMapping("/add")
 	public String addForm(Model model) {
-		// 상품추가 폼인데도 빈 Item을 뷰단으로 보낸 이유: 검증 실패시 입력한 값 그대로 노출(재사용)
+		// 상품추가 폼인데도 빈 Item을 view단으로 보낸 이유: 검증 실패시 입력한 값 그대로 노출(재사용)
 		model.addAttribute("item", new Item());
 		return "/validation/v4/addForm";
 	} // end addForm()

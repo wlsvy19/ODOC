@@ -17,6 +17,7 @@ import java.util.Date;
 @RestController
 public class SessionInfoController {
 
+
 	@GetMapping("/session-info")
 	public String sessionInfo(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
@@ -25,7 +26,7 @@ public class SessionInfoController {
 			return "세션이 존재하지 않습니다.";
 		}
 
-		log.info("#######################################################");
+		log.info("###########################세션정보############################");
 		// 세션의 여러 속성들 출력
 		session.getAttributeNames().asIterator()
 				.forEachRemaining(name -> log.info("session name={}, value={}", name, session.getAttribute(name)));
