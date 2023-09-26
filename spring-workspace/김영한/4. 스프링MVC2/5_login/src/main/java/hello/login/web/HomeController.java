@@ -22,6 +22,7 @@ public class HomeController {
 	private final MemberRepository memberRepository;
 	private final SessionManager sessionManager;
 
+	// 1. 기본
     //@GetMapping("/")
     public String home() {
 		// localhost:8089 입력시 localhost:8089/items 로 이동됨
@@ -30,13 +31,12 @@ public class HomeController {
 		return "home";
     }
 
-	// 로그인 유무에 따라 보여지는 화면 다르도록
-	
-	// 쿠키 사용
+	// 2.
+	// 로그인 유무에 따라 보여지는 화면 다르도록, 쿠키 사용
 	// @GetMapping("/")
 	public String homeLogin(@CookieValue(name = "memberId", required = false) Long memberId, Model model) {
 		// @CookieValue: Spring에서 제공하는 쿠키정보 쉽게 가져오는 어노테이션
-		
+
 		// 1. 로그인 정보가 없으면
 		if(memberId == null) {
 			return "home";
@@ -55,7 +55,7 @@ public class HomeController {
 		return "/login/loginHome";
 	}
 
-	// 세션 사용
+	// 3. 세션 사용
 	// @GetMapping("/")
 	public String homeLoginV2(HttpServletRequest request, Model model) {
 		// 세션 관리자에 저장된 회원 정보 조회
@@ -71,7 +71,7 @@ public class HomeController {
 		return "/login/loginHome";
 	}
 
-	// HttpSession 사용
+	// 4. HttpSession 사용
 	// @GetMapping("/")
 	public String homeLoginV3(HttpServletRequest request, Model model) {
 		// 새로운 사용자가 로그인->세션 생성 하면 안됨 , 그래서 false
@@ -91,7 +91,7 @@ public class HomeController {
 		return "/login/loginHome";
 	}
 
-	// @SessionAttribute 사용: session이 있는지 자동 체크
+	// 5. @SessionAttribute 사용: session이 있는지 자동 체크
 	@GetMapping("/")
 	public String homeLoginV3Spring(@SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false)Member loginMember, Model model) {
 		// 세션에 값이 없으면 home으로 이동

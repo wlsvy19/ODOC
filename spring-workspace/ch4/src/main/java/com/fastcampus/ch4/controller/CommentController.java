@@ -24,7 +24,7 @@ public class CommentController {
         List<CommentDto> list = null;
         try {
             list = commentService.getList(bno);
-            // ResponseEntity: entity에 HTTP 코드도 같이 보내기 위해 ㅅ용
+            // ResponseEntity: entity에 HTTP 코드도 같이 보내기 위해 사용
             // service에서 예외 발생해도 응답코드는 200으로 나옴, 구분하기 위해 사용
             return new ResponseEntity<List<CommentDto>>(list, HttpStatus.OK); // 200
         } catch (Exception e) {
