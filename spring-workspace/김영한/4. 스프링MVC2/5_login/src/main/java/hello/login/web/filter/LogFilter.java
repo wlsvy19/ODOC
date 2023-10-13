@@ -11,13 +11,13 @@ import java.util.UUID;
 public class LogFilter implements Filter {
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
-		log.info("log filter init...");
+		log.info("log filter init(로그필터 초기화)...");
 	}
 
 	// 클라이언트에서 요청이 올때마다 doFilter 메서드 호출
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		log.info("log filter doFilter");
+		log.info("log filter doFilter() 호출");
 
 		// HTTP요청에 대해 필터적용 하기 위해 다운 캐스팅, ServletRequest 부모라서 기능이 별로 없음
 		HttpServletRequest httpServletRequest = (HttpServletRequest) request;
@@ -30,7 +30,7 @@ public class LogFilter implements Filter {
 		log.info("##### 2. log.info에서 넣은 uuid: {}" , uuid);
 
 		try{
-			log.info("###############요청: [{}] [{}]", uuid, requestURI);
+			log.info("###############요청 uuid, 요청URI: [{}] [{}]", uuid, requestURI);
 			
 			// chain: 다음 필터 호출, 필터가 없으면 서블릿 호출됨(여기선 dispatcher 서블릿->컨트롤러 호출)
 			// 이 로직을 타지 않으면 서블릿이 호출되지 않기 때문에 화면이 멈춰버림
@@ -38,7 +38,7 @@ public class LogFilter implements Filter {
 		} catch(Exception e) {
 			throw  e;
 		} finally {
-			log.info("###############응답: [{}][{}]", uuid, requestURI);
+			log.info("###############응답 uuid, 요청URI: [{}][{}]", uuid, requestURI);
 		}
 	}
 
