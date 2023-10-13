@@ -31,7 +31,7 @@ public class LoginService {
 //		}
 
 		// 풀어쓴 버전
-		// Optional 이면 filter를 걸 수 있음,
+		// Optional 이면 filter를 걸 수 있음
 		return memberRepository.findByLoginId(loginId)
 				.filter(member -> member.getPassword().equals(password))
 				.orElse(null);
