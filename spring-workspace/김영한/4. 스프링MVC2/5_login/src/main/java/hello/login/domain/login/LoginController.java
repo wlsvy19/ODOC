@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +33,7 @@ public class LoginController {
 		return "/login/loginForm";
 	} // end loginForm()
 
-	// 쿠키사용
+	// 버전1: 쿠키사용
 	// @PostMapping("/login")
 	public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
 		// 로그인 실패시
@@ -53,7 +54,7 @@ public class LoginController {
 		return "redirect:/";
 	} // end login()
 
-	// 세션사용
+	// 버전2: 세션사용
 	// @PostMapping("/login")
 	public String loginV2(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
 		// 로그인 실패시
@@ -70,10 +71,10 @@ public class LoginController {
 		// 세션 관리자를 통해 세션을 생성하고 회원 데이터 보관
 		sessionManager.createSession(loginMember, response);
 		return "redirect:/";
-	} // end login()
+	} // end loginV2()
 
-	// 서블릿에서 제공하는 HttpSession 사용
-	@PostMapping("/login")
+	// 버전3: 서블릿에서 제공하는 HttpSession 사용
+	// @PostMapping("/login")
 	public String loginV3(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request) {
 		// 로그인 실패시
 		if (bindingResult.hasErrors()) {
@@ -93,7 +94,35 @@ public class LoginController {
 		// 세션에 로그인 회원 정보 보관
 		session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
 		return "redirect:/";
-	} // end login()
+	} // end loginV3()
+
+	// 버전4: 로그인 화면에서 로그인 하면 로그인하기전 접속했던 화면으로 이동
+	// 로그인을 하지 않고 http://localhost:8089/items 접속 후 로그인창 뜨면 로그인을 함 -> items 페이지로 redirect 됨
+	@PostMapping("/login")
+	public String loginV4(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
+						  @RequestParam(defaultValue = "/") String redirectURL,
+						  HttpServletRequest request) {
+		// 로그인 실패시
+		if (bindingResult.hasErrors()) {
+			return "/login/loginForm";
+		}
+		Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+
+		// 로그인 정보가 일치하지 않으면
+		if (loginMember == null) {
+			bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+			return "/login/loginForm";
+		}
+
+		// 로그인 성공시
+		// 세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
+		HttpSession session = request.getSession();
+		// 세션에 로그인 회원 정보 보관
+		session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+		return "redirect:" + redirectURL;
+	} // end loginV4()
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//@PostMapping("/logout")
 	public String logout(HttpServletResponse response){
