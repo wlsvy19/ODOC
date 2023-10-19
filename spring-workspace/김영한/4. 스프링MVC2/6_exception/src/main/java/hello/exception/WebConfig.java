@@ -2,14 +2,18 @@ package hello.exception;
 
 import hello.exception.filter.LogFilter;
 import hello.exception.interceptor.LogInterceptor;
+import hello.exception.resolver.MyHandlerExceptionResolver;
+import hello.exception.resolver.UserHandlerExceptionResolver;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
+import java.util.List;
 
 
 @Configuration
@@ -34,6 +38,11 @@ public class WebConfig implements WebMvcConfigurer {
 				.addPathPatterns("/**")
 				.excludePathPatterns("/css/**", "*.ico", "/error", "/error-page/**"); // 오류페이지 경로 지정 가능
 	}
-	// 스프링 부트에서 제공 하는 오류 페이지
 
+	// 예외발생시 동작을 새로 정의 하는 리졸버 등록
+	@Override
+	public void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+		resolvers.add(new MyHandlerExceptionResolver());
+		resolvers.add(new UserHandlerExceptionResolver());
+	}
 }

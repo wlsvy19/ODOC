@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 
 // 스프링에 컴포넌트로 등록 해야 동작
 // 스프링 부트에서 제공하는 에러 페이지 사용을 위해 @Component 주석 처리
-//@Component
+// API예외처리 시 주석 해제
+
+// @Component
 public class WebServerCustomizer implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
 
 	@Override
