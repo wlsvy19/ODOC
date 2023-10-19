@@ -1,14 +1,23 @@
 package hello.exception.exception;
 
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.ModelAndView;
+public class UserException extends RuntimeException {
+	public UserException() {
+		super();
+	}
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+	public UserException(String message) {
+		super(message);
+	}
 
-public class MyHandlerExceptionResolver implements HandlerExceptionResolver {
-	@Override
-	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-		return null;
+	public UserException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public UserException(Throwable cause) {
+		super(cause);
+	}
+
+	protected UserException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
 	}
 }
