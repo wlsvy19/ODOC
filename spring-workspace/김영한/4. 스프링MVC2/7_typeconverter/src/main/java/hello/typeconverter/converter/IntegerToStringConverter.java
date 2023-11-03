@@ -12,7 +12,7 @@ import org.springframework.core.convert.converter.Converter;
 public class IntegerToStringConverter implements Converter<Integer, String> {
 	@Override
 	public String convert(Integer source) {
-		log.info("컨버터 소스 = {}", source);
+		log.info("직접만든 숫자->문자 컨버터 소스 = {}", source);
 		return String.valueOf(source);
 	}
 }
