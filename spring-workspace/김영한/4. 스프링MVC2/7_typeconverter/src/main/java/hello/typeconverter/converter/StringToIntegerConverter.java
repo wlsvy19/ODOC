@@ -11,7 +11,7 @@ import org.springframework.core.convert.converter.Converter;
 public class StringToIntegerConverter implements Converter<String, Integer> {
 	@Override
 	public Integer convert(String source) {
-		log.info("컨버터 source = {}", source);
+		log.info("직접만든 문자->숫자 컨버터 source = {}", source);
 		return Integer.valueOf(source);
 	}
 }
