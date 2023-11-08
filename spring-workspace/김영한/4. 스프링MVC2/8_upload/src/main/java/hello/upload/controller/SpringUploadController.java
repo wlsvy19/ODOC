@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * 스프링을 활용한 파일 업로드
+ * 스프링을 활용한 파일 업로드(서블릿보단 편함)
  */
 
 @Slf4j
