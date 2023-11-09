@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Part4-1_Spring-jpa.iml" filepath="$PROJECT_DIR$/.idea/Part4-1_Spring-jpa.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/bookmanager.main.iml" filepath="$PROJECT_DIR$/.idea/modules/bookmanager.main.iml" />
     </modules>
   </component>
 </project>
