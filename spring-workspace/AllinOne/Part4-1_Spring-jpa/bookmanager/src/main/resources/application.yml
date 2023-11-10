@@ -1,14 +1,13 @@
 spring:
   jpa:
-    show-sql: true
+    show-sql: true #쿼리 나오게 설정
     properties:
       hibernate:
-        format_sql: true
-    generate-ddl: false
+        format_sql: true # 쿼리 이쁘게 나오게 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/springbasic
+    url: jdbc:mysql://localhost:3306/springjpa
     username: root
     password: 1234
     initialization-mode: always
 server:
-  port: 8070
+  port: 8090
