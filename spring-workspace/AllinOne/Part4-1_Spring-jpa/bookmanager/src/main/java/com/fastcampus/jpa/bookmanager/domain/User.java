@@ -8,17 +8,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.LocalDateTime;
 
-@NoArgsConstructor(force = true)
+//@NoArgsConstructor
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-@ToString(callSuper = true)
-//@EqualsAndHashCode(callSuper = true)
 @Builder
 @Entity
 public class User {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY) // 1씩증가
 	private Long id;
 
 	@NonNull
@@ -29,6 +27,6 @@ public class User {
 
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
-
-
+	public User() {
+	}
 }

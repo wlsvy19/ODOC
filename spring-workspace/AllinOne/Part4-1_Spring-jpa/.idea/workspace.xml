@@ -5,21 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9e07327-2607-493d-952d-c639ab515dd6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/repository/UserRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/domain/UserTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/UserRepositoryTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Part4-1_Spring-jpa.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bookmanager/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookmanager/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bookmanager/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/UserRepositoryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/UserRepositoryTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,9 +51,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Kotlin Class" />
-        <option value="Class" />
         <option value="Interface" />
         <option value="JUnit5 Test Class" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -217,8 +208,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.UserRepositoryTest.crud" />
-        <item itemvalue="Application.BookmanagerApplication" />
         <item itemvalue="Gradle.UserRepositoryTest" />
+        <item itemvalue="Application.BookmanagerApplication" />
         <item itemvalue="Gradle.BookmanagerApplicationTests" />
         <item itemvalue="Gradle.bookmanager" />
       </list>
