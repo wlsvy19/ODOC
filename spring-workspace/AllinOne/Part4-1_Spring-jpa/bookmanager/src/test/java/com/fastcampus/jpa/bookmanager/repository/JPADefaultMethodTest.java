@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +17,7 @@ import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatc
 
 @TestMethodOrder(MethodOrderer.MethodName.class) // method 순차 실행 적용(알파벳순)
 @SpringBootTest
-class UserRepositoryTest {
+class JPADefaultMethodTest {
 	@Autowired
 	private UserRepository userRepository;
 
@@ -199,5 +198,16 @@ class UserRepositoryTest {
 		ExampleMatcher matcher = ExampleMatcher.matching().withMatcher("email", contains());
 		Example<User> example = Example.of(user, matcher);
 		userRepository.findAll(example).forEach(System.out::println);
+	}
+
+	@Test
+	void s_save내부동작() {
+		// 여기 save는 insert
+		userRepository.save((new User("david", "david@test.com")));
+		User user = userRepository.findById(1L).orElseThrow(RuntimeException::new);
+		user.setEmail("wlsvy19@gamil.com");
+
+		// 여기 save는 update
+		userRepository.save(user);
 	}
 }
