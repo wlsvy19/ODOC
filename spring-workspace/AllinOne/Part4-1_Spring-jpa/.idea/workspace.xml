@@ -5,12 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9e07327-2607-493d-952d-c639ab515dd6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/config/JpaConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/JPAQueryMethodTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/Address.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/User.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/repository/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/UserRepositoryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/JPADefaultMethodTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/JPAQueryMethodTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/JPAQueryMethodTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,20 +70,20 @@
     <option name="autoscrollToSource" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "last_opened_file_path": "C:/workspace/programmers",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/workspace/programmers&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -99,8 +98,8 @@
       <recent name="com.fastcampus.jpa.bookmanager.controller" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.JPAQueryMethodTest.l_findTop1ByName">
-    <configuration name="JPAQueryMethodTest.j_findFirst1ByName" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+  <component name="RunManager" selected="Gradle.JPAQueryMethodTest">
+    <configuration name="JPAQueryMethodTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/bookmanager" />
@@ -113,7 +112,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.j_findFirst1ByName&quot;" />
+            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -124,7 +123,7 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="JPAQueryMethodTest.k_findFirst2ByName" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="JPAQueryMethodTest.findByNameContains" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/bookmanager" />
@@ -137,7 +136,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.k_findFirst2ByName&quot;" />
+            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.findByNameContains&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -148,7 +147,7 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="JPAQueryMethodTest.k_findTop1ByName" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="JPAQueryMethodTest.findByNameEndingWith" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/bookmanager" />
@@ -161,7 +160,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.k_findTop1ByName&quot;" />
+            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.findByNameEndingWith&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -172,7 +171,7 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="JPAQueryMethodTest.l_findTop1ByName" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="JPAQueryMethodTest.findByNameLike" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/bookmanager" />
@@ -185,7 +184,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.l_findTop1ByName&quot;" />
+            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.findByNameLike&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -196,7 +195,7 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="JPAQueryMethodTest.m_findLast1ByName" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="JPAQueryMethodTest.findIs" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/bookmanager" />
@@ -209,7 +208,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.m_findLast1ByName&quot;" />
+            <option value="&quot;com.fastcampus.jpa.bookmanager.repository.JPAQueryMethodTest.findIs&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -222,11 +221,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.JPAQueryMethodTest.l_findTop1ByName" />
-        <item itemvalue="Gradle.JPAQueryMethodTest.m_findLast1ByName" />
-        <item itemvalue="Gradle.JPAQueryMethodTest.k_findFirst2ByName" />
-        <item itemvalue="Gradle.JPAQueryMethodTest.j_findFirst1ByName" />
-        <item itemvalue="Gradle.JPAQueryMethodTest.k_findTop1ByName" />
+        <item itemvalue="Gradle.JPAQueryMethodTest" />
+        <item itemvalue="Gradle.JPAQueryMethodTest.findIs" />
+        <item itemvalue="Gradle.JPAQueryMethodTest.findByNameLike" />
+        <item itemvalue="Gradle.JPAQueryMethodTest.findByNameContains" />
+        <item itemvalue="Gradle.JPAQueryMethodTest.findByNameEndingWith" />
       </list>
     </recent_temporary>
   </component>
@@ -240,5 +239,9 @@
       <updated>1699426325854</updated>
     </task>
     <servers />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
