@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9e07327-2607-493d-952d-c639ab515dd6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/Address.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/domain/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/main/java/com/fastcampus/jpa/bookmanager/repository/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/JPAQueryMethodTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/bookmanager/src/test/java/com/fastcampus/jpa/bookmanager/repository/JPAQueryMethodTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +94,7 @@
       <recent name="com.fastcampus.jpa.bookmanager.controller" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.JPAQueryMethodTest">
+  <component name="RunManager" selected="Gradle.JPAQueryMethodTest.findIs">
     <configuration name="JPAQueryMethodTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -221,8 +217,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.JPAQueryMethodTest" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findIs" />
+        <item itemvalue="Gradle.JPAQueryMethodTest" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findByNameLike" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findByNameContains" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findByNameEndingWith" />
