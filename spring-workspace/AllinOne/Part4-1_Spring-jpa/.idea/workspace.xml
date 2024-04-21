@@ -5,8 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c9e07327-2607-493d-952d-c639ab515dd6" name="Changes" comment="">
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+=======
+>>>>>>> c1feff35e9d0453639b2ee5ea241c2db2f89addf
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -90,7 +93,7 @@
       <recent name="com.fastcampus.jpa.bookmanager.controller" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.JPAQueryMethodTest">
+  <component name="RunManager" selected="Gradle.JPAQueryMethodTest.findIs">
     <configuration name="JPAQueryMethodTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -213,8 +216,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.JPAQueryMethodTest" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findIs" />
+        <item itemvalue="Gradle.JPAQueryMethodTest" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findByNameLike" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findByNameContains" />
         <item itemvalue="Gradle.JPAQueryMethodTest.findByNameEndingWith" />
