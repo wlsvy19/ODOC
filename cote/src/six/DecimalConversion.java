@@ -1,5 +1,7 @@
 package six;
 
+import java.util.Stack;
+
 /**
  * Step 2
  * 진수변환
@@ -8,10 +10,23 @@ package six;
  */
 public class DecimalConversion {
     public static void main(String[] args) {
-        System.out.println(solution(1002345));
+        System.out.println(solution(136));
     }
 
-    private static int solution(int num) {
-        return num;
+    private static String solution(int num) {
+        Stack<Integer> stack = new Stack<>();
+
+        for(int i=0; i<num; i++) {
+            if(num % 2 == 0) {
+                stack.push(1);
+            } else {
+                stack.push(0);
+            }
+        }
+
+
+        return stack.stream()
+                .map(String::valueOf) // 각 요소를 문자열로 변환
+                .reduce("", (a, b) -> a + b); // 스트림을 이어붙여서 반
     }
 }
