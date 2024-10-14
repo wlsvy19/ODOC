@@ -24,7 +24,12 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
+    implementation 'com.github.911992:WebSocket_HandshakeRequest_to_Servlet31_HttpServletRequest_Wrapper:0.1.0'
+    implementation 'com.github.roughy.http.util:HttpServletRequestX:0.1'
+    implementation 'com.mtvnet.boxspring.modules:boxspring-http-objects-holder:1.0.1'
+    implementation 'pl.morgwai.base:servlet-scopes:9.4-javax'
+    implementation 'pl.morgwai.base:servlet-scopes:9.4-javax'
+    compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

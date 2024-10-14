@@ -25,7 +25,7 @@ import java.util.Optional;
 @Transactional // JPA사용하여 데이터 저장&변경에 있어야 함
 public class MemberService {
     EntityManager em;
-    private final MemberRepository memberRepository = new JpaMemberRepository(em);
+    private MemberRepository memberRepository = new JpaMemberRepository(em);
 
 
     // repository의 실제 구현체를 찾음, 스프링 컨테이너에서 서비스와 리포지토리를 자동 연결 해줌
