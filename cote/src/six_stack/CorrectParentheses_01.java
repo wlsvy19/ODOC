@@ -1,4 +1,4 @@
-package six;
+package six_stack;
 
 import java.util.Stack;
 
@@ -12,7 +12,7 @@ import java.util.Stack;
  * 제약조건1. 문자열 s의 길이: 100000 이하의 자연수
  * 제약조건2. 문자열 s는 '(' 또는 ')' 로만 이루어져 있습니다.
  */
-public class CorrectParentheses {
+public class CorrectParentheses_01 {
     public static void main(String[] args) {
         String s = "(())((()))()()()((()))((((()))))";
         System.out.println(solution(s));

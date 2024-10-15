@@ -1,4 +1,4 @@
-package five;
+package five_array;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,7 +13,7 @@ import java.util.HashSet;
  * 제약조건 1. numbers의 길이는 2이상 100 이하.
  * 제약조건2. numbers의 모든 수는 0이상 100 이하
  */
-public class TakeTwoAndAdd {
+public class TakeTwoAndAdd_04 {
     public static void main(String[] args) {
         int[] arr = { 2, 1, 3, 4, 1 };
         System.out.println("solutions: " + Arrays.toString(solutions(arr)));
