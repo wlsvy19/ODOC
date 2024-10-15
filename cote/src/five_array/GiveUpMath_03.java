@@ -1,4 +1,4 @@
-package five;
+package five_array;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +8,7 @@ import java.util.List;
  * Step 3
  * 문제: 수포자의 답안 찍기
  */
-public class GiveUpMath {
+public class GiveUpMath_03 {
     public static void main(String[] args) {
         int[] answers = { 1,3,2,4,2 };
 

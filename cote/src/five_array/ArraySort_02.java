@@ -1,4 +1,4 @@
-package five;
+package five_array;
 
 import java.util.Arrays;
 
@@ -8,7 +8,7 @@ import java.util.Arrays;
  * sort() 메서드는 NlogN 시간 복잡도를 가짐
  *
  */
-public class ArraySort {
+public class ArraySort_02 {
     public static void main(String[] args) {
         int[] arr = new int[100000];
         long start = System.currentTimeMillis();
