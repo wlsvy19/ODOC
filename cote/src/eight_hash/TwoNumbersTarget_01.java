@@ -1,5 +1,7 @@
 package eight_hash;
 
+import java.util.HashSet;
+
 /**
  * [두 개의 수로 특정값 만들기]
  * n개의 양의 정수로 이루어진 배열 arr와 정수 target이 주어졌을 때
@@ -15,23 +17,36 @@ package eight_hash;
  * [1,2,3,4,8]       6              true
  * [2,3,5,9]         10            false
  */
-public class TwoNumbersTarget {
+public class TwoNumbersTarget_01 {
     public static void main(String[] args) {
         int[] arr = {1, 2, 3, 4, 8};
         int target = 6;
         System.out.println(solution(arr, target));
     }
 
+    // 무작정 더하기 - 시간복잡도 O(n^2)
+//    private static boolean solution(int[] arr, int target) {
+//        boolean answer = false;
+//
+//        for (int i = 0; i < arr.length; i++) {
+//            for (int j = i + 1; j < arr.length; j++) {
+//
+//                if (arr[i] + arr[j] == target) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
+
     private static boolean solution(int[] arr, int target) {
-        boolean answer = false;
+        HashSet<Integer> hashSet = new HashSet<>();
 
-        for (int i = 0; i < arr.length; i++) {
-            for (int j = i + 1; j < arr.length; j++) {
-
-                if (arr[i] + arr[j] == target) {
-                    return true;
-                }
+        for (int i : arr) {
+            if (hashSet.contains(target - i)) {
+                return true;
             }
+            hashSet.add(i);
         }
         return false;
     }
