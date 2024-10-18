@@ -1,9 +1,4 @@
-package programmers;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+package programmers.Lv0;
 
 /**
  * [9로 나눈 나머지]
@@ -25,7 +20,7 @@ import java.util.List;
 // 2. 하나하나의 잘린 문자열 들을 int로 바꾼 후 배열에 넣는다
 // 3. 배열을 순회하며 각 인덱스의 값을 더한다.
 // 4. 더한 값을 % 9 해서 리턴 한다
-public class Two {
+public class 문제_9로나눈나머지 {
     public static void main(String[] args) {
         String number = "78720646226947352489";
         System.out.println(solution(number));
