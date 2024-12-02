@@ -22,7 +22,7 @@ public class ArraySort_02 {
         int[] sort = doSort(arr);
         end = System.currentTimeMillis();
 
-        // 정렬 API 코드 시간 측정
+        // 정렬 API 코드 시간 측정.
         System.out.println((end - start) / 1000.0 + " 초");
 
         System.out.println(Arrays.equals(bubble, sort));
