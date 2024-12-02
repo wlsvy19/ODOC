@@ -3,6 +3,12 @@ package main;
 import java.io.*;
 import java.util.*;
 
+/**
+ * 
+ * @author leejp
+ * 두개의 테이블에서 처리일련번호 등 키값으로 데이터 비교해서 어느 테이블에 이상한 데이터가 들어가는지 확인하는 프로그램
+ *
+ */
 public class FileNumberComparison {
     public static void main(String[] args) {
         // 프로젝트 구조에 맞는 파일 경로 설정
