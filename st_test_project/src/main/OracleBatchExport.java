@@ -28,15 +28,16 @@ public class OracleBatchExport {
             writer = new BufferedWriter(new FileWriter(FILE_PATH));
 
             // 쿼리 준비
-            String query = "SELECT EX_ID, OBU_NO, HND_CAR_NO FROM (" +
-                    "  SELECT A.EX_ID, A.OBU_NO, B.HND_CAR_NO, ROW_NUMBER() OVER (ORDER BY A.EX_ID) AS rownum " +
-                    "  FROM ETCL_HANDLE A " +
-                    "  JOIN PUBR_CARNODATA B ON A.PLZ_ID = B.PLZ_ID AND A.WRK_DATE = B.WRK_DATE " +
-                    "  AND A.WRK_NO = B.WRK_NO AND A.HND_SNO = B.HND_SNO " +
-                    "  WHERE A.WRK_DATE BETWEEN '20220101' AND '20241211' " +
-                    "  AND B.HND_CAR_NO IS NOT NULL " +
-                    "  AND A.EX_ID <> '0000000000000000') " +
-                    "WHERE rownum > ? AND rownum <= ?";
+            String query = "SELECT DISTINCT A.EX_ID, A.OBU_NO, B.HND_CAR_NO " +
+                    "FROM ETCL_HANDLE A " +
+                    "JOIN PUBR_CARNODATA B ON A.PLZ_ID = B.PLZ_ID " +
+                    "AND A.WRK_DATE = B.WRK_DATE " +
+                    "AND A.WRK_NO = B.WRK_NO " +
+                    "AND A.HND_SNO = B.HND_SNO " +
+                    "WHERE A.WRK_DATE BETWEEN '20220101' AND '20241211' " +
+                    "AND B.HND_CAR_NO IS NOT NULL " +
+                    "AND A.EX_ID <> '0000000000000000' " +
+                    "AND ROWNUM > ? AND ROWNUM <= ?";  // 1000건씩 끊어서 가져오기
 
             // 쿼리 실행 준비
             PreparedStatement selectStmt = conn.prepareStatement(query);
@@ -44,6 +45,9 @@ public class OracleBatchExport {
             // 데이터 처리
             int totalRecordsProcessed = 0;
             while (hasMoreRecords) {
+                // 시간 측정 시작
+                long queryStartTime = System.currentTimeMillis();
+
                 selectStmt.setInt(1, offset);  // 시작 위치
                 selectStmt.setInt(2, offset + batchSize);  // 끝 위치
 
@@ -69,8 +73,10 @@ public class OracleBatchExport {
                     hasMoreRecords = false;  // 더 이상 데이터가 없으면 종료
                 }
 
-                // 진행 상황 콘솔에 출력
-                System.out.println("Processed " + recordCount + " records, total processed: " + totalRecordsProcessed + ", offset: " + offset);
+                // 쿼리 실행 시간 측정 및 출력
+                long queryEndTime = System.currentTimeMillis();
+                long queryElapsedTime = (queryEndTime - queryStartTime) / 1000;  // 쿼리 실행 시간 (초 단위)
+                System.out.println("Query executed in " + queryElapsedTime + " seconds. Processed " + recordCount + " records, total processed: " + totalRecordsProcessed + ", offset: " + offset);
 
                 // 파일에 기록을 강제로 flush
                 writer.flush();
