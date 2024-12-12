@@ -1,4 +1,4 @@
-package com.leejp.redistest.config;
+package redistest.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

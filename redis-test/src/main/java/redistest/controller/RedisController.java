@@ -1,8 +1,8 @@
-package com.leejp.redistest.controller;
+package redistest.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import com.leejp.redistest.service.RedisService;
+import redistest.service.RedisService;
 
 
 @RestController

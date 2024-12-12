@@ -1,4 +1,4 @@
-package com.leejp.redistest.service;
+package redistest.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

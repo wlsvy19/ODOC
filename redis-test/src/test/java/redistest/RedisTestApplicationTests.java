@@ -1,4 +1,4 @@
-package com.leejp.redistest;
+package redistest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

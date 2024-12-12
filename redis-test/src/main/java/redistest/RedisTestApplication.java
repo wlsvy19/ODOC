@@ -1,4 +1,4 @@
-package com.leejp.redistest;
+package redistest;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
