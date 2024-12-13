@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 public class SocketServer {
     public static void main(String[] args) {
-        int port = 9998;
+        int port = 33333;
 
         System.out.println("Server is starting... Port: " + port);
 
@@ -64,6 +64,19 @@ public class SocketServer {
                     bufferedOut.write(response);
                     bufferedOut.flush();
                     System.out.println("Response data sent.");
+
+                    // 서버에서 클라이언트로 보낸 응답 데이터 출력
+                    System.out.println("Sent response (bytes):");
+                    for (byte b : response) {
+                        System.out.printf("0x%02X ", b);
+                    }
+                    System.out.println();
+
+                    // 응답 데이터를 문자열로 변환하여 출력
+                    String responseString = new String(response, StandardCharsets.US_ASCII);
+                    System.out.println("Sent response (string):");
+                    System.out.println(responseString);
+
                 } catch (IOException e) {
                     System.out.println("Error occurred while processing the client: " + e.getMessage());
                 }
@@ -76,10 +89,27 @@ public class SocketServer {
     private static byte[] prepareResponse(String responseCode) {
         byte stx = 0x02;
         byte etx = 0x03;
-        String messageLength = "0010"; // 응답 길이
-        String responseMessage = messageLength + responseCode;
 
-        byte[] response = new byte[responseMessage.length() + 2];
+        // 응답 메시지 길이
+        String messageLength = "0038"; // 응답 길이
+
+        // 시스템 구분 코드 (Send) 및 (Receive)
+        String sendCode = "MCOL00";
+        String recvCode = "XXX999";
+
+        // 업무 구분 코드 및 작업 구분 코드
+        String businessCode = "2000";
+        String taskCode = "0020";
+
+        // 송수신 일시
+        String timestamp = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+
+        // 응답 코드
+        String responseMessage = messageLength + sendCode + recvCode + businessCode + taskCode + timestamp + responseCode;
+
+        // 바이트 배열로 응답 메시지 준비
+        byte[] response = new byte[responseMessage.length() + 2];  // +2는 STX와 ETX를 위한 공간
+
         response[0] = stx;
         System.arraycopy(responseMessage.getBytes(StandardCharsets.US_ASCII), 0, response, 1, responseMessage.length());
         response[response.length - 1] = etx;
