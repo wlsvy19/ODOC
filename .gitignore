@@ -1,1 +1,37 @@
 node_modules
+
+HELP.md
+target
+bin
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Java ###
+
+*.class
+
+### Eclipse ###
+.springBeans
+.metadata
+.externalToolBuilders
+RemoteSystemsTempFiles
+.classpath
+.settings
+.project
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+*.log
+*.out
+*.bak
+
+### Ignore application.yml ###
+/gdtcs_op_backend/src/main/resources/application.yml
+
+.codetogether.ignore
+.factorypath
