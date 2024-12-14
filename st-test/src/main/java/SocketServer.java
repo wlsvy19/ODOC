@@ -55,7 +55,7 @@ public class SocketServer {
                     }
 
                     // 데이터 처리 후 응답 생성
-                    String responseCode = "0000"; // 성공 응답 코드
+                    String responseCode = "0001"; // 성공 응답 코드
                     byte[] response = prepareResponse(responseCode);
 
                     // 클라이언트로 응답 전송
