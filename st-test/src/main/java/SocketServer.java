@@ -38,20 +38,19 @@ public class SocketServer {
 
                         // 데이터의 마지막 3자리 추출 (전문 번호)
                         String fileNumber = readableData.substring(readableData.length() - 3);
-
-                        // 전문 전송 시작 로그 출력
-                        logTransactionStart(fileNumber);
-
-                        // 전문 처리 (로직은 필요에 따라 handleTransactionLogic 메서드에서 구현 가능)
-                        handleTransactionLogic(fileNumber);
-
-                        // 전문 전송 종료 로그 출력
-                        logTransactionEnd(fileNumber);
                     }
 
                     // 응답 처리
                     String responseCode = "0000"; // 성공 응답 코드
                     byte[] response = prepareResponse(responseCode);
+
+                    try {
+                        log.info("응답 전송 전 5초 대기 중...");
+                        Thread.sleep(1000); // 단위 ms
+                    } catch (InterruptedException e) {
+                        log.error("응답 딜레이 중 중단되었습니다: {}", e.getMessage());
+                    }
+
 
                     // 클라이언트로 응답 전송
                     OutputStream out = clientSocket.getOutputStream();
@@ -83,78 +82,7 @@ public class SocketServer {
         }
     }
 
-    /**
-     * 전문 전송 시작 로그 출력
-     * @param fileNumber 전문 코드
-     */
-    private static void logTransactionStart(String fileNumber) {
-        switch (fileNumber) {
-            case "802":
-                log.info("---------------------------------------- 선불카드 전문 전송 시작 ----------------------------------------");
-                break;
 
-            case "484":
-                log.info("---------------------------------------- 후불정산 전문 전송 시작 ----------------------------------------");
-                break;
-
-            case "499":
-                log.info("---------------------------------------- 일마감명세 전문 전송 시작 ----------------------------------------");
-                break;
-
-            default:
-                log.warn("유효하지 않은 파일 번호입니다: {}", fileNumber);
-                break;
-        }
-    }
-
-    /**
-     * 전문 전송 종료 로그 출력
-     * @param fileNumber 전문 코드
-     */
-    private static void logTransactionEnd(String fileNumber) {
-        switch (fileNumber) {
-            case "802":
-                log.info("---------------------------------------- 선불카드 전문 종료 ----------------------------------------");
-                break;
-
-            case "484":
-                log.info("---------------------------------------- 후불정산 전문 종료 ----------------------------------------");
-                break;
-
-            case "499":
-                log.info("---------------------------------------- 일마감명세 전문 종료 ----------------------------------------");
-                break;
-
-            default:
-                log.warn("유효하지 않은 파일 번호입니다: {}", fileNumber);
-                break;
-        }
-    }
-
-    /**
-     * 전문 처리 로직
-     * @param fileNumber 전문 코드
-     */
-    private static void handleTransactionLogic(String fileNumber) {
-        // 실제 전문 처리 로직 추가 가능 (현재는 로그만 출력)
-        switch (fileNumber) {
-            case "802":
-                log.info("선불카드 전문 처리 중...");
-                break;
-
-            case "484":
-                log.info("후불정산 전문 처리 중...");
-                break;
-
-            case "499":
-                log.info("일마감명세 전문 처리 중...");
-                break;
-
-            default:
-                log.warn("알 수 없는 파일 번호 처리 중: {}", fileNumber);
-                break;
-        }
-    }
 
     /**
      * 응답 데이터 생성
