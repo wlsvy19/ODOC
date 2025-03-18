@@ -9,7 +9,10 @@ import java.util.Properties;
 
 public class GDTCSCenterDB {
     public static void main(String[] args) {
-        processRECIEVSTA_M();
+        // processRECIEVSTA_M();
+        Map<String, Object> result = selectICRCVLOCK_M();
+        System.out.println(result.get("message"));
+        System.out.println(result.get("status"));
     }
 
     private static final String DB_URL = "jdbc:oracle:thin:@192.168.0.221:1521:HPS";
@@ -43,6 +46,39 @@ public class GDTCSCenterDB {
             System.out.println("센터 DB 연결 실패");
             throw e;
         }
+    }
+
+    public static Map<String, Object> selectICRCVLOCK_M() {
+        String icCode = "094";
+        String calcDate = "20250211";
+        return executeDbOperation(statement -> {
+            String sql = String.format(
+                    "SELECT D_CLOSE_YN FROM ICRCVLOCK_M WHERE IC_CODE = '%s' AND D_CLOSE_DATE = '%s'",
+                    icCode.replace("'", "''"), calcDate.replace("'", "''")
+            );
+
+            try (ResultSet resultSet = statement.executeQuery(sql)) {
+                Map<String, Object> result = new HashMap<>();
+                if (resultSet.next()) {
+                    String dCloseYn = resultSet.getString("D_CLOSE_YN");
+                    result.put("D_CLOSE_YN", dCloseYn);
+                    result.put("status", 1);
+                    result.put("message", "광안센터 DB 조회에 성공했습니다.");
+                    //log.info("센터 DB 조회 성공: IC_CODE={}, CALC_DATE={}, D_CLOSE_YN={}", icCode, calcDate, dCloseYn);
+                    //System.out.println("광안 센터 DB 조회 성공 - 정산날짜:" + calcDate + ", 락여부: " + dCloseYn);
+                } else {
+                    result.put("status", 2);
+                    result.put("message", "해당 날짜에 대한 LOCK 관련 데이터가 없습니다.");
+                    //log.warn("센터 DB 조회 결과 없음: IC_CODE={}, CALC_DATE={}", icCode, calcDate);
+                    //String dCloseYn = resultSet.getString("D_CLOSE_YN");
+                    //System.out.println("광안 센터 DB 조회 결과 없음 - 정산날짜:" + calcDate + ", 락여부: " + dCloseYn);
+                }
+                return result;
+            } catch (SQLException e) {
+                //log.error("센터 DB 테이블 ICRCVLOCK_M 조회 실패: {}", e.getMessage(), e);
+                throw new RuntimeException("센터 DB 테이블 ICRCVLOCK_M 조회 중 오류 발생: " + e.getMessage(), e);
+            }
+        });
     }
 
     public static Map<String, Object> processRECIEVSTA_M() {

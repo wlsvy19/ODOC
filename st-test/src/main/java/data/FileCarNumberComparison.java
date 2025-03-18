@@ -3,6 +3,10 @@ package data;
 import java.io.*;
 import java.util.*;
 
+/**
+ * 2개의 텍스트 파일에서 숫자를 읽어 중복되는게 있는지 확인
+ */
+
 public class FileCarNumberComparison {
     public static void main(String[] args) {
 
