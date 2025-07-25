@@ -1,0 +1,22 @@
+{
+  "SEARCH_DATA": "데이터 조회중입니다.",
+  "NO_DATA": "조회된 데이터가 없습니다.",
+  "NO_DATA_EXCEL": "데이터 조회 후 엑셀 다운로드를 진행해주세요.",
+  "NO_DATA_PRINT": "데이터 조회 후 출력을 진행해주세요.",
+  "CHECK_DATA_EXCEL": "다운로드 할 데이터를 선택해주세요.",
+  "CHECK_DATA_PRINT": "출력 할 데이터를 선택해주세요.",
+  "INVALID_DATE": "유효하지 않은 기간입니다.",
+  "SEARCH_CONDITION_CHANGED": "조회조건이 변경되었습니다.\n데이터를 다시 조회하신 후 시도해주세요.",
+  "CONFIRM_EXCEL": "건의 엑셀 다운로드를 진행 하시겠습니까?",
+  "CONFIRM_PRINT": "건의 출력을 진행 하시겠습니까?",
+  "CANCEL_EXCEL": "엑셀 다운로드를 취소했습니다.",
+  "CANCEL_PRINT": "리포트 출력을 취소했습니다.",
+  "SEARCH_ERROR": " 데이터 조회 중 에러가 발생했습니다.\n문제가 지속된다면 관리자한테 문의하세요.",
+  "REPORT_ERROR": " Report Error가 발생했습니다.\n문제가 지속된다면 관리자한테 문의하세요.",
+  "PROCESS_ERROR": "처리중 에러가 발생했습니다. \n관리자한테 문의하세요.",
+  "FUNCTION_ERROR_EXCEL": "엑셀 공통 함수에서 에러가 발생했습니다.\n문제가 지속된다면 관리자한테 문의하세요.",
+  "INCORRECT_PARAM_EXCEL": "엑셀 다운로드시 파라미터 값에 문제가 있습니다.\n문제가 지속된다면 관리자한테 문의하세요.",
+  "SUCCESS_EXCEL": "엑셀 다운로드가 완료되었습니다.",
+  "SELECT_WORKNO": "근무번호를 선택해주세요.",
+  "WORKNO_ERROR": "근무번호를 불러오는 도중 에러가 발생했습니다.\n문제가 지속된다면 관리자한테 문의하세요."
+}

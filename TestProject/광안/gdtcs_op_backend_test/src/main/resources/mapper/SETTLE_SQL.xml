@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.settle.mapper.SettleMapper">
+	<!-- 환불이체내역 조회-도로공사 -->
+	<select id="getRefundRequestList" parameterType="Map" resultType="Map">
+		select 
+			--FC_CHG_FORMAT(RFND_RQ_NO, '4') AS RFND_RQ_NO,
+			a.RFND_RQ_NO AS RFND_RQ_NO,
+			NVL(FC_CHG_FORMAT(a.CALC_DATE, '1'), '-') AS CALC_DATE,
+			NVL(FC_CHG_FORMAT(a.WCARD_NO, '3'), '-') AS WCARD_NO,
+			NVL(FC_CHG_FORMAT(a.RFND_RQ_DATE, '1'), '-') AS RFND_RQ_DATE,
+			NVL(FC_CHG_FORMAT(a.RFND_AMT, '4'), '-') AS RFND_AMT,
+			NVL(a.RFND_AMT, 0) AS O_RFND_AMT,
+			NVL(a.ACNT_DPST, '-') AS ACNT_DPST,
+			NVL(FC_CHG_CODENM('270',a.BANK_CODE), '-') AS BANK_CODE,
+			NVL(a.ACNT_NO, '-') AS ACNT_NO,
+			NVL(a.BANKBK_NOTE, '-') AS BANKBK_NOTE,
+			max(b.INST_CAR_NO) as INST_CAR_NO
+		FROM
+			CALC_LOC_RFNDRQ a, PROC_LOC_EXMTHAND b
+		WHERE 1=1
+			AND a.WCARD_NO = b.WCARD_NO(+)
+			AND a.RFND_RQ_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			AND a.WCARD_NO LIKE '%' || #{WCARD_NO} || '%'
+			<if test="INST_CAR_NO != null and INST_CAR_NO != ''">AND b.INST_CAR_NO LIKE '%' || #{INST_CAR_NO} || '%'</if>
+		GROUP BY a.WCARD_NO, a.RFND_RQ_NO, a.CALC_DATE, a.RFND_RQ_DATE, a.RFND_AMT, a.RFND_AMT, a.ACNT_DPST, a.BANK_CODE, a.ACNT_NO, a.BANKBK_NOTE
+	</select>
+	<select id="getRefundResponseList" parameterType="Map" resultType="Map">
+		select 
+			--FC_CHG_FORMAT(RFND_RQ_NO, '4') AS RFND_RQ_NO,
+			a.RFND_RQ_NO AS RFND_RQ_NO,
+			NVL(FC_CHG_FORMAT(a.CALC_DATE, '1'), '-') AS CALC_DATE,
+			NVL(FC_CHG_FORMAT(a.RFND_RQ_DATE, '1'), '-') AS RFND_RQ_DATE,
+			NVL(FC_CHG_FORMAT(a.RFND_RS_DATE, '1'), '-') AS RFND_RS_DATE,
+			NVL(FC_CHG_FORMAT(a.RFND_AMT, '4'), '-') AS RFND_AMT,
+			NVL(a.RFND_AMT, 0) AS O_RFND_AMT,
+			NVL(a.ACNT_DPST, '-') AS ACNT_DPST,
+			NVL(FC_CHG_CODENM('270',a.BANK_CODE), '-') AS BANK_CODE,
+			NVL(a.ACNT_NO, '-') AS ACNT_NO,
+			NVL(a.BANKBK_NOTE, '-') AS BANKBK_NOTE,
+			DECODE(a.LOC_HAND_STAT, 'S', '성공', 'F', '실패') AS LOC_HAND_STAT,
+			NVL(a.ERR_CODE, '-') AS ERR_CODE,
+			NVL(FC_CHG_FORMAT(a.RFND_DATE, '1'), '-') AS RFND_DATE,
+			NVL(a.FEE, 0) AS FEE,
+			max(c.INST_CAR_NO) as INST_CAR_NO
+		FROM
+			CALC_LOC_RFNDRS a, CALC_LOC_RFNDRQ b, PROC_LOC_EXMTHAND c
+		WHERE 1=1
+			AND a.RFND_RQ_NO = b.RFND_RQ_NO(+)
+			AND b.WCARD_NO = c.WCARD_NO(+)
+			AND a.RFND_RQ_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			<if test="INST_CAR_NO != null and INST_CAR_NO != ''">AND c.INST_CAR_NO LIKE '%' || #{INST_CAR_NO} || '%'</if>
+		GROUP BY a.RFND_RQ_NO, a.CALC_DATE, a.RFND_RQ_DATE, a.RFND_RS_DATE, a.RFND_AMT, a.ACNT_DPST, a.BANK_CODE, a.ACNT_NO, a.BANKBK_NOTE, a.LOC_HAND_STAT, a.ERR_CODE, a.RFND_DATE, a.FEE
+		
+	</select>
+	<!-- 환불 명세 조회 -->
+	<!-- 목록조회 -->
+	<select id="selectRefundDetailList" resultType="hashMap">
+	      SELECT ROW_NUMBER() OVER (ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO) ROW_NUMBER
+	         , A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO
+	         , FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+	         , A.PAY_FARE
+	         , FC_CHG_FORMAT(A.PAY_FARE, '4') AS PAY_FARE_DP
+	         , A.REFUND_FARE
+	         , FC_CHG_FORMAT(A.REFUND_FARE, '4') AS REFUND_FARE_DP
+	         , A.REFUND_DIV
+	         , FC_CHG_CODENM('560', A.REFUND_DIV) AS REFUND_DIV_DP
+	         , A.REFUND_TYPE
+	         , FC_CHG_CODENM('561', A.REFUND_TYPE) AS REFUND_TYPE_DP
+	         , A.REFUND_ADMIN
+	         , FC_CHG_WORKERNM('094', A.REFUND_ADMIN) AS REFUND_ADMIN_DP 
+	         , A.REFUND_DT
+	         , FC_CHG_FORMAT(A.REFUND_DT, '11') AS REFUND_DT_DP
+	         , A.HAND_CAR_NO
+	         , A.MAKE_DATE
+	         , FC_CHG_FORMAT(A.MAKE_DATE, '1') AS MAKE_DATE_DP
+	         , B.VHCL_NO
+	         , B.MBR_NM
+	         , B.BANK_TYPE
+	         , B.BACNT_NO
+	         , DECODE(B.BACNT_NO, '', '무', '유') BACNT_YN
+			 , FC_CHG_FORMAT(C.HAND_DT ,'11') HAND_DT
+			
+		FROM PROC_REFUND A, MQNIC.V_RFND_BACNT_INFO B, PRIM_ETCHAND C
+		WHERE 1 = 1
+		  AND A.IC_CODE = #{IC_CODE}
+			<if test="SEARCH_TYPE == 0">AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}</if>
+			<if test="SEARCH_TYPE == 1">AND A.REFUND_DT BETWEEN #{START_DATE}||'000000' AND #{END_DATE}||'235959'</if>
+		  
+		  AND REFUND_DIV = DECODE(#{REFUND_DIV}, '', REFUND_DIV, #{REFUND_DIV})
+		  AND REFUND_TYPE = DECODE(#{REFUND_TYPE}, '', REFUND_TYPE, #{REFUND_TYPE})
+		  AND A.HAND_CAR_NO = B.VHCL_NO(+)
+		  AND A.IC_CODE = C.IC_CODE(+)
+          AND A.WORK_DATE = C.WORK_DATE(+)
+          AND A.WORK_NO = C.WORK_NO(+)
+          AND A.HAND_SNO = C.HAND_SNO(+)
+		  <if test="HAND_CAR_NO != null and HAND_CAR_NO != ''">AND HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'</if>
+	</select>
+	
+	<!-- 상세조회 - resultMap -->
+	<resultMap id="refundInfoDetail" type="Map">
+		<result property="IC_CODE" column="IC_CODE" />
+		<result property="WORK_DATE" column="WORK_DATE" />
+		<result property="WORK_NO" column="WORK_NO" />
+		<result property="HAND_SNO" column="HAND_SNO" />
+		<result property="IC_CODE_DP" column="IC_CODE_DP" />
+		<result property="WORK_DATE_DP" column="WORK_DATE_DP" />
+		<result property="OCC_DT_DP" column="OCC_DT_DP" />
+		<result property="HAND_CAR_TYPE_DP" column="HAND_CAR_TYPE_DP" />
+		<result property="HAND_CAR_NO" column="HAND_CAR_NO" />
+		<result property="REFUND_DIV_DP" column="REFUND_DIV_DP" />
+		<result property="REFUND_TYPE" column="REFUND_TYPE" />
+		<association property="payment" resultMap="paymentMap" />
+		<association 
+			property="correction"
+			javaType="Map"
+			column="{IC_CODE=IC_CODE, WORK_DATE=WORK_DATE, WORK_NO=WORK_NO, HAND_SNO=HAND_SNO, REFUND_DIV=REFUND_DIV}" 
+			select="selectRefundInfoDetailCorrection"
+		/>
+	</resultMap>
+	<!-- 상세조회 - 지불정보 resultMap -->
+	<resultMap id="paymentMap" type="Map">
+		<result property="ECARD_ATT_DP" column="ECARD_ATT_DP" />
+		<result property="OBU_ATT_DP" column="OBU_ATT_DP" />
+		<result property="MAIN_PAY_DIV_DP" column="MAIN_PAY_DIV_DP" />
+		<result property="ECARD_PAY_DIV_DP" column="ECARD_PAY_DIV_DP" />
+		<result property="ECARD_TYPE_DP" column="ECARD_TYPE_DP" />
+		<result property="CARD_NO_DP" column="CARD_NO_DP" />
+		<result property="PAY_FARE" column="PAY_FARE" />
+		<result property="REFUND_FARE" column="REFUND_FARE" />
+		<result property="PAY_FARE_DP" column="PAY_FARE_DP" />
+		<result property="REFUND_FARE_DP" column="REFUND_FARE_DP" />
+	</resultMap>
+	<!-- 상세조회 - 심사정보 resultMap -->
+	<resultMap id="correctionMap" type="Map">
+		<id property="IC_CODE" column="IC_CODE" />
+		<id property="WORK_DATE" column="WORK_DATE" />
+		<id property="WORK_NO" column="WORK_NO" />
+		<id property="HAND_SNO" column="HAND_SNO" />
+		<id property="REFUND_DIV" column="REFUND_DIV" />
+		<result property="HAND_DT_DP" column="HAND_DT_DP" />
+		<result property="EXM_DTL_DP" column="EXM_DTL_DP" />
+	</resultMap>
+	<select id="selectRefundInfoDetail" resultMap="refundInfoDetail">
+	/* Mapper ID: selectRefundInfoDetail */
+	SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO
+		, FC_CHG_ICNM(A.IC_CODE) AS IC_CODE_DP
+		, FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+		, FC_CHG_FORMAT(B.HAND_DT, 'DATETIME') AS OCC_DT_DP
+		, FC_CHG_CODEDP('171', C.HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+		, FC_CHG_CODENM('290', B.ECARD_ATT) AS ECARD_ATT_DP
+		, FC_CHG_CODENM('280', UPPER(B.OBU_ATT)) AS OBU_ATT_DP
+		, A.HAND_CAR_NO AS HAND_CAR_NO
+		, A.REFUND_DIV
+		, A.REFUND_TYPE
+		, FC_CHG_CODENM('560', A.REFUND_DIV) AS REFUND_DIV_DP
+		, FC_CHG_CODENM('056', B.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+		, FC_CHG_CODEDP('070', B.ECARD_PAY_DIV) AS ECARD_PAY_DIV_DP
+		, FC_CHG_CODEDP('049', B.DIFF_DIV) AS DIFF_DIV_DP
+		, A.PAY_FARE
+		, FC_CHG_FORMAT(A.PAY_FARE, '4') AS PAY_FARE_DP
+		, A.REFUND_FARE
+		, FC_CHG_FORMAT(A.REFUND_FARE, '4') AS REFUND_FARE_DP
+		, FC_CHG_CODENM('071', B.ECARD_TYPE) AS ECARD_TYPE_DP
+		, FC_CHG_FORMAT(B.CARD_NO, '3') AS CARD_NO_DP
+	FROM PROC_REFUND A, PRIM_ETCHAND B, PRIM_HANDCARNO C
+	WHERE A.IC_CODE = B.IC_CODE
+	  AND A.WORK_DATE = B.WORK_DATE
+	  AND A.WORK_NO = B.WORK_NO
+	  AND A.HAND_SNO = B.HAND_SNO
+	  AND A.IC_CODE = C.IC_CODE(+)
+	  AND A.WORK_DATE = C.WORK_DATE(+)
+	  AND A.WORK_NO = C.WORK_NO(+)
+	  AND A.HAND_SNO = C.HAND_SNO(+)
+	  AND A.IC_CODE = #{IC_CODE} AND A.WORK_DATE = #{WORK_DATE} AND A.WORK_NO = #{WORK_NO} AND A.HAND_SNO = #{HAND_SNO}
+	</select>
+	<select id="selectRefundInfoDetailCorrection" resultMap="correctionMap">
+	/* Mapper ID: selectRefundInfoDetailCorrection */
+		<choose>
+		<when test='REFUND_DIV.equals("0")' > /* 위반 */
+		SELECT FC_CHG_FORMAT(HAND_DT, 'DATETIME') AS HAND_DT_DP, FC_CHG_CODEDP('805', EXMT_DTL_TYPE) AS EXM_DTL_DP
+		FROM PRIM_ETCVLTN 
+		WHERE IC_CODE = #{IC_CODE} AND WORK_DATE = #{WORK_DATE} AND WORK_NO = #{WORK_NO} AND HAND_SNO = #{HAND_SNO}
+		</when>
+		<when test='REFUND_DIV.equals("3")' > /* 부산면제-택시 */
+		SELECT FC_CHG_FORMAT(TAXI_TRNRCP_DT, 'DATETIME') AS HAND_DT_DP, FC_CHG_CODENM('295', TAXI_EXM_TYPE) AS EXM_DTL_DP
+		FROM PROC_TAXI_HIST 
+		WHERE IC_CODE = #{IC_CODE} AND WORK_DATE = #{WORK_DATE} AND WORK_NO = #{WORK_NO} AND HAND_SNO = #{HAND_SNO}
+		</when>
+		<when test='REFUND_DIV.equals("2")' > /* 부산면제 */
+		SELECT '-' AS HAND_DT_DP, FC_CHG_CODEDP('292', BS_EXM_TYPE_DTL) AS EXM_DTL_DP
+		FROM PRIM_ETCHAND 
+		WHERE IC_CODE = #{IC_CODE} AND WORK_DATE = #{WORK_DATE} AND WORK_NO = #{WORK_NO} AND HAND_SNO = #{HAND_SNO}
+		</when>
+		<when test='REFUND_DIV.equals("1")' > /* 통복면제 - 미발생 */
+		SELECT FC_CHG_FORMAT(LC_HAND_DATE || LC_HAND_TIME, 'DATETIME') AS HAND_DT_DP, FC_CHG_CODENM('139', EXMT_HAND_STAT) AS EXM_DTL_DP
+		FROM PROC_LOC_EXMTHAND 
+		WHERE IC_CODE = #{IC_CODE} AND WORK_DATE = #{WORK_DATE} AND WORK_NO = #{WORK_NO} AND HAND_SNO = #{HAND_SNO}
+		</when>
+		<otherwise>
+		SELECT NVL2(V.HAND_DT, FC_CHG_FORMAT(V.HAND_DT, 'DATETIME'), '-') AS HAND_DT_DP, '-' AS EXM_DTL_DP
+		FROM PRIM_ETCHAND H, PRIM_ETCVLTN V
+		WHERE H.IC_CODE = V.IC_CODE(+) AND H.WORK_DATE = V.WORK_DATE(+) AND H.WORK_NO = V.WORK_NO(+) AND H.HAND_SNO = V.HAND_SNO(+)
+		  AND H.IC_CODE = #{IC_CODE} AND H.WORK_DATE = #{WORK_DATE} AND H.WORK_NO = #{WORK_NO} AND H.HAND_SNO = #{HAND_SNO}
+		</otherwise>
+		</choose>
+	</select>
+	<!-- 환불 명세 조회 - 일괄처리 -->
+	<update id="updateRefundInfoBatch" statementType="CALLABLE" parameterType="hashMap">
+	/* Mapper ID: updateRefundInfoBatch */
+		DECLARE
+			v_UPDATE_CNT INTEGER := 0;
+		BEGIN
+		<foreach collection="data" item="item">
+			UPDATE PROC_REFUND
+			   SET REFUND_TYPE = #{REFUND_TYPE}
+				 , REFUND_ADMIN = #{ADMIN}
+				 , REFUND_DT = TO_CHAR(SYSDATE, 'yyyymmddhh24miss') 
+			WHERE IC_CODE = #{item.IC_CODE}
+			  AND WORK_DATE = #{item.WORK_DATE}
+			  AND WORK_NO = #{item.WORK_NO}
+			  AND HAND_SNO = #{item.HAND_SNO};
+			v_UPDATE_CNT := v_UPDATE_CNT + 1;
+		</foreach>
+			#{successCount, jdbcType=INTEGER, mode=OUT} := v_UPDATE_CNT;
+		END;
+	</update>
+	
+	<!-- 환불 명세 관리 - 목록조회 -->
+	<select id="selectRefundManagementList" resultType="hashMap">
+	/* Mapper ID: selectRefundManagementList */
+		SELECT ROW_NUMBER() OVER (ORDER BY HAND_CAR_NO, CATEGORY_ID DESC) ROW_NUMBER
+			, LIST.HAND_CAR_NO
+			, LIST.CATEGORY_ID
+			, FC_CHG_CODENM('562', CATEGORY_ID) AS CATEGORY_NM
+			, LIST.TOTAL_CNT
+			, LIST.PAY_FARE
+			, FC_CHG_FORMAT(LIST.PAY_FARE, '4') AS PAY_FARE_DP
+			, LIST.REFUND_FARE
+			, FC_CHG_FORMAT(LIST.REFUND_FARE, '4') AS REFUND_FARE_DP
+			, CUST.MBR_NM
+			, CUST.BANK_TYPE 
+			, CUST.BACNT_NO
+			, DECODE(CUST.BACNT_NO, '', '무', '유') BACNT_YN
+		FROM (
+			SELECT HAND_CAR_NO
+				, DECODE(REFUND_TYPE, '1', 'RFNDED', 'UNRFND') AS CATEGORY_ID
+				, SUM(PAY_FARE) AS PAY_FARE
+				, SUM(REFUND_FARE) AS REFUND_FARE
+				, COUNT(HAND_CAR_NO) AS TOTAL_CNT
+			FROM PROC_REFUND
+			WHERE 1 = 1
+			  AND IC_CODE = #{IC_CODE}
+			  AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			  AND HAND_CAR_NO LIKE '%'|| #{CAR_NO} ||'%'
+			GROUP BY HAND_CAR_NO, DECODE(REFUND_TYPE, '1', 'RFNDED', 'UNRFND')
+		) LIST, MQNIC.V_RFND_BACNT_INFO CUST
+		WHERE LIST.HAND_CAR_NO = CUST.VHCL_NO(+)
+		  <if test="CATEGORY_ID != null and CATEGORY_ID != ''">AND CATEGORY_ID = #{CATEGORY_ID}</if>
+	</select>
+	
+	<!-- 환불 명세 관리 - 차량별 조회 -->
+	<select id="selectRefundManagementDetailList" resultType="hashMap">
+	/* Mapper ID: selectRefundManagementDetail */
+		SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO
+			, FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+			, FC_CHG_FORMAT(A.MAKE_DATE, '1') AS MAKE_DATE_DP
+			, A.HAND_CAR_NO
+			, A.PAY_FARE
+			, A.REFUND_FARE
+			, FC_CHG_FORMAT(A.PAY_FARE, '4') AS PAY_FARE_DP
+			, FC_CHG_FORMAT(A.REFUND_FARE, '4') AS REFUND_FARE_DP
+			, FC_CHG_CODENM('560', A.REFUND_DIV) AS REFUND_DIV_DP
+			, A.REFUND_TYPE
+			, FC_CHG_CODENM('561', A.REFUND_TYPE) AS REFUND_TYPE_DP
+			, FC_CHG_WORKERNM('094', A.REFUND_ADMIN) AS REFUND_ADMIN_DP
+			, FC_CHG_FORMAT(A.REFUND_DT, '11') AS REFUND_DT_DP
+			, DECODE(A.REFUND_TYPE, '1', 'RFNDED', 'UNRFND') AS CATEGORY_ID
+			, FC_CHG_CODENM('562', DECODE(A.REFUND_TYPE, '1', 'RFNDED', 'UNRFND')) AS CATEGORY
+			, FC_CHG_FORMAT(C.HAND_DT ,'11') HAND_DT
+		FROM PROC_REFUND A, PRIM_ETCHAND C
+		WHERE 1 = 1
+		  AND A.IC_CODE = #{IC_CODE}
+		  AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		  AND HAND_CAR_NO = #{HAND_CAR_NO}
+		  AND A.IC_CODE = C.IC_CODE(+)
+          AND A.WORK_DATE = C.WORK_DATE(+)
+          AND A.WORK_NO = C.WORK_NO(+)
+          AND A.HAND_SNO = C.HAND_SNO(+)
+		  
+		<choose>
+		 <when test="CATEGORY_ID == 'RFNDED'">
+		  AND REFUND_TYPE = '1'
+		 </when>
+		 <otherwise>
+		  AND REFUND_TYPE != '1'
+		 </otherwise>
+		</choose> 
+		ORDER BY REFUND_TYPE, IC_CODE, WORK_DATE, WORK_NO, HAND_SNO
+	</select>
+</mapper>

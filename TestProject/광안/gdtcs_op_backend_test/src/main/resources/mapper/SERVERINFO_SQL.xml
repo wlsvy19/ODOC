@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.common.mapper.ServerInfoMapper">
+
+	<select id="selectServerInfo" parameterType="hashMap" resultType="hashMap">
+		SELECT IC_CODE,
+			   SVR_NM,
+			   SVR_ADDR,
+			   SVR_PORT,
+			   SVR_CTGR,
+			   SVR_NOTE,
+			   SVR_VAR_01,
+			   ACCNT_ID,
+			   ACCNT_PW
+		FROM BASE_SVRINFO S
+		WHERE S.IC_CODE = DECODE(#{IC_CODE}, '', S.IC_CODE, '999', S.IC_CODE, #{IC_CODE})
+		  AND S.SVR_CTGR = #{SVR_CTGR}
+	</select>
+	
+</mapper>

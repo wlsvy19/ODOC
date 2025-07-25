@@ -1,0 +1,57 @@
+server:
+  port: 9080
+  address: 127.0.0.1
+  tomcat:
+    additional-tld-skip-patterns: "*.jar"
+    max-swallow-size: 10MB
+    max-http-form-post-size: 10MB
+
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      enabled: true
+      location: ${java.io.tmpdir}
+      max-file-size: 10MB
+      max-request-size: 10MB
+  cache:  # 캐시 설정 (Redis 사용) <- 여기부터
+    type: redis
+
+  redis:
+    #host: 10.100.10.148          # Redis 서버 호스트 (예: localhost, 또는 Redis 서버의 IP)
+    host: localhost          # Redis 서버 호스트 (예: localhost, 또는 Redis 서버의 IP)
+    port: 6379               # Redis 서버 포트 (기본값: 6379)
+    password:
+    timeout: 2000000            # Redis 연결 타임아웃 (밀리초 단위)
+    lettuce:
+      pool:
+        max-active: 10       # 최대 활성 커넥션 수
+        max-idle: 5          # 최대 대기 커넥션 수
+        min-idle: 1          # 최소 대기 커넥션 수
+    jedis:
+      pool:
+        max-active: 10       # 최대 활성 커넥션 수
+        max-idle: 5          # 최대 대기 커넥션 수
+        min-idle: 1          # 최소 대기 커넥션 수
+
+security:
+  aes256:
+    public:
+      key: u/vvjAlub2n2sM+c419xYBwikAc70OpWljGw14KTdv1+TSJCnoVZylub2n2sM+c419xYBJkMnVZOWmclLwZaKS
+    private:
+      key: Gw14KTdv1+TSJCnobiLI9yTSJCnoVZyLu/vvjAlub2n2sM+c419I9ywikAc70OpWljGw14KTdv1+TSJCnoVZyLu/
+
+logging:
+  config: classpath:log4j2.xml
+  level:
+    org:
+      springframework: INFO
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+  api-docs:
+    path: /api-docs

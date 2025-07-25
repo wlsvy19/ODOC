@@ -1,0 +1,103 @@
+@font-face {
+  font-family: 'NanumSquare';
+  src: url('@/assets/fonts/NanumSquareL.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquareL.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare';
+  src: url('@/assets/fonts/NanumSquareR.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquareR.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare';
+  src: url('@/assets/fonts/NanumSquareB.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquareB.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare';
+  src: url('@/assets/fonts/NanumSquareEB.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquareEB.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare_ac';
+  src: url('@/assets/fonts/NanumSquareOTF_acL.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquare_acL.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare_ac';
+  src: url('@/assets/fonts/NanumSquareOTF_acR.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquare_acR.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare_ac';
+  src: url('@/assets/fonts/NanumSquareOTF_acB.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquare_acB.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NanumSquare_ac';
+  src: url('@/assets/fonts/NanumSquareOTF_acEB.otf') format('opentype'),
+    url('@/assets/fonts/NanumSquare_acEB.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+body {
+  font-family: 'NanumSquare', sans-serif;
+}
+
+.font-light {
+  font-weight: 300 !important;
+}
+
+.font-regular {
+  font-weight: 400 !important;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+
+.font-extra-bold {
+  font-weight: 800 !important;
+}
+
+.font-light-ac {
+  font-family: 'NanumSquare_ac';
+  font-weight: 300 !important;
+}
+
+.font-regular-ac {
+  font-family: 'NanumSquare_ac';
+  font-weight: 400 !important;
+}
+
+.font-bold-ac {
+  font-family: 'NanumSquare_ac';
+  font-weight: 700 !important;
+}
+
+.font-extra-bold-ac {
+  font-family: 'NanumSquare_ac';
+  font-weight: 800 !important;
+}

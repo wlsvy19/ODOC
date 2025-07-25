@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gdtcs.login.mapper.LoginMapper">
+    <select id="selectLoginInfo" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectLoginInfo 로그인 정보 */
+        SELECT
+            A.IC_CODE,
+            CASE
+                WHEN A.IC_CODE = '094' THEN '광안대교'
+                ELSE NVL(A.IC_CODE, '0')
+            END AS IC_NM,
+            B.CODESC_NM AS IC_NM,
+            CASE
+                WHEN B.IC_DIV = '0' THEN 'Y'
+                ELSE 'N'
+            END AS IS_CENTER,
+            B.IC_DIV AS IC_DIV,
+            A.WORKER_NO AS WORKER_NO,
+            A.WORKER_NM AS WORKER_NM,
+            A.CLASS AS WORKER_CLS,
+            FC_CHG_CODENM('230', A.CLASS) AS CLASS_NM,
+            TO_NUMBER(A.CLASS) AS CLASS_GRADE
+        FROM BASE_WORKERINFO A
+        LEFT OUTER JOIN VW_IC_INFO B
+        ON B.IC_CODE = A.IC_CODE
+        WHERE 1 = 1 
+        AND A.IC_CODE = #{icCode}
+        AND A.IC_CODE = B.IC_CODE
+        AND A.RESIGN_YN = 'N'
+        AND A.WORKER_NO = #{workerNo}
+        AND A.PW = #{pw}
+    </select>
+
+    <insert id="insertLoginLog" parameterType="hashMap">
+    /* Mapper ID: insertLoginLog 로그인 이력 삽입 */
+        INSERT INTO PROC_LOGINLOG
+            (
+             IC_CODE,
+             LOGIN_DATE,
+             LOGIN_TM,
+             WORKER_NO,
+             LOGIN_DIV,
+             IP_ADDR
+            )
+        VALUES (
+                #{IC_CODE},
+                #{LOGIN_DATE},
+                #{LOGIN_TM},
+                #{WORKER_NO},
+                #{LOGIN_DIV},
+                #{IP_ADDR}
+               )
+    </insert>
+
+    <update id="updateLoginLog" parameterType="hashMap">
+    /* Mapper ID: insertLoginLog 로그아웃 이력 삽입 */
+        UPDATE
+            PROC_LOGINLOG
+        SET LOGIN_DIV = '2'
+        WHERE 1 = 1
+        AND IC_CODE = #{IC_CODE}
+        AND WORKER_NO = #{WORKER_NO}
+        AND LOGIN_DATE = #{LOGIN_DATE}
+        AND LOGIN_TM = #{LOGIN_TM}
+        AND LOGIN_DIV = '1'
+    </update>
+
+    <update id="updateOldLoginLogs">
+        <![CDATA[
+            /* Mapper ID: updateOldLoginLogs 1시간주기로 실행 */
+            UPDATE
+                PROC_LOGINLOG
+            SET
+                LOGIN_DIV = '2'
+            WHERE 1 = 1
+            AND TO_DATE(LOGIN_DATE || ' ' || LOGIN_TM, 'YYYY-MM-DD HH24:MI:SS') < SYSDATE - INTERVAL '9' HOUR
+            ]]>
+    </update>
+</mapper>

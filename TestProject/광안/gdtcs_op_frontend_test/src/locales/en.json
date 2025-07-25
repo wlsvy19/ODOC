@@ -1,0 +1,21 @@
+{
+  "NO_DATA": "No data found.",
+  "NO_DATA_EXCEL": "Please retrieve data before proceeding with Excel download.",
+  "NO_DATA_PRINT": "Please retrieve data before proceeding with printing.",
+  "CHECK_DATA_EXCEL": "Please select data to download.",
+  "CHECK_DATA_PRINT": "Please select data to print.",
+  "INVALID_DATE": "Invalid date range.",
+  "SEARCH_CONDITION_CHANGED": "Search conditions have changed.\nPlease retrieve data again before proceeding.",
+  "CONFIRM_EXCEL": "Do you want to download Excel for the selected data?",
+  "CONFIRM_PRINT": "Do you want to proceed with printing the selected data?",
+  "CANCEL_EXCEL": "Excel download has been canceled.",
+  "CANCEL_PRINT": "Report printing has been canceled.",
+  "SEARCH_ERROR": "An error occurred while retrieving data.\nIf the issue persists, please contact the administrator.",
+  "REPORT_ERROR": "A report error has occurred.\nIf the issue persists, please contact the administrator.",
+  "PROCESS_ERROR": "An error occurred during processing.\nPlease contact the administrator.",
+  "FUNCTION_ERROR_EXCEL": "An error occurred in the common Excel function.\nIf the issue persists, please contact the administrator.",
+  "INCORRECT_PARAM_EXCEL": "There is an issue with parameter values during Excel download.\nIf the issue persists, please contact the administrator.",
+  "SUCCESS_EXCEL": "Excel download completed successfully.",
+  "SELECT_WORKNO": "Please select a work number.",
+  "WORKNO_ERROR": "An error occurred while retrieving the work number.\nIf the issue persists, please contact the administrator."
+}

@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    jdbcUrl: "jdbc:log4jdbc:oracle:thin:@10.100.10.145:1521/orcl"
+    username: gdtcs_dev
+    password: gdtcs_dev
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+
+# 정산요청을 위한 외부연계 서버
+externalServerHost: localhost
+# 정산요청을 위한 외부연계 포트
+externalServerPort: 33333

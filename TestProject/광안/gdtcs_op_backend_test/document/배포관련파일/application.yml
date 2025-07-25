@@ -1,0 +1,35 @@
+server:
+  port: 9080
+  tomcat:
+    additional-tld-skip-patterns: "*.jar"
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  http:
+    multipart:
+      location: ./temp
+#  datasource:
+#    url: jdbc:log4jdbc:oracle:thin:@172.20.30.18:1521/orcl
+#    username: gdtcs
+#    password: gdtcs
+#    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+
+security:
+  aes256:
+    public:
+      key: u/vvjAlub2n2sM+c419xYBwikAc70OpWljGw14KTdv1+TSJCnoVZylub2n2sM+c419xYBJkMnVZOWmclLwZaKS
+    private:
+      key: Gw14KTdv1+TSJCnobiLI9yTSJCnoVZyLu/vvjAlub2n2sM+c419I9ywikAc70OpWljGw14KTdv1+TSJCnoVZyLu/
+
+logging:
+  config: file:./log4j2.xml
+  level:
+    org:
+      springframework: INFO
+      
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+  api-docs:
+    path: /api-docs
