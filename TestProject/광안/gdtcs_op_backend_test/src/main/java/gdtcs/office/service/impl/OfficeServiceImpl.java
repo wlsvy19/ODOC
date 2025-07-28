@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import gdtcs.util.RedisCacheUtil;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,51 +28,20 @@ public class OfficeServiceImpl  extends EgovAbstractServiceImpl implements Offic
 	@Resource(name = "officeMapper")
 	private OfficeMapper officeMapper;
 
-	// redis test
-	// Redis 키 생성 (파라미터를 기반으로 유니크한 키 생성) // 추후 [로직을 고려하여] 유니크한 키로 공통 메서드 만들어야함
-	private String generateRedisKey(Map<String, Object> param) {
-		// 키 prefix
-		StringBuilder keyBuilder = new StringBuilder("getViolationList::");
+	@Autowired
+	private RedisCacheUtil redisCacheUtil;
 
-		// keySet을 정렬하여 순서 보장
-		param.keySet().stream()
-				.sorted()
-				.forEach(k -> {
-					Object value = param.get(k);
-					keyBuilder.append(k).append("=").append(value != null ? value.toString() : "").append("&");
-				});
-
-		// 마지막 & 제거
-		if (keyBuilder.charAt(keyBuilder.length() - 1) == '&') {
-			keyBuilder.setLength(keyBuilder.length() - 1);
-		}
-
-		return keyBuilder.toString();
-	}
-
-//	@Override
-//	public List<Map<String, Object>> getViolationList(Map<String, Object> param) throws Exception {
-//		return officeMapper.selectViolationList(param);
-//	}
 
 	@Override
 	public List<Map<String, Object>> getViolationList(Map<String, Object> param) throws Exception {
-		System.out.println("##### 위반조회 param = " + param);
-		// Redis 키 생성 (파라미터를 이용한 고유 키 생성)
-		String redisKey = generateRedisKey(param);
-		// Redis에서 캐시된 데이터 조회
-		List<Map<String, Object>> cachedData = redisTemplate.opsForValue().get(redisKey);
-		if (cachedData != null) {
-			// 캐시된 데이터가 있으면 바로 반환
-			System.out.println("Returning data from Redis cache for key: " + redisKey);
+		System.out.println("##### getViolationList param = " + param);
 
-			return cachedData;
-		}
-
-		// 캐시된 데이터가 없으면 DB에서 조회
-		List<Map<String, Object>> result = officeMapper.selectViolationList(param);
-		redisTemplate.opsForValue().set(redisKey, result, 1, TimeUnit.DAYS); // TTL 1일 <- 우선순위 1
-		return result;
+		return redisCacheUtil.getOrSet(
+				"getViolationList",
+				param,
+				1, TimeUnit.DAYS,
+				() -> officeMapper.selectViolationList(param)
+		);
 	}
 
 	@Override
@@ -85,12 +55,6 @@ public class OfficeServiceImpl  extends EgovAbstractServiceImpl implements Offic
 	@Override
 	public List<Map<String, Object>> getLcarPl(List<Map<String, Object>> param) throws Exception {
 		return officeMapper.selectLcarPl(param);
-	}
-
-	private final RedisTemplate<String, List<Map<String, Object>>> redisTemplate;
-	@Autowired
-	public OfficeServiceImpl(RedisTemplate<String, List<Map<String, Object>>> redisTemplate) {
-		this.redisTemplate = redisTemplate;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -240,30 +204,30 @@ public class OfficeServiceImpl  extends EgovAbstractServiceImpl implements Offic
 	public List<Map<String, Object>> getImageCorrectionResultList(Map<String, Object> param) throws Exception {
 		return officeMapper.selectImageCorrectionResultList(param);
 	}
+	@Override
+	public List<Map<String, Object>> getProcessList(Map<String, Object> param) throws Exception {
+		return officeMapper.selectProcessList(param);
+	}
+
 //	@Override
 //	public List<Map<String, Object>> getProcessList(Map<String, Object> param) throws Exception {
-//		return officeMapper.selectProcessList(param);
+//		System.out.println("##### 차량처리내역조회 param = " + param);
+//		// Redis 키 생성 (파라미터를 이용한 고유 키 생성)
+//		String redisKey = generateRedisKey(param);
+//		// Redis에서 캐시된 데이터 조회
+//		List<Map<String, Object>> cachedData = redisTemplate.opsForValue().get(redisKey);
+//		if (cachedData != null) {
+//			// 캐시된 데이터가 있으면 바로 반환
+//			System.out.println("Returning data from Redis cache for key: " + redisKey);
+//
+//			return cachedData;
+//		}
+//
+//		// 캐시된 데이터가 없으면 DB에서 조회
+//		List<Map<String, Object>> result = officeMapper.selectProcessList(param);
+//		redisTemplate.opsForValue().set(redisKey, result, 1, TimeUnit.DAYS); // TTL 1일 <- 우선순위 1
+//		return result;
 //	}
-
-		@Override
-	public List<Map<String, Object>> getProcessList(Map<String, Object> param) throws Exception {
-		System.out.println("##### 차량처리내역조회 param = " + param);
-		// Redis 키 생성 (파라미터를 이용한 고유 키 생성)
-		String redisKey = generateRedisKey(param);
-		// Redis에서 캐시된 데이터 조회
-		List<Map<String, Object>> cachedData = redisTemplate.opsForValue().get(redisKey);
-		if (cachedData != null) {
-			// 캐시된 데이터가 있으면 바로 반환
-			System.out.println("Returning data from Redis cache for key: " + redisKey);
-
-			return cachedData;
-		}
-
-		// 캐시된 데이터가 없으면 DB에서 조회
-		List<Map<String, Object>> result = officeMapper.selectProcessList(param);
-		redisTemplate.opsForValue().set(redisKey, result, 1, TimeUnit.DAYS); // TTL 1일 <- 우선순위 1
-		return result;
-	}
 
 	@Override
 	public List<Map<String, Object>> getReductionExEcardList(Map<String, Object> param) throws Exception {

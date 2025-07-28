@@ -14,6 +14,5 @@ public class GdtcsApplication {
         springApplication.setBannerMode(Banner.Mode.OFF);
         springApplication.setLogStartupInfo(false);
         springApplication.run(args);
-        System.out.println("???");
     }
 }

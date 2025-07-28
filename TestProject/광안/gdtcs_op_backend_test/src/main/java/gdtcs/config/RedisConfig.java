@@ -27,8 +27,8 @@ public class RedisConfig {
     }
 
     @Bean // RedisTemplate 을 스프링 컨테이너에 빈으로 등록
-    public RedisTemplate<String, List<Map<String, Object>>> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, List<Map<String, Object>>> template = new RedisTemplate<>();
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
         // 사람이 읽을 수 있도록 직렬화 설정 추가
         template.setKeySerializer(new StringRedisSerializer());
