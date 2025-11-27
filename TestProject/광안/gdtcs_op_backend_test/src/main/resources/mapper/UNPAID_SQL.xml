@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.unpaid.mapper.UnPaidMapper">
+<!-- 미납차량 미징수 현황 조회 -->
+    <select id="getUnPaidCar" resultType="hashmap" fetchSize="1000">
+    	/* Mapper ID: getUnPaidCar*/
+       SELECT
+	        ROW_NUMBER() OVER (ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO)      ROW_SEQ, -- 순번
+	        TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                         WORK_DATE,                   --근무일자
+	        A.WORK_NO WORK_NO,                                                                                                   --근무번호
+	        TRIM(TO_CHAR(A.HAND_SNO, '999,999,999')) NU_HAND_SNO,                                                                                      --일련번호(처리번호)
+	        TO_CHAR(TO_DATE(OCC_DATE, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')         OCC_DATE,                    --발생일시(미납일시)
+	        DECODE(FC_CHG_CODENM('020', A.OFC_CODE), 00, '',FC_CHG_CODENM('020', A.OFC_CODE))  OFC_CODE, --사무실 코드
+	        FC_CHG_CODENM('057', A.VLTN_CODE ) VLTN_CODE, --위반 코드
+	        A.CUST_NM    CUST_NM, --고객 이름
+	        A.CAR_NO     CAR_NO, --차량 번호
+	        FC_CHG_CODENM('171', A.CAR_TYPE ) CAR_TYPE_NAME, --처리차종
+	        TRIM(TO_CHAR(NVL(A.PASS_FARE, 0), '999,999,999'))                                                              PASS_FARE,                   --통행요금
+	        TRIM(TO_CHAR(NVL(A.PAY_FARE, 0), '999,999,999'))                                                                PAY_FARE,                    --수납금액
+	        DECODE(A.LANE_DIV, '0', 'TCS', 'HIPASS')                                   CHARO,                       --차로구분
+	        FC_CHG_CODENM('304', A.HAND_TYPE )  HAND_TYPE_NAME, --처리유형
+	        FC_CHG_CODENM('132', A.VLTN_PAY_TYPE )  VLTN_PAY_TYPE, --지불구분
+	        --관리구분은 뺴고 진행
+	        TO_CHAR(TO_DATE(A.LAST_PAY_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                       LAST_PAY_DATE,               --최종입금일
+	        TO_CHAR(TO_DATE(A.LAST_MDFY_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')     LAST_MDFY_DT,                --처리시각
+	        A.UNP_ADMIN_ID || ' ' || D.WORKER_NM UNP_ADMIN_ID, --관리자ID
+	        DECODE(A.LPAY_YN, 'Y', '약정[Y]', '미약정[N]')                                            LPAY_YN,                     --약정여부
+	        TO_CHAR(TO_DATE(A.AGR_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                            AGR_DATE,                    --후불약정일자
+	        DECODE(A.HLD_YN, 'Y', '보류[Y]', '미보류[N]')                                        HLD_YN,                      --보류여부
+	        DECODE(A.UNP_DIV, '0', '위반심사 미납', '1', '감면심사 미납', '2', '공차택시 비대상', '3', '사전등록 실패')   UNP_DIV_CODE, --미납생성구분
+			SUBSTR(OBU_NO,1,4)||'-'||SUBSTR(OBU_NO,5,4)||'-'||SUBSTR(OBU_NO,9,4)||'-'||SUBSTR(OBU_NO,13,4) as OBU_NO,       --OBU번호
+	        SUBSTR(ECARD_NO,1,4)||'-'||SUBSTR(ECARD_NO,5,4)||'-'||SUBSTR(ECARD_NO,9,4)||'-'||SUBSTR(ECARD_NO,13,4) as ECARD_NO,    --전자카드번호
+	        TO_CHAR(TO_DATE(A.UNP_MAKE_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                     UNP_MAKE_DATE,                --미납생성일자
+	        A.LAST_CARD_NO LAST_CARD_NO,                                                                                              --최종카드번호
+	        A.NOTE                                                          NOTE,                        --비고
+	        A.CUST_TEL        CUST_TEL,                                                                       --전화번호
+	        DECODE(A.CUST_ZIP_CODE, NULL, '', SUBSTR(REPLACE(A.CUST_ZIP_CODE, '-', ''), 1, 3) || '' || SUBSTR(REPLACE(A.CUST_ZIP_CODE, '-', ''), 4, 3))  CUST_ZIP_CODE,               --우편번호
+	        A.CUST_ADDR  CUST_ADDR, --주소                                                                                            
+	        TO_CHAR(TO_DATE(BILL_SEND_DATE_1, 'YYYYMMDD'), 'YYYY-MM-DD')                    BILL_SEND_DATE_1, --1차 고지서 발송일자
+	        TO_CHAR(TO_DATE(BILL_SEND_DATE_2, 'YYYYMMDD'), 'YYYY-MM-DD')                    BILL_SEND_DATE_2, --2차 고지서 발송일자
+	        TO_CHAR(TO_DATE(BILL_SEND_DATE_3, 'YYYYMMDD'), 'YYYY-MM-DD')                    BILL_SEND_DATE_3, --3차 고지서 발송일자
+	        NVL(A.PASS_VAT, 0)                                                                PASS_VAT,                    --부가통행료
+	        NVL(A.PAY_VAT, 0)                                                                 PAY_VAT,                     --수납한부가통행료
+	        FC_CHG_CODENM('134',A.HAND_STAT ) HAND_STAT_NAME --처리상태
+	        
+        FROM PROC_UNPHAND A, BASE_WORKERINFO D
+        
+        WHERE A.IC_CODE IS NOT NULL
+        
+	        AND A.IC_CODE = #{IC_CODE}                                                  --영업소
+	        AND A.IC_CODE = D.IC_CODE (+)
+	        AND A.UNP_ADMIN_ID = D.WORKER_NO (+)
+        
+        <!--        근무일자를 선택-->
+        <choose>
+            <when test='DATE_TYPE == ""'>
+                AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+            </when>
+            <when test='DATE_TYPE == "LAST_PAY_DATE"'>
+                AND A.LAST_PAY_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+            </when>
+            <when test='DATE_TYPE == "AGR_DATE"'>
+                AND A.AGR_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+            </when>
+            <when test='DATE_TYPE == "BILL_SEND_DATE_1"'>
+                AND A.BILL_SEND_DATE_1 BETWEEN #{START_DATE} AND #{END_DATE}
+            </when>
+            <when test='DATE_TYPE == "BILL_SEND_DATE_2"'>
+                AND A.BILL_SEND_DATE_2 BETWEEN #{START_DATE} AND #{END_DATE}
+            </when>
+            <when test='DATE_TYPE == "BILL_SEND_DATE_3"'>
+                AND A.BILL_SEND_DATE_3 BETWEEN #{START_DATE} AND #{END_DATE}
+            </when>
+        </choose>
+         <if test="CAR_NO != null and !CAR_NO.equals('')">
+            AND A.CAR_NO LIKE '%' || #{CAR_NO} || '%'
+        </if>
+        <!--이름-->
+        <if test="CUST_NM != null and !CUST_NM.equals('')">
+            AND A.CUST_NM LIKE '%' || #{CUST_NM} || '%'
+        </if>
+        <!--        후불약정여부-->
+        <if  test='LPAY_YN == "N"'>
+            AND( A.LPAY_YN IS NULL OR A.LPAY_YN = 'N' )
+        </if>
+        <if  test='LPAY_YN == "Y"'>
+            AND A.LPAY_YN = 'Y'
+        </if>
+        <if test="HAND_TYPE != null and !HAND_TYPE.equals('')">
+            <choose>
+                <when test="HAND_TYPE == '10'">
+                    AND (A.HAND_TYPE IS NULL OR A.HAND_TYPE = '10')
+                </when>
+                <otherwise>
+                    AND A.HAND_TYPE = #{HAND_TYPE}
+                </otherwise>
+            </choose>
+        </if>
+        <!--        처리상태-->
+        <if test="HAND_STAT != null and !HAND_STAT.equals('')">
+            AND A.HAND_STAT = #{HAND_STAT}
+        </if>
+        <!--        미납생성구분-->
+        <if test="UNP_DIV != null and !UNP_DIV.equals('')">
+            AND A.UNP_DIV = #{UNP_DIV}
+        </if>
+        <!--        비고-->
+        <if test="NOTE != null and !NOTE.equals('')">
+            AND A.NOTE LIKE '%' || #{NOTE} || '%'
+        </if>
+        
+        ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO
+
+    </select>
+
+    <!-- 미납금 회수(미납금 미징수(회수까지 다) 내역을 조회) 현황-->
+    <select id="getUnPaidCollect" resultType="hashmap">
+    	/* Mapper ID: getUnPaidCollect*/
+     SELECT
+	    ROW_NUMBER() OVER (ORDER BY A.WORK_DATE) ROW_SEQ, --순번
+	    NVL(TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD'),'합계')  work_date, --근무일자,
+	    TRIM(TO_CHAR(COUNT(*), '999,999,999')) OCC_CNT, --처리대수
+	    TRIM(TO_CHAR((NVL(SUM(A.OFC_EXPT_PAY_FARE), 0) + NVL(SUM(C.CRCT_PAY_FARE), 0)), '999,999,999')) PASS_FARE,   --징수할 금액:    지불할 금액 + 보정지불 금액                                                                                                       \
+	    TRIM(TO_CHAR(NVL(SUM(A.OFC_PAY_FARE_CASH), 0), '999,999,999'))      PAY_FARE, --수납한금액
+	    (NVL(SUM(A.OFC_EXPT_PAY_FARE), 0) + NVL(SUM(C.CRCT_PAY_FARE), 0)) IPASS_FARE,   --징수할 금액:    지불할 금액 + 보정지불 금액                                                                                                       \
+	    NVL(SUM(A.OFC_PAY_FARE_CASH), 0)      IPAY_FARE, --수납한금액
+	    NVL((SUM(A.OFC_EXPT_PAY_FARE) + NVL(SUM(C.CRCT_PAY_FARE), 0)) - SUM(A.OFC_PAY_FARE_CASH), 0)        IUNP_FARE, --미납금 원본
+	   	TRIM(TO_CHAR(NVL((SUM(A.OFC_EXPT_PAY_FARE) + NVL(SUM(C.CRCT_PAY_FARE), 0)) - SUM(A.OFC_PAY_FARE_CASH), 0), '999,999,999'))         UNP_FARE,           --미납금: 징수할 금액+보정지불금액-수납한금액
+	     --미납 HAND_TYPE systemcode 304
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '10' THEN 1 ELSE 0 END), 0), '999,999,999'))                                                        MN_CNT,             --미납 대수
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '10' THEN A.OFC_EXPT_PAY_FARE ELSE 0 END), 0), '999,999,999'))                      MN_RESULT,          --미납 수납할금액
+	     --완납
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '30' THEN 1 ELSE 0 END), 0), '999,999,999'))                                                                                                              WN_CNT,             --완납 대수
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '30' THEN A.OFC_EXPT_PAY_FARE ELSE 0 END), 0), '999,999,999'))                                                                                              WN_FARE,            --완납 수납할금액
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '30' THEN A.OFC_PAY_FARE_CASH ELSE 0 END), 0), '999,999,999'))                                                                                              WN_MN_RESULT,       --완납 수납한금액
+	     --면제
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '40' THEN 1 ELSE 0 END), 0), '999,999,999'))                                                                                                                       EXMT_CNT,           --면제 대수
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '40' THEN A.OFC_EXPT_PAY_FARE ELSE 0 END), 0), '999,999,999'))                                                                                            EXMT_FARE,          --면제 수납할금액
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '40' THEN A.OFC_PAY_FARE_CASH ELSE 0 END), 0), '999,999,999'))                                                                                             EXMT_MN_RESULT,     --면제 수납한금액
+	     --할인
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '70' THEN 1 ELSE 0 END), 0), '999,999,999'))                                                                                                                       DC_CNT,             --할인 대수
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '70' THEN A.OFC_EXPT_PAY_FARE ELSE 0 END), 0), '999,999,999'))                                                                                                       DC_FARE,            --할인 수납할금액
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '70' THEN A.OFC_PAY_FARE_CASH ELSE 0 END), 0), '999,999,999'))                                                                                                       DC_MN_RESULT,       --할인 수납한금액
+	     --부적격
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '80' THEN 1 ELSE 0 END), 0), '999,999,999'))                                                                                                                       XX_CNT,             --부적격 대수
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '80' THEN A.OFC_EXPT_PAY_FARE ELSE 0 END), 0), '999,999,999'))                                                                                                       XX_FARE,            --부적격 수납할금액
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '80' THEN A.OFC_PAY_FARE_CASH ELSE 0 END), 0), '999,999,999'))                                                                                                       XX_MN_RESULT,       --부적격 수납한금액
+	     --정상
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '90' THEN 1 ELSE 0 END), 0), '999,999,999'))                                                                                                                       OK_CNT,             --정상 대수
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '90' THEN A.OFC_EXPT_PAY_FARE ELSE 0 END), 0), '999,999,999'))                                                                                                       OK_FARE,            --정상 수납할금액
+	     TRIM(TO_CHAR(NVL(SUM(CASE WHEN A.HAND_TYPE = '90' THEN A.OFC_PAY_FARE_CASH ELSE 0 END), 0), '999,999,999'))                                                                                                       OK_MN_RESULT       --정상 수납한금액
+	 FROM PRIM_ETCVLTN A, PRIM_ECARDHAND C
+     WHERE A.IC_CODE = #{IC_CODE}
+        AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+        AND A.WORK_NO NOT IN ( SELECT WORK_NO FROM PRIM_WORKSTAT WHERE IC_CODE = '094' AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE} AND WORK_DIV = '1' )
+        AND A.IC_CODE = C.IC_CODE(+)
+        AND A.WORK_DATE = C.WORK_DATE(+)
+        AND A.WORK_NO = C.WORK_NO(+)
+        AND A.HAND_SNO = C.HAND_SNO(+)
+        GROUP BY A.IC_CODE, ROLLUP(A.WORK_DATE)
+    </select>
+
+    <!--차로제어기 수납제어 조회-->
+    <select id="getLineCtrlOfficePayList" resultType="hashmap">
+    /* Mapper ID: getLineCtrlOfficePayList*/
+     SELECT 
+		ROW_NUMBER() over (order by A.WORK_DATE, A.IC_CODE, A.WORK_NO, A.WORKER_NO, A.HAND_DT, A.UNP_PAY_SNO) ROW_SEQ, --순번
+		TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') WORK_DATE,--근무일자
+		FC_CHG_ICNM(A.IC_CODE) IC_CODE_NM, --영업소명
+		A.WORK_NO WORK_NO, --근무번호
+		A.WORKER_NO WORKER_NO, --근무자번호
+		TO_CHAR(TO_DATE(A.HAND_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') HAND_DT, --처리시각
+		TRIM(TO_CHAR(B.PAY_FARE, '999,999,999')) PAY_FARE, --수납금액
+		TRIM(TO_CHAR(A.PAY_FARE, '999,999,999')) LANE_PAY_FARE, --수납금액
+		TRIM(TO_CHAR(A.PAY_BEF_BALC, '999,999,999')) PAY_BEF_BALC, --카드수납 전잔액
+		FC_CHG_CODENM('040', A.REVEN_DIV) REVEN_DIV, --수입구분(지불수단 확인용)
+		FC_CHG_CODENM('071', A.UNP_CARD_TYPE) UNP_CARD_TYPE, --카드종류
+		SUBSTR(A.CARD_NO,1,4)||'-'||SUBSTR(A.CARD_NO,5,4)||'-'||SUBSTR(A.CARD_NO,9,4)||'-'||SUBSTR(A.CARD_NO,13,4) as CARD_NO, --카드번호
+		DECODE(A.LANE_DIV, '0', 'TCS', 'HIPASS') LANE_DIV, --차로구분
+		FC_CHG_LANENAME(A.IC_CODE, A.LANE_NO),
+        DECODE(A.UNPAY_HAND_DIV, '0', '미처리', '처리') UNPAY_HAND_DIV, --미납처리구분
+		TO_CHAR(TO_DATE(B.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') UNP_OCC_WORKDATE, --미납발생 근무일자
+		B.WORK_NO AS UNP_OCC_WORKNO, --미납발생 근무번호
+		B.HAND_SNO AS UNP_OCC_SNO -- 미납발생 일련번호
+        
+	FROM PRIM_LANEUNPPAY A, PROC_UNPHAND B
+	
+	WHERE A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}	
+    	<if test="UNPAY_HAND_DIV != null and !UNPAY_HAND_DIV.equals('')">
+            AND A.UNPAY_HAND_DIV = #{UNPAY_HAND_DIV}
+        </if>
+        
+        <if test="UNP_CARD_TYPE != null and !UNP_CARD_TYPE.equals('')">
+            AND A.UNP_CARD_TYPE = #{UNP_CARD_TYPE}
+        </if>
+        AND A.WORK_DATE = B.LANE_WORK_DATE(+)
+        AND A.WORK_NO = B.LANE_WORK_NO(+)
+        AND A.HAND_SNO = B.LANE_HAND_SNO(+)
+        AND A.UNP_PAY_SNO = B.LANE_UNP_PAY_SNO(+)
+        AND A.HAND_DT = B.LANE_HAND_DT(+)
+
+      </select>
+
+</mapper>

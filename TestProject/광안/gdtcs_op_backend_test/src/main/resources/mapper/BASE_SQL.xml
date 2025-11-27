@@ -1,0 +1,2500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.base.mapper.BaseMapper">
+
+    <select id="selectMenuInfo" resultType="hashMap">
+        /* Mapper ID: selectMenuInfo*/
+        SELECT
+            A.PRG_CODE,
+            COALESCE(TO_CHAR(A.HIGH_PRG_CODE), 'null') AS HIGH_PRG_CODE,
+            A.PRG_NM,
+            A.MENU_DPH,
+            A.BTN_SEARCH,
+            A.BTN_ADD,
+            A.BTN_DELET,
+            A.BTN_STRG,
+            A.BTN_EXCEL,
+            A.BTN_PRT
+        FROM
+            BASE_PROGINFO A, (
+            SELECT BASE_WORKERINFO.CLASS FROM BASE_WORKERINFO WHERE IC_CODE = #{IC_CODE} AND WORKER_NO = #{WORKER_NO}
+        ) B
+        WHERE 1 = 1
+          AND A.USE_YN = 'Y'
+          AND A.IC_CODE = #{IC_CODE}
+          AND (
+                  CASE B.CLASS
+                      WHEN '1' THEN A.ACC1
+                      WHEN '2' THEN A.ACC2
+                      WHEN '3' THEN A.ACC3
+                      WHEN '4' THEN A.ACC4
+                      WHEN '5' THEN A.ACC5
+                      WHEN '6' THEN A.ACC6
+                      WHEN '7' THEN A.ACC7
+                      WHEN '8' THEN A.ACC8
+                      WHEN '9' THEN A.ACC9
+                      WHEN '10' THEN A.ACC10
+                      END
+                  ) = 'Y'
+        ORDER BY A.ORDR , A.PRG_CODE ASC
+    </select>
+
+    <resultMap id="systemCodes" type="Map">
+        <id property="CODELC" column="CODELC" />
+        <result property="CODELC_NM" column="CODELC_NM" />
+        <result property="CODELC_NOTE" column="CODELC_NOTE" />
+        <result property="CODELC_USE_YN" column="CODELC_USE_YN" />
+        <result property="CODELC_USE_YN_NM" column="CODELC_USE_YN_NM" />
+        <collection property="LIST" resultMap="systemSmallCodes" javaType="List" />
+    </resultMap>
+    <resultMap id="systemSmallCodes" type="hashMap">
+        <result property="CODESC" column="CODESC" />
+        <result property="CODELC" column="CODELCSS" />
+        <result property="CODESC_NM" column="CODESC_NM" />
+        <result property="CODESC_NOTE" column="CODESC_NOTE" />
+        <result property="CODESC_NIC" column="CODESC_NIC" />
+        <result property="ARY_ORDR" column="ARY_ORDR" />
+        <result property="CODESC_USE_YN_NM" column="CODESC_USE_YN_NM" />
+    </resultMap>
+    <select id="selectSystemCodeList" resultMap="systemCodes">
+        /* Mapper ID: selectSystemCodeList */
+        SELECT L.CODELC, L.CODELC_NM, L.CODELC_NOTE, L.CODELC_USE_YN, FC_CHG_CODENM('047', L.CODELC_USE_YN) AS CODELC_USE_YN_NM
+        , S.CODELC AS CODELCSS, S.CODESC, S.CODESC_NM, S.CODESC_NOTE, S.CODESC_NIC, S.ARY_ORDR, FC_CHG_CODENM('047', S.CODESC_USE_YN) AS CODESC_USE_YN_NM
+        FROM BASE_CODELC L, BASE_CODESC S
+        WHERE 1=1
+        AND L.CODELC = S.CODELC(+)
+        <if test="CODELC != null and CODELC != ''">AND CODELC = #{CODELC}</if>
+        ORDER BY L.CODELC, S.ARY_ORDR ASC
+    </select>
+
+    <select id="selectSystemSmallCode" resultType="hashMap">
+        /* Mapper ID: selectSystemSmallCode */
+        SELECT CODELC,
+        CODESC,
+        BGSM_CODE,
+        CODESC_NM,
+        CODESC_NOTE,
+        CODESC_NIC,
+        ARY_ORDR,
+        CODESC_USE_YN,
+        FC_CHG_CODENM('047', CODESC_USE_YN) AS CODESC_USE_YN_NM
+        FROM BASE_CODESC
+        WHERE 1=1
+        <if test="CODELC != null and CODELC != ''">
+            AND CODELC = #{CODELC}
+        </if>
+        <if test="CODESC != null and CODESC != ''">
+            AND CODESC = #{CODESC}
+        </if>
+        <if test="CODESC_USE_YN != null and CODESC_USE_YN != ''">
+            AND CODESC_USE_YN = #{CODESC_USE_YN}
+        </if>
+        ORDER BY CODELC ASC, ARY_ORDR ASC, CODESC ASC, CODESC_NM ASC
+    </select>
+
+    <select id="countLargeCode" parameterType="hashMap" resultType="int">
+        SELECT COUNT(CODELC) FROM BASE_CODELC WHERE CODELC = #{CODELC}
+    </select>
+
+    <select id="countSmallCode" parameterType="hashMap" resultType="int">
+        SELECT COUNT(CODESC) FROM BASE_CODESC WHERE CODELC = #{CODELC} AND CODESC = #{CODESC}
+    </select>
+
+    <select id="countLargeCodeChild" parameterType="hashMap" resultType="int">
+        SELECT COUNT(CODESC) FROM BASE_CODESC WHERE CODELC = #{CODELC}
+    </select>
+
+    <insert id="insertSystemLargeCode" parameterType="hashMap">
+        INSERT INTO BASE_CODELC(CODELC, CODELC_NM, CODELC_NOTE, CODELC_USE_YN)
+        VALUES(#{CODELC},#{CODELC_NM},#{CODELC_NOTE},#{CODELC_USE_YN})
+    </insert>
+
+    <insert id="insertSystemSmallCode" parameterType="hashMap">
+        INSERT INTO BASE_CODESC(CODELC,CODESC,BGSM_CODE,CODESC_NM,CODESC_NOTE,CODESC_NIC,ARY_ORDR,CODESC_USE_YN)
+        VALUES(#{CODELC},#{CODESC},#{BGSM_CODE},#{CODESC_NM},#{CODESC_NOTE},#{CODESC_NIC},#{ARY_ORDR},#{CODESC_USE_YN})
+    </insert>
+
+    <update id="updateSystemLargeCode" parameterType="hashMap">
+        UPDATE BASE_CODELC
+        SET CODELC_NM=#{CODELC_NM},CODELC_NOTE=#{CODELC_NOTE},CODELC_USE_YN=#{CODELC_USE_YN}
+        WHERE CODELC=#{CODELC}
+    </update>
+
+    <update id="updateSystemSmallCode" parameterType="hashMap">
+        UPDATE BASE_CODESC
+        SET BGSM_CODE=#{BGSM_CODE},CODESC_NM=#{CODESC_NM},CODESC_NOTE=#{CODESC_NOTE},CODESC_NIC=#{CODESC_NIC},ARY_ORDR=#{ARY_ORDR},CODESC_USE_YN=#{CODESC_USE_YN}
+        WHERE CODELC=#{CODELC}
+          AND CODESC=#{CODESC}
+    </update>
+
+    <delete id="deleteSystemLargeCode">
+        DELETE BASE_CODELC
+WHERE CODELC=#{CODELC}
+    </delete>
+
+    <delete id="deleteSystemSmallCode">
+        DELETE BASE_CODESC
+WHERE CODELC=#{CODELC}
+        AND CODESC=#{CODESC}
+    </delete>
+
+    <update id="updateIcRevisionHistoryResult" parameterType="hashMap">
+        UPDATE BASE_REVNOHIST
+        SET	REV_DIV=#{REV_DIV}
+        WHERE REV_NO_CODE = #{REV_NO_CODE}
+        AND MDFY_NO = #{MDFY_NO}
+        AND IC_CODE = #{IC_CODE}
+        <selectKey resultType="string" keyProperty="MDFY_NO" order="BEFORE">
+            SELECT MAX(MDFY_NO) AS MDFY_NO
+            FROM BASE_REVNOHIST
+            WHERE IC_CODE = #{IC_CODE}
+            AND REV_NO_CODE = #{REV_NO_CODE}
+        </selectKey>
+    </update>
+
+    <select id="selectIcInformation" parameterType="hashMap" resultType="hashMap">
+        /* Mapper ID: selectIcInformation*/
+        SELECT IC_CODE,
+        IC_NM,
+        IC_TEL,
+        DAYCHG_TM,
+        DAYFIN_TM,
+        UP_LANE_CNT,
+        DOWN_LANE_CNT,
+        VRAB_LANE_CNT,
+        HGM_APPLY_DATE,
+        LCAR_GP_DATE,
+        LCAR_DC_CARD_DIV,
+        DC_EXTRA_DT,
+        COMMU_DC_DATE,
+        HR_DC_DATE,
+        LINK_FARE_DATE,
+        SIG_ROT_HR,
+        ETAXI_EXMT_DT,
+        NEW_ETAXI_APPLY_UP,
+        OLD_ETAXI_APPLY_UP,
+        NEW_ETAXI_APPLY_DOWN,
+        OLD_ETAXI_APPLY_DOWN,
+        MDFY_DT,
+        DC_OBU_DATE,
+        HR_DC_PAY_YN,
+        LPAY_MRCHN_CODE,
+        CO_DIV,
+        CO_CODE,
+        IC_DIV,
+        IC_ADDR,
+        IC_UNP_TEL_NO,
+        IC_ZIPCODE,
+        IC_BANKBK,
+        BALC_DOWN_DIV,
+        EXIT_LANE_ENT_DIV,
+        CONT_DC_DATE,
+        DIFF_TOLL_DATE
+        FROM BASE_ICINFO
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        ORDER BY IC_CODE ASC
+    </select>
+
+    <select id="selectRevisionHistory" parameterType="hashMap" resultType="hashMap">
+        SELECT H.IC_CODE,
+        FC_CHG_ICNM(H.IC_CODE) AS IC_NM,
+        H.MDFY_NO,
+        H.REV_NO_CODE,
+        FC_CHG_CODEDP('336', H.REV_NO_CODE) AS REV_NO_CODE_NM,
+        H.ADMIN_ID,
+        FC_CHG_WORKERNM(H.IC_CODE, H.ADMIN_ID) AS ADMIN_NM,
+        H.MDFY_DT,
+        FC_CHG_FORMAT(H.MDFY_DT, 'DATETIME') AS MDFY_DT_FORMAT,
+        H.APPLY_DT,
+        FC_CHG_FORMAT(H.APPLY_DT, 'DATETIME') AS APPLY_DT_FORMAT,
+        H.REV_NO,
+        H.REV_DIV,
+        DECODE(H.REV_DIV, '0', '미적용', '1', '적용', H.REV_DIV) AS REV_DIV_NM,	-- 개정지시 적용여부
+        H.IC_DIV,
+        FC_CHG_CODEDP('334', H.IC_DIV) AS IC_DIV_NM
+        FROM BASE_REVNOHIST H
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        <if test="REV_NO_CODE != null and REV_NO_CODE != ''">
+            AND H.REV_NO_CODE = #{REV_NO_CODE}
+        </if>
+        <if test="MDFY_DT_FROM != null and MDFY_DT_FROM != ''">
+            AND H.MDFY_DT BETWEEN SUBSTR(#{MDFY_DT_FROM}, 0, 8)||'000000' AND SUBSTR(#{MDFY_DT_TO}, 0, 8)||'235959'
+        </if>
+        ORDER BY IC_CODE DESC, MDFY_DT DESC, REV_NO_CODE ASC
+    </select>
+
+    <select id="selectLaneRevisionStatus" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+        FC_CHG_ICNM(IC_CODE) AS IC_NM,
+        LANE_NO,
+        LANE_TYPE,
+        FC_CHG_CODEDP('337', LANE_TYPE) AS LANE_TYPE_NM,
+        MCHI_STAT,
+        FC_CHG_CODEDP('282', MCHI_STAT) AS MCHI_STAT_NM,
+        BASE_STAT,
+        FC_CHG_CODEDP('335', BASE_STAT) AS BASE_STAT_NM,
+        BASE_REV_NO,
+        WORKER_CARD_STAT,
+        FC_CHG_CODEDP('335', WORKER_CARD_STAT) AS WORKER_CARD_STAT_NM,
+        WORKER_CARD_REV_NO,
+        FARE_STAT,
+        FC_CHG_CODEDP('335', FARE_STAT) AS FARE_STAT_NM,
+        FARE_REV_NO,
+        CMT_STAT,
+        FC_CHG_CODEDP('335', CMT_STAT) AS CMT_STAT_NM,
+        CMT_REV_NO,
+        BL_ECARD_STAT,
+        FC_CHG_CODEDP('335', BL_ECARD_STAT) AS BL_ECARD_STAT_NM,
+        BL_ECARD_REV_NO,
+        BL_OBU_STAT,
+        FC_CHG_CODEDP('335', BL_OBU_STAT) AS BL_OBU_STAT_NM,
+        BL_OBU_REV_NO,
+        HLDAY_EXMT_STAT,
+        FC_CHG_CODEDP('335', HLDAY_EXMT_STAT) AS HLDAY_EXMT_STAT_NM,
+        HLDAY_EXMT_REV_NO,
+        HR_DC_STAT,
+        FC_CHG_CODEDP('335', HR_DC_STAT) AS HR_DC_STAT_NM,
+        HR_DC_REV_NO,
+        CONT_DC_STAT,
+        FC_CHG_CODEDP('335', CONT_DC_STAT) AS CONT_DC_STAT_NM,
+        CONT_DC_REV_NO,
+        EMP_EXMT_STAT,
+        FC_CHG_CODEDP('335', EMP_EXMT_STAT) AS EMP_EXMT_STAT_NM,
+        EMP_EXMT_REV_NO,
+        CONTROL_DIV,
+        FW_NO,
+        FW_STAT,
+        EP_TMN_FW_VER,
+        EP_TMN_FW_STAT,
+        OUT_TMN_FW_VER,
+        OUT_TMN_FW_STAT,
+        IRCU_FW_VER,
+        IRCU_FW_STAT,
+        RFCU_FW_VER,
+        RFCU_FW_STAT,
+        SAM_FW_VER,
+        SAM_FW_STAT,
+        ECARD_BL_NO,
+        LAST_COL_DT,
+        COMM_STAT,
+        PL_ECARD_STAT,
+        FC_CHG_CODEDP('335', PL_ECARD_STAT) AS PL_ECARD_STAT_NM,
+        PL_ECARD_REV_NO,
+        DIFF_TOLL_STAT,
+        FC_CHG_CODEDP('335', DIFF_TOLL_STAT) AS DIFF_TOLL_STAT_NM,
+        DIFF_TOLL_REV_NO
+        FROM PROC_LANESTAT
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        ORDER BY IC_CODE, LANE_NO
+    </select>
+
+    <select id="selectRevision" parameterType="hashMap" resultType="hashMap">
+        SELECT R.IC_CODE,
+               R.BASE_MDFY_DT,
+               R.BASE_APPLY_DT,
+               R.BASE_REV_NO,
+               R.WORKER_MDFY_DT,
+               R.WORKER_APPLY_DT,
+               R.WORKER_REV_NO,
+               R.FARE_MDFY_DT,
+               R.FARE_APPLY_DT,
+               R.FARE_REV_NO,
+               R.BL_TAG_MDFY_DT,
+               R.BL_TAG_APPLY_DT,
+               R.BL_TAG_REV_NO,
+               R.BL_ECARD_MDFY_DT,
+               R.BL_ECARD_APPLY_DT,
+               R.BL_ECARD_REV_NO,
+               R.CARINFO_MDFY_DT,
+               R.CARINFO_APPLY_DT,
+               R.CARINFO_REV_NO,
+               R.IC_DIV
+        FROM BASE_REVNO R
+        WHERE R.IC_CODE = DECODE(#{IC_CODE}, '', R.IC_CODE, '999', R.IC_CODE, #{IC_CODE})
+        ORDER BY IC_CODE ASC, MDFY_DT DESC
+    </select>
+
+    <select id="selectIcRevision" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+        BASE_MDFY_DT,
+        BASE_APPLY_DT,
+        BASE_REV_NO,
+        WORKER_MDFY_DT,
+        WORKER_APPLY_DT,
+        WORKER_REV_NO,
+        FARE_MDFY_DT,
+        FARE_APPLY_DT,
+        FARE_REV_NO,
+        BL_DC_MDFY_DT,
+        BL_DC_APPLY_DT,
+        BL_DC_REV_NO,
+        HLDAY_MDFY_DT,
+        HLDAY_APPLY_DT,
+        HLDAY_REV_NO,
+        CMT_MDFY_DT,
+        CMT_APPLY_DT,
+        CMT_REV_NO,
+        BL_ECARD_MDFY_DT,
+        BL_ECARD_APPLY_DT,
+        BL_ECARD_REV_NO,
+        CONT_DC_MDFY_DT,
+        CONT_DC_APPLY_DT,
+        CONT_DC_REV_NO,
+        BL_TCARD_MDFY_DT,
+        BL_TCARD_APPLY_DT,
+        BL_TCARD_REV_NO,
+        HR_DC_MDFY_DT,
+        HR_DC_APPLY_DT,
+        HR_DC_REV_NO,
+        BL_OBU_MDFY_DT,
+        BL_OBU_APPLY_DT,
+        BL_OBU_REV_NO,
+        HLDAYEXMT_MDFY_DT,
+        HLDAYEXMT_APPLY_DT,
+        HLDAYEXMT_REV_NO,
+        IC_DIV,
+        PL_ECARD_MDFY_DT,
+        PL_ECARD_APPLY_DT,
+        PL_ECARD_REV_NO,
+        DIFF_TOLL_MDFY_DT,
+        DIFF_TOLL_APPLY_DT,
+        DIFF_TOLL_REV_NO
+        FROM BASE_REVNO
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">
+            AND IC_CODE = #{IC_CODE}
+        </if>
+    </select>
+
+    <update id="updateIcRevisionBase" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET BASE_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            BASE_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            BASE_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionWorker" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET WORKER_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            WORKER_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            WORKER_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionFare" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET FARE_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            FARE_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            FARE_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionBlDiscount" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET BL_DC_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            BL_DC_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            BL_DC_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionHoliday" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET HLDAY_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            HLDAY_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            HLDAY_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionCommute" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET CMT_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            CMT_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            CMT_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionBlEcard" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET BL_ECARD_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            BL_ECARD_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            BL_ECARD_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionContinuousDiscount" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET CONT_DC_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            CONT_DC_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            CONT_DC_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionBlTcard" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET BL_TCARD_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            BL_TCARD_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            BL_TCARD_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionHourDiscount" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET HR_DC_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            HR_DC_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            HR_DC_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionBlObu" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET BL_OBU_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            BL_OBU_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            BL_OBU_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionHolidayException" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET HLDAYEXMT_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            HLDAYEXMT_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            HLDAYEXMT_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionPlEcard" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET PL_ECARD_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            PL_ECARD_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            PL_ECARD_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="updateIcRevisionDiffFare" parameterType="hashMap">
+        UPDATE BASE_REVNO
+        SET DIFF_TOLL_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            DIFF_TOLL_APPLY_DT=RPAD(#{APPLY_DT}, 14, '0'),
+            DIFF_TOLL_REV_NO=#{REV_NO}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <insert id="insertIcRevisionHistory" parameterType="hashMap">
+        INSERT INTO BASE_REVNOHIST(IC_CODE, MDFY_NO, REV_NO_CODE, ADMIN_ID, MDFY_DT, APPLY_DT, REV_NO, REV_DIV)
+        VALUES(#{IC_CODE}, #{MDFY_NO}, #{REV_NO_CODE}, #{ADMIN_ID}, TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'), RPAD(#{APPLY_DT}, 14, '0'), #{REV_NO}, #{REV_DIV})
+
+        <selectKey resultType="string" keyProperty="MDFY_NO" order="BEFORE">
+            SELECT NVL(MAX(H.MDFY_NO), 0) + 1 AS MDFY_NO FROM BASE_REVNOHIST H WHERE H.IC_CODE = #{IC_CODE} AND H.REV_NO_CODE = #{REV_NO_CODE}
+        </selectKey>
+    </insert>
+
+    <select id="selectLaneList" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               PHGC_LANE,
+               LOGC_LANE,
+               LANE_TYPE,
+               FC_CHG_CODEDP('337', LANE_TYPE) AS LANE_TYPE_NM,
+               UP_DOWN_DIV,
+               FC_CHG_CODEDP('342', UP_DOWN_DIV) AS UP_DOWN_DIV_NM,
+               ENT_EXIT_NO,
+               LANE_INFO_DIV,
+               FC_CHG_CODEDP('341', LANE_INFO_DIV) AS LANE_INFO_DIV_NM,
+               CAR_REDING_TM1,
+               CAR_REDING_TM2,
+               LANE_NM,
+               COUN_LANE,
+               IP_ADDR,
+               PORT,
+               COMM_MTD,
+               FC_CHG_CODENM('340', COMM_MTD) AS COMM_MTD_NM,
+               NOTE,
+               PSAM_NO,
+               LSAM_NO,
+               IC_DIV,
+               FC_CHG_CODEDP('334', IC_DIV) AS IC_DIV_NM,
+               DIR_DIV,
+               FC_CHG_CODEDP('343', DIR_DIV) AS DIR_DIV_NM,
+               ENT_EXIT_TYPE,
+               FC_CHG_CODEDP('344', ENT_EXIT_TYPE) AS ENT_EXIT_TYPE_NM,
+               DIR_NM,
+               SUB_PORT,
+               LANE_UNP_PAY_DIV,
+               FC_CHG_CODEDP('345', LANE_UNP_PAY_DIV) AS LANE_UNP_PAY_DIV_NM,
+               LANE_SET,
+               FC_CHG_CODEDP('346', LANE_SET) AS LANE_SET_NM
+        FROM BASE_LANEINFO
+        WHERE IC_CODE = #{IC_CODE}
+    </select>
+
+    <update id="updateLane" parameterType="hashMap">
+        UPDATE BASE_LANEINFO
+        SET PHGC_LANE=#{PHGC_LANE},
+            LANE_TYPE=#{LANE_TYPE},
+            UP_DOWN_DIV=#{UP_DOWN_DIV},
+            ENT_EXIT_NO=#{ENT_EXIT_NO},
+            LANE_INFO_DIV=#{LANE_INFO_DIV},
+            CAR_REDING_TM1=#{CAR_REDING_TM1},
+            CAR_REDING_TM2=#{CAR_REDING_TM2},
+            LANE_NM=#{LANE_NM},
+            COUN_LANE=#{COUN_LANE},
+            IP_ADDR=#{IP_ADDR},
+            PORT=#{PORT},
+            COMM_MTD=#{COMM_MTD},
+            NOTE=#{NOTE},
+            PSAM_NO=#{PSAM_NO},
+            LSAM_NO=#{LSAM_NO},
+            DIR_DIV=#{DIR_DIV},
+            ENT_EXIT_TYPE=#{ENT_EXIT_TYPE},
+            DIR_NM=#{DIR_NM},
+            SUB_PORT=#{SUB_PORT},
+            LANE_UNP_PAY_DIV=#{LANE_UNP_PAY_DIV},
+            LANE_SET=#{LANE_SET}
+        WHERE IC_CODE=#{IC_CODE}
+          AND LOGC_LANE=#{LOGC_LANE}
+          AND IC_DIV=#{IC_DIV}
+    </update>
+
+    <select id="selectFareInfo" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               FARE_DIV,
+               FC_CHG_CODENM('200', FARE_DIV) AS FARE_DIV_NM,
+               USE_DIV,
+               FC_CHG_CODENM('046', USE_DIV) AS USE_DIV_NM,
+               NEW_START_TM,
+               NEW_END_TM,
+               OLD_START_TM,
+               OLD_END_TM,
+               NEW_SUP_FARE1,
+               NEW_VAT_FARE1,
+               NEW_TOT_FARE1,
+               OLD_SUP_FARE1,
+               OLD_VAT_FARE1,
+               OLD_TOT_FARE1,
+               NEW_SUP_FARE2,
+               NEW_VAT_FARE2,
+               NEW_TOT_FARE2,
+               OLD_SUP_FARE2,
+               OLD_VAT_FARE2,
+               OLD_TOT_FARE2,
+               NEW_SUP_FARE3,
+               NEW_VAT_FARE3,
+               NEW_TOT_FARE3,
+               OLD_SUP_FARE3,
+               OLD_VAT_FARE3,
+               OLD_TOT_FARE3,
+               NEW_SUP_FARE4,
+               NEW_VAT_FARE4,
+               NEW_TOT_FARE4,
+               OLD_SUP_FARE4,
+               OLD_VAT_FARE4,
+               OLD_TOT_FARE4,
+               NEW_SUP_FARE5,
+               NEW_VAT_FARE5,
+               NEW_TOT_FARE5,
+               OLD_SUP_FARE5,
+               OLD_VAT_FARE5,
+               OLD_TOT_FARE5,
+               NEW_SUP_FARE6,
+               NEW_VAT_FARE6,
+               NEW_TOT_FARE6,
+               OLD_SUP_FARE6,
+               OLD_VAT_FARE6,
+               OLD_TOT_FARE6,
+               NEW_SUP_FARE7,
+               NEW_VAT_FARE7,
+               NEW_TOT_FARE7,
+               OLD_SUP_FARE7,
+               OLD_VAT_FARE7,
+               OLD_TOT_FARE7,
+               NEW_SUP_FARE8,
+               NEW_VAT_FARE8,
+               NEW_TOT_FARE8,
+               OLD_SUP_FARE8,
+               OLD_VAT_FARE8,
+               OLD_TOT_FARE8,
+               MDFY_DT,
+               FC_CHG_FORMAT(MDFY_DT, 'DATETIME') AS MDFY_DT_FORMAT,
+               NEW_DCRATE1,
+               OLD_DCRATE1,
+               NEW_DCRATE2,
+               OLD_DCRATE2,
+               NEW_DCRATE3,
+               OLD_DCRATE3,
+               NEW_DCRATE4,
+               OLD_DCRATE4,
+               NEW_DCRATE5,
+               OLD_DCRATE5,
+               NEW_DCRATE6,
+               OLD_DCRATE6,
+               NEW_DCRATE7,
+               OLD_DCRATE7,
+               NEW_DCRATE8,
+               OLD_DCRATE8,
+               LMP_NM
+        FROM BASE_FAREINFO
+        WHERE IC_CODE = #{IC_CODE}
+    </select>
+
+    <update id="updateFareInfo" parameterType="hashMap">
+        UPDATE BASE_FAREINFO
+        SET NEW_START_TM=#{NEW_START_TM},
+            NEW_END_TM=#{NEW_END_TM},
+            OLD_START_TM=#{OLD_START_TM},
+            OLD_END_TM=#{OLD_END_TM},
+            NEW_SUP_FARE1=#{NEW_SUP_FARE1},
+            NEW_VAT_FARE1=#{NEW_VAT_FARE1},
+            NEW_TOT_FARE1=#{NEW_TOT_FARE1},
+            OLD_SUP_FARE1=#{OLD_SUP_FARE1},
+            OLD_VAT_FARE1=#{OLD_VAT_FARE1},
+            OLD_TOT_FARE1=#{OLD_TOT_FARE1},
+            NEW_SUP_FARE2=#{NEW_SUP_FARE2},
+            NEW_VAT_FARE2=#{NEW_VAT_FARE2},
+            NEW_TOT_FARE2=#{NEW_TOT_FARE2},
+            OLD_SUP_FARE2=#{OLD_SUP_FARE2},
+            OLD_VAT_FARE2=#{OLD_VAT_FARE2},
+            OLD_TOT_FARE2=#{OLD_TOT_FARE2},
+            NEW_SUP_FARE3=#{NEW_SUP_FARE3},
+            NEW_VAT_FARE3=#{NEW_VAT_FARE3},
+            NEW_TOT_FARE3=#{NEW_TOT_FARE3},
+            OLD_SUP_FARE3=#{OLD_SUP_FARE3},
+            OLD_VAT_FARE3=#{OLD_VAT_FARE3},
+            OLD_TOT_FARE3=#{OLD_TOT_FARE3},
+            NEW_SUP_FARE4=#{NEW_SUP_FARE4},
+            NEW_VAT_FARE4=#{NEW_VAT_FARE4},
+            NEW_TOT_FARE4=#{NEW_TOT_FARE4},
+            OLD_SUP_FARE4=#{OLD_SUP_FARE4},
+            OLD_VAT_FARE4=#{OLD_VAT_FARE4},
+            OLD_TOT_FARE4=#{OLD_TOT_FARE4},
+            NEW_SUP_FARE5=#{NEW_SUP_FARE5},
+            NEW_VAT_FARE5=#{NEW_VAT_FARE5},
+            NEW_TOT_FARE5=#{NEW_TOT_FARE5},
+            OLD_SUP_FARE5=#{OLD_SUP_FARE5},
+            OLD_VAT_FARE5=#{OLD_VAT_FARE5},
+            OLD_TOT_FARE5=#{OLD_TOT_FARE5},
+            NEW_SUP_FARE6=#{NEW_SUP_FARE6},
+            NEW_VAT_FARE6=#{NEW_VAT_FARE6},
+            NEW_TOT_FARE6=#{NEW_TOT_FARE6},
+            OLD_SUP_FARE6=#{OLD_SUP_FARE6},
+            OLD_VAT_FARE6=#{OLD_VAT_FARE6},
+            OLD_TOT_FARE6=#{OLD_TOT_FARE6},
+            NEW_SUP_FARE7=#{NEW_SUP_FARE7},
+            NEW_VAT_FARE7=#{NEW_VAT_FARE7},
+            NEW_TOT_FARE7=#{NEW_TOT_FARE7},
+            OLD_SUP_FARE7=#{OLD_SUP_FARE7},
+            OLD_VAT_FARE7=#{OLD_VAT_FARE7},
+            OLD_TOT_FARE7=#{OLD_TOT_FARE7},
+            NEW_SUP_FARE8=#{NEW_SUP_FARE8},
+            NEW_VAT_FARE8=#{NEW_VAT_FARE8},
+            NEW_TOT_FARE8=#{NEW_TOT_FARE8},
+            OLD_SUP_FARE8=#{OLD_SUP_FARE8},
+            OLD_VAT_FARE8=#{OLD_VAT_FARE8},
+            OLD_TOT_FARE8=#{OLD_TOT_FARE8},
+            MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            NEW_DCRATE1=#{NEW_DCRATE1},
+            OLD_DCRATE1=#{OLD_DCRATE1},
+            NEW_DCRATE2=#{NEW_DCRATE2},
+            OLD_DCRATE2=#{OLD_DCRATE2},
+            NEW_DCRATE3=#{NEW_DCRATE3},
+            OLD_DCRATE3=#{OLD_DCRATE3},
+            NEW_DCRATE4=#{NEW_DCRATE4},
+            OLD_DCRATE4=#{OLD_DCRATE4},
+            NEW_DCRATE5=#{NEW_DCRATE5},
+            OLD_DCRATE5=#{OLD_DCRATE5},
+            NEW_DCRATE6=#{NEW_DCRATE6},
+            OLD_DCRATE6=#{OLD_DCRATE6},
+            NEW_DCRATE7=#{NEW_DCRATE7},
+            OLD_DCRATE7=#{OLD_DCRATE7},
+            NEW_DCRATE8=#{NEW_DCRATE8},
+            OLD_DCRATE8=#{OLD_DCRATE8},
+            LMP_NM=#{LMP_NM}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <insert id="insertFareInfoHistory" parameterType="hashMap">
+        INSERT INTO BASE_FAREINFOHIST
+        (
+        IC_CODE,
+        MDFY_DT,
+        MDFY_ADMIN_ID,
+        FARE_DIV,
+        USE_DIV,
+        NEW_START_TM,
+        NEW_END_TM,
+        OLD_START_TM,
+        OLD_END_TM,
+        NEW_SUP_FARE1,
+        NEW_VAT_FARE1,
+        NEW_TOT_FARE1,
+        OLD_SUP_FARE1,
+        OLD_VAT_FARE1,
+        OLD_TOT_FARE1,
+        NEW_SUP_FARE2,
+        NEW_VAT_FARE2,
+        NEW_TOT_FARE2,
+        OLD_SUP_FARE2,
+        OLD_VAT_FARE2,
+        OLD_TOT_FARE2,
+        NEW_SUP_FARE3,
+        NEW_VAT_FARE3,
+        NEW_TOT_FARE3,
+        OLD_SUP_FARE3,
+        OLD_VAT_FARE3,
+        OLD_TOT_FARE3,
+        NEW_SUP_FARE4,
+        NEW_VAT_FARE4,
+        NEW_TOT_FARE4,
+        OLD_SUP_FARE4,
+        OLD_VAT_FARE4,
+        OLD_TOT_FARE4,
+        NEW_SUP_FARE5,
+        NEW_VAT_FARE5,
+        NEW_TOT_FARE5,
+        OLD_SUP_FARE5,
+        OLD_VAT_FARE5,
+        OLD_TOT_FARE5,
+        NEW_SUP_FARE6,
+        NEW_VAT_FARE6,
+        NEW_TOT_FARE6,
+        OLD_SUP_FARE6,
+        OLD_VAT_FARE6,
+        OLD_TOT_FARE6,
+        NEW_SUP_FARE7,
+        NEW_VAT_FARE7,
+        NEW_TOT_FARE7,
+        OLD_SUP_FARE7,
+        OLD_VAT_FARE7,
+        OLD_TOT_FARE7,
+        NEW_SUP_FARE8,
+        NEW_VAT_FARE8,
+        NEW_TOT_FARE8,
+        OLD_SUP_FARE8,
+        OLD_VAT_FARE8,
+        OLD_TOT_FARE8,
+        NEW_DCRATE1,
+        OLD_DCRATE1,
+        NEW_DCRATE2,
+        OLD_DCRATE2,
+        NEW_DCRATE3,
+        OLD_DCRATE3,
+        NEW_DCRATE4,
+        OLD_DCRATE4,
+        NEW_DCRATE5,
+        OLD_DCRATE5,
+        NEW_DCRATE6,
+        OLD_DCRATE6,
+        NEW_DCRATE7,
+        OLD_DCRATE7,
+        NEW_DCRATE8,
+        OLD_DCRATE8,
+        FARE_REV_NO,
+        SEQ
+        )
+        VALUES
+        (
+        #{IC_CODE},
+        #{MDFY_DT},
+        #{MDFY_ADMIN_ID},
+        #{FARE_DIV},
+        #{USE_DIV},
+        #{NEW_START_TM},
+        #{NEW_END_TM},
+        #{OLD_START_TM},
+        #{OLD_END_TM},
+        #{NEW_SUP_FARE1},
+        #{NEW_VAT_FARE1},
+        #{NEW_TOT_FARE1},
+        #{OLD_SUP_FARE1},
+        #{OLD_VAT_FARE1},
+        #{OLD_TOT_FARE1},
+        #{NEW_SUP_FARE2},
+        #{NEW_VAT_FARE2},
+        #{NEW_TOT_FARE2},
+        #{OLD_SUP_FARE2},
+        #{OLD_VAT_FARE2},
+        #{OLD_TOT_FARE2},
+        #{NEW_SUP_FARE3},
+        #{NEW_VAT_FARE3},
+        #{NEW_TOT_FARE3},
+        #{OLD_SUP_FARE3},
+        #{OLD_VAT_FARE3},
+        #{OLD_TOT_FARE3},
+        #{NEW_SUP_FARE4},
+        #{NEW_VAT_FARE4},
+        #{NEW_TOT_FARE4},
+        #{OLD_SUP_FARE4},
+        #{OLD_VAT_FARE4},
+        #{OLD_TOT_FARE4},
+        #{NEW_SUP_FARE5},
+        #{NEW_VAT_FARE5},
+        #{NEW_TOT_FARE5},
+        #{OLD_SUP_FARE5},
+        #{OLD_VAT_FARE5},
+        #{OLD_TOT_FARE5},
+        #{NEW_SUP_FARE6},
+        #{NEW_VAT_FARE6},
+        #{NEW_TOT_FARE6},
+        #{OLD_SUP_FARE6},
+        #{OLD_VAT_FARE6},
+        #{OLD_TOT_FARE6},
+        #{NEW_SUP_FARE7},
+        #{NEW_VAT_FARE7},
+        #{NEW_TOT_FARE7},
+        #{OLD_SUP_FARE7},
+        #{OLD_VAT_FARE7},
+        #{OLD_TOT_FARE7},
+        #{NEW_SUP_FARE8},
+        #{NEW_VAT_FARE8},
+        #{NEW_TOT_FARE8},
+        #{OLD_SUP_FARE8},
+        #{OLD_VAT_FARE8},
+        #{OLD_TOT_FARE8},
+        #{NEW_DCRATE1},
+        #{OLD_DCRATE1},
+        #{NEW_DCRATE2},
+        #{OLD_DCRATE2},
+        #{NEW_DCRATE3},
+        #{OLD_DCRATE3},
+        #{NEW_DCRATE4},
+        #{OLD_DCRATE4},
+        #{NEW_DCRATE5},
+        #{OLD_DCRATE5},
+        #{NEW_DCRATE6},
+        #{OLD_DCRATE6},
+        #{NEW_DCRATE7},
+        #{OLD_DCRATE7},
+        #{NEW_DCRATE8},
+        #{OLD_DCRATE8},
+        #{FARE_REV_NO},
+        #{SEQ}
+        )
+        <selectKey resultType="string" keyProperty="SEQ" order="BEFORE">
+            SELECT NVL(MAX(SEQ), 0) + 1 AS SEQ FROM BASE_FAREINFOHIST WHERE IC_CODE = #{IC_CODE}
+        </selectKey>
+    </insert>
+
+    <select id="selectDiffFare" parameterType="hashMap" resultType="hashMap">
+        /* Mapper ID: selectDiffFare*/
+        SELECT A.IC_CODE,
+               FC_CHG_ICNM(A.IC_CODE) AS IC_NM,
+               B.DIFF_TOLL_DATE AS DIFF_START_DT,
+               FC_CHG_FORMAT(B.DIFF_TOLL_DATE, 'DATETIME') AS DIFF_START_DT_FORMAT,
+               A.DIFF_MDFY_DT,
+               FC_CHG_FORMAT(A.DIFF_MDFY_DT, 'DATETIME') AS DIFF_MDFY_DT_FORMAT,
+               A.DIFF_END_DT,
+               FC_CHG_FORMAT(A.DIFF_END_DT, 'DATETIME') AS DIFF_END_DT_FORMAT,
+               A.NEW_TOT_TOLL1,
+               A.OLD_TOT_TOLL1,
+               A.NEW_TOT_TOLL2,
+               A.OLD_TOT_TOLL2,
+               A.NEW_TOT_TOLL3,
+               A.OLD_TOT_TOLL3,
+               A.NEW_TOT_TOLL4,
+               A.OLD_TOT_TOLL4,
+               A.NEW_TOT_TOLL5,
+               A.OLD_TOT_TOLL5,
+               A.NEW_TOT_TOLL6,
+               A.OLD_TOT_TOLL6,
+               A.NEW_TOT_TOLL7,
+               A.OLD_TOT_TOLL7,
+               A.NEW_TOT_TOLL8,
+               A.OLD_TOT_TOLL8
+        FROM BASE_DIFFTOLLINFO A, BASE_ICINFO B
+        WHERE A.IC_CODE = #{IC_CODE}
+          AND A.IC_CODE = B.IC_CODE
+    </select>
+
+    <update id="updateDiffFare" parameterType="hashMap">
+        /* Mapper ID: updateDiffFare*/
+        UPDATE BASE_DIFFTOLLINFO
+        SET DIFF_MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MI'),
+            DIFF_END_DT=#{DIFF_END_DT},
+            NEW_TOT_TOLL1=#{NEW_TOT_TOLL1},
+            OLD_TOT_TOLL1=#{OLD_TOT_TOLL1},
+            NEW_TOT_TOLL2=#{NEW_TOT_TOLL2},
+            OLD_TOT_TOLL2=#{OLD_TOT_TOLL2},
+            NEW_TOT_TOLL3=#{NEW_TOT_TOLL3},
+            OLD_TOT_TOLL3=#{OLD_TOT_TOLL3},
+            NEW_TOT_TOLL4=#{NEW_TOT_TOLL4},
+            OLD_TOT_TOLL4=#{OLD_TOT_TOLL4},
+            NEW_TOT_TOLL5=#{NEW_TOT_TOLL5},
+            OLD_TOT_TOLL5=#{OLD_TOT_TOLL5},
+            NEW_TOT_TOLL6=#{NEW_TOT_TOLL6},
+            OLD_TOT_TOLL6=#{OLD_TOT_TOLL6},
+            NEW_TOT_TOLL7=#{NEW_TOT_TOLL7},
+            OLD_TOT_TOLL7=#{OLD_TOT_TOLL7},
+            NEW_TOT_TOLL8=#{NEW_TOT_TOLL8},
+            OLD_TOT_TOLL8=#{OLD_TOT_TOLL8}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <insert id="insertDiffFareHistory" parameterType="hashMap">
+        /* Mapper ID: insertDiffFareHistory*/
+        INSERT INTO BASE_DIFFTOLLINFOHIST
+        (
+        IC_CODE,
+        DIFF_MDFY_DT,
+        DIFF_END_DT,
+        NEW_TOT_TOLL1,
+        OLD_TOT_TOLL1,
+        NEW_TOT_TOLL2,
+        OLD_TOT_TOLL2,
+        NEW_TOT_TOLL3,
+        OLD_TOT_TOLL3,
+        NEW_TOT_TOLL4,
+        OLD_TOT_TOLL4,
+        NEW_TOT_TOLL5,
+        OLD_TOT_TOLL5,
+        NEW_TOT_TOLL6,
+        OLD_TOT_TOLL6,
+        NEW_TOT_TOLL7,
+        OLD_TOT_TOLL7,
+        NEW_TOT_TOLL8,
+        OLD_TOT_TOLL8,
+        MDFY_DT,
+        MDFY_NO,
+        MDFY_ADMIN_ID
+        )
+        VALUES
+        (
+        #{IC_CODE},
+        #{DIFF_MDFY_DT},
+        #{DIFF_END_DT},
+        #{NEW_TOT_TOLL1},
+        #{OLD_TOT_TOLL1},
+        #{NEW_TOT_TOLL2},
+        #{OLD_TOT_TOLL2},
+        #{NEW_TOT_TOLL3},
+        #{OLD_TOT_TOLL3},
+        #{NEW_TOT_TOLL4},
+        #{OLD_TOT_TOLL4},
+        #{NEW_TOT_TOLL5},
+        #{OLD_TOT_TOLL5},
+        #{NEW_TOT_TOLL6},
+        #{OLD_TOT_TOLL6},
+        #{NEW_TOT_TOLL7},
+        #{OLD_TOT_TOLL7},
+        #{NEW_TOT_TOLL8},
+        #{OLD_TOT_TOLL8},
+        TO_CHAR(SYSDATE, 'yyyyMMddHH24MI'),
+        #{MDFY_NO},
+        #{MDFY_ADMIN_ID}
+        )
+        <selectKey resultType="string" keyProperty="MDFY_NO" order="BEFORE">
+            SELECT NVL(MAX(MDFY_NO), 0) + 1 AS MDFY_NO FROM BASE_DIFFTOLLINFOHIST WHERE IC_CODE = #{IC_CODE}
+        </selectKey>
+    </insert>
+
+    <select id="selectWorkerList" parameterType="hashMap" resultType="hashMap">
+        SELECT ROWNUM,
+        IC_CODE,
+        WORKER_NO,
+        WORKER_NM,
+        FC_CHG_FORMAT(JOIN_DATE, 'DATE') AS JOIN_DATE,
+        FC_CHG_FORMAT(JOIN_DATE, 'DATE') AS JOIN_DATE_FORMAT,
+        CO_NO,
+        FC_CHG_FORMAT(DOB, 'DATE') AS DOB,
+        FC_CHG_FORMAT(DOB, 'DATE') AS DOB_FORMAT,
+        PW,
+        TEL,
+        CP_NO,
+        MCARD,
+        FC_CHG_FORMAT(MCARD, '3') MCARD_FORMAT,
+        ADDR,
+        RNK,
+        RESIGN_YN,
+        FC_CHG_CODENM('231', RESIGN_YN) RESIGN_YN_FORMAT,
+        NVL(FILE_PTH, '') AS FILE_PTH,
+        CLASS,
+        FC_CHG_CODEDP('230', CLASS) AS CLASS_NM,
+        IDNT_NO,
+        CAR_NO
+        FROM BASE_WORKERINFO
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        <if test="WORKER_NO != null and WORKER_NO != ''">
+            AND WORKER_NO = #{WORKER_NO}
+        </if>
+        <if test="WORKER_NM != null and WORKER_NM != ''">
+            AND LOWER(NVL(WORKER_NM, '-1')) LIKE '%'||LOWER(#{WORKER_NM})||'%'
+        </if>
+        AND RESIGN_YN = DECODE(#{RESIGN_YN}, '', RESIGN_YN, #{RESIGN_YN})
+        ORDER BY IC_CODE ASC, WORKER_NO ASC
+    </select>
+
+    <select id="isMatchPassword" parameterType="hashMap" resultType="Integer">
+        SELECT COUNT(WORKER_NO) AS CNT FROM BASE_WORKERINFO WHERE IC_CODE = #{IC_CODE} AND WORKER_NO = #{WORKER_NO} AND PW = #{OLD_PWD_ENC}
+    </select>
+
+    <select id="selectAvailableWorkerNo" parameterType="hashMap" resultType="hashMap">
+	<![CDATA[
+        SELECT WORKER_NO FROM (
+                                  SELECT TO_CHAR(ROWNUM) AS WORKER_NO FROM DUAL CONNECT BY ROWNUM <= 9999
+	MINUS
+                                  SELECT WORKER_NO FROM BASE_WORKERINFO WHERE IC_CODE = #{IC_CODE}
+                              )
+        WHERE WORKER_NO BETWEEN TO_NUMBER(#{START_WORKER_NO}) AND TO_NUMBER(#{END_WORKER_NO})
+        ORDER BY TO_NUMBER(WORKER_NO) ASC
+        ]]>
+	</select>
+
+    <insert id="insertWorkerInfo" parameterType="hashMap">
+        INSERT INTO BASE_WORKERINFO(
+            IC_CODE,
+            WORKER_NO,
+            WORKER_NM,
+            JOIN_DATE,
+            CO_NO,
+            DOB,
+            PW,
+            TEL,
+            CP_NO,
+            MCARD,
+            ADDR,
+            RNK,
+            RESIGN_YN,
+            FILE_PTH,
+            CLASS,
+            IDNT_NO,
+            CAR_NO
+        )VALUES(
+                   #{IC_CODE},
+                   #{WORKER_NO},
+                   #{WORKER_NM},
+                   #{JOIN_DATE},
+                   #{CO_NO},
+                   #{DOB},
+                   #{NEW_PWD},
+                   #{TEL},
+                   #{CP_NO},
+                   #{MCARD},
+                   #{ADDR},
+                   #{RNK},
+                   #{RESIGN_YN},
+                   #{FILE_PTH},
+                   #{CLASS},
+                   #{IDNT_NO},
+                   #{CAR_NO}
+               )
+    </insert>
+
+    <update id="updateWorkerPassword" parameterType="hashMap">
+        UPDATE BASE_WORKERINFO
+        SET PW = #{NEW_PWD_ENC}
+        WHERE IC_CODE = #{IC_CODE}
+          AND WORKER_NO = #{WORKER_NO}
+    </update>
+
+    <update id="updateWorkerInfo" parameterType="hashMap">
+        UPDATE BASE_WORKERINFO
+        SET WORKER_NM = #{WORKER_NM},
+            JOIN_DATE = #{JOIN_DATE},
+            CO_NO = #{CO_NO},
+            DOB = #{DOB},
+            TEL = #{TEL},
+            CP_NO = #{CP_NO},
+            MCARD = #{MCARD},
+            ADDR = #{ADDR},
+            RNK = #{RNK},
+            CLASS = #{CLASS},
+            IDNT_NO = #{IDNT_NO},
+            CAR_NO = #{CAR_NO}
+        WHERE IC_CODE = #{IC_CODE}
+          AND WORKER_NO = #{WORKER_NO}
+    </update>
+
+    <update id="updateWorkerResign" parameterType="hashMap">
+        UPDATE BASE_WORKERINFO
+        SET RESIGN_YN = #{RESIGN_YN}
+        WHERE IC_CODE = #{IC_CODE}
+          AND WORKER_NO = #{WORKER_NO}
+    </update>
+
+    <update id="updateWorkerProfileImage" parameterType="hashMap">
+        UPDATE BASE_WORKERINFO
+        SET FILE_PTH = #{FILE_PTH}
+        WHERE IC_CODE = #{IC_CODE} AND WORKER_NO = #{WORKER_NO}
+    </update>
+
+    <delete id="deleteWorker" parameterType="map">
+        DELETE FROM BASE_WORKERINFO
+        WHERE WORKER_NO = #{WORKER_NO}
+          AND IC_CODE = #{IC_CODE}
+    </delete>
+
+    <update id="updateIcInformation" parameterType="hashMap">
+        /* Mapper ID: updateIcInformation*/
+        UPDATE BASE_ICINFO
+        SET IC_NM=#{IC_NM},
+            IC_TEL=#{IC_TEL},
+            DAYCHG_TM=#{DAYCHG_TM},
+            DAYFIN_TM=#{DAYFIN_TM},
+            UP_LANE_CNT=#{UP_LANE_CNT},
+            DOWN_LANE_CNT=#{DOWN_LANE_CNT},
+            VRAB_LANE_CNT=#{VRAB_LANE_CNT},
+            HGM_APPLY_DATE=#{HGM_APPLY_DATE},
+            LCAR_GP_DATE=#{LCAR_GP_DATE},
+            LCAR_DC_CARD_DIV=#{LCAR_DC_CARD_DIV},
+            DC_EXTRA_DT=#{DC_EXTRA_DT},
+            COMMU_DC_DATE=#{COMMU_DC_DATE},
+            HR_DC_DATE=#{HR_DC_DATE},
+            LINK_FARE_DATE=#{LINK_FARE_DATE},
+            SIG_ROT_HR=#{SIG_ROT_HR},
+            ETAXI_EXMT_DT=#{ETAXI_EXMT_DT},
+            NEW_ETAXI_APPLY_UP=#{NEW_ETAXI_APPLY_UP},
+            OLD_ETAXI_APPLY_UP=#{OLD_ETAXI_APPLY_UP},
+            NEW_ETAXI_APPLY_DOWN=#{NEW_ETAXI_APPLY_DOWN},
+            OLD_ETAXI_APPLY_DOWN=#{OLD_ETAXI_APPLY_DOWN},
+            MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            DC_OBU_DATE=#{DC_OBU_DATE},
+            HR_DC_PAY_YN=#{HR_DC_PAY_YN},
+            LPAY_MRCHN_CODE=#{LPAY_MRCHN_CODE},
+            CO_DIV=#{CO_DIV},
+            IC_ADDR=#{IC_ADDR},
+            IC_UNP_TEL_NO=#{IC_UNP_TEL_NO},
+            IC_ZIPCODE=#{IC_ZIPCODE},
+            IC_BANKBK=#{IC_BANKBK},
+            BALC_DOWN_DIV=#{BALC_DOWN_DIV},
+            EXIT_LANE_ENT_DIV=#{EXIT_LANE_ENT_DIV},
+            CONT_DC_DATE=#{CONT_DC_DATE},
+            DIFF_TOLL_DATE=#{DIFF_TOLL_DATE}
+        WHERE IC_CODE=#{IC_CODE}
+          AND CO_DIV=#{CO_DIV}
+          AND IC_DIV=#{IC_DIV}
+    </update>
+
+    <insert id="insertIcInformationHistory" parameterType="hashMap">
+        <![CDATA[
+/* Mapper ID: insertIcInformationHistory*/
+INSERT
+INTO BASE_ICINFOHIST
+	(
+	    IC_CODE,
+		MDFY_DT,
+		IC_NM,
+		IC_TEL,
+		DAYCHG_TM,
+		DAYFIN_TM,
+		UP_LANE_CNT,
+		DOWN_LANE_CNT,
+		VRAB_LANE_CNT,
+		HGM_APPLY_DATE,
+		LCAR_GP_DATE,
+		LCAR_DC_CARD_DIV,
+		DC_EXTRA_DT,
+		CMT_DC_DATE,
+		SIG_ROT_HR,
+		ETAXI_EXMT_DT,
+		NEW_ETAXI_APPLY_UP,
+		OLD_ETAXI_APPLY_UP,
+		NEW_ETAXI_APPLY_DOWN,
+		OLD_ETAXI_APPLY_DOWN,
+		MDFY_ADMIN_ID,
+		LINK_FARE_DATE,
+		DC_OBU_DATE,
+		HR_DC_PAY_YN,
+		LPAY_MRCHN_CODE,
+		CO_DIV,
+		EXIT_LANE_ENT_DIV,
+		BALC_DOWN_DIV,
+		REV_NO,
+		IC_DIV,
+	    CONF_DC_DATE,
+	    DIFF_TOLL_DATE
+	)
+VALUES
+	(
+		#{IC_CODE},
+		TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+		#{IC_NM},
+		#{IC_TEL},
+		#{DAYCHG_TM},
+		#{DAYFIN_TM},
+		#{UP_LANE_CNT},
+		#{DOWN_LANE_CNT},
+		#{VRAB_LANE_CNT},
+		#{HGM_APPLY_DATE},
+		#{LCAR_GP_DATE},
+		#{LCAR_DC_CARD_DIV},
+		#{DC_EXTRA_DT},
+		#{CMT_DC_DATE},
+		#{SIG_ROT_HR},
+		#{ETAXI_EXMT_DT},
+		#{NEW_ETAXI_APPLY_UP},
+		#{OLD_ETAXI_APPLY_UP},
+		#{NEW_ETAXI_APPLY_DOWN},
+		#{OLD_ETAXI_APPLY_DOWN},
+		#{MDFY_ADMIN_ID},
+		#{LINK_FARE_DATE},
+		#{DC_OBU_DATE},
+		#{HR_DC_PAY_YN},
+		#{LPAY_MRCHN_CODE},
+		#{CO_DIV},
+		#{EXIT_LANE_ENT_DIV},
+		#{BALC_DOWN_DIV},
+		#{REV_NO},
+		#{IC_DIV},
+	    #{CONT_DC_DATE},
+	    #{DIFF_TOLL_DATE}
+	)
+]]>
+        <selectKey resultType="string" keyProperty="REV_NO" order="BEFORE">
+            <![CDATA[
+			SELECT NVL(MAX(REV_NO), 0) + 1 AS REV_NO FROM BASE_ICINFOHIST WHERE IC_CODE=#{IC_CODE} AND CO_DIV=#{CO_DIV} AND IC_DIV=#{IC_DIV}
+			]]>
+        </selectKey>
+    </insert>
+
+    <select id="selectProgramList" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+        FC_CHG_ICNM(IC_CODE) AS IC_NM,
+        PRG_CODE,
+        HIGH_PRG_CODE,
+        PRG_NM,
+        HIGH_PRG_NM,
+        CASE WHEN HIGH_PRG_NM IS NOT NULL THEN HIGH_PRG_NM ELSE PRG_NM END AS L_PRG_NM,
+        CASE WHEN HIGH_PRG_NM IS NULL THEN '-' ELSE PRG_NM END AS S_PRG_NM,
+        ACC1,
+        FC_CHG_CODENM('900', ACC1) AS ACC1_NM,
+        ACC2,
+        FC_CHG_CODENM('900', ACC2) AS ACC2_NM,
+        ACC3,
+        FC_CHG_CODENM('900', ACC3) AS ACC3_NM,
+        ACC4,
+        FC_CHG_CODENM('900', ACC4) AS ACC4_NM,
+        ACC5,
+        FC_CHG_CODENM('900', ACC5) AS ACC5_NM,
+        ACC6,
+        FC_CHG_CODENM('900', ACC6) AS ACC6_NM,
+        ACC7,
+        FC_CHG_CODENM('900', ACC7) AS ACC7_NM,
+        ACC8,
+        FC_CHG_CODENM('900', ACC8) AS ACC8_NM,
+        ACC9,
+        FC_CHG_CODENM('900', ACC9) AS ACC9_NM,
+        ACC10,
+        FC_CHG_CODENM('900', ACC10) AS ACC10_NM,
+        ORDR,
+        SCR_NO,
+        MENU_DPH,
+        BTN_SEARCH,
+        FC_CHG_CODENM('901', BTN_SEARCH) AS BTN_SEARCH_NM,
+        BTN_ADD,
+        FC_CHG_CODENM('901', BTN_ADD) AS BTN_ADD_NM,
+        BTN_DELET,
+        FC_CHG_CODENM('901', BTN_DELET) AS BTN_DELET_NM,
+        BTN_STRG,
+        FC_CHG_CODENM('901', BTN_STRG) AS BTN_STRG_NM,
+        BTN_EXCEL,
+        FC_CHG_CODENM('901', BTN_EXCEL) AS BTN_EXCEL_NM,
+        BTN_PRT,
+        FC_CHG_CODENM('901', BTN_PRT) AS BTN_PRT_NM,
+        PRG_NOTE,
+        RPT_YN,
+        FC_CHG_CODENM('047', BTN_PRT) AS RPT_YN_NM,
+        RPT_APP_CODE,
+        FC_CHG_CODENM('241', RPT_APP_CODE) AS RPT_APP_CODE_NM,
+        USE_YN,
+        FC_CHG_CODENM('047', USE_YN) AS USE_YN_NM
+        FROM BASE_PROGINFO
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        <if test="PRG_CODE != null and PRG_CODE != ''">
+            AND PRG_CODE LIKE '%'||#{PRG_CODE}||'%'
+        </if>
+        <if test="PRG_NM != null and PRG_NM != ''">
+            AND PRG_NM LIKE '%'||#{PRG_NM}||'%'
+        </if>
+        ORDER BY PRG_CODE
+    </select>
+
+    <update id="updateProgram" parameterType="hashMap">
+        UPDATE BASE_PROGINFO
+        SET IC_CODE=#{IC_CODE},
+            PRG_CODE=#{PRG_CODE},
+            HIGH_PRG_CODE=#{HIGH_PRG_CODE},
+            PRG_NM=#{PRG_NM},
+            HIGH_PRG_NM=#{HIGH_PRG_NM},
+            ACC1=#{ACC1},
+            ACC2=#{ACC2},
+            ACC3=#{ACC3},
+            ACC4=#{ACC4},
+            ACC5=#{ACC5},
+            ACC6=#{ACC6},
+            ORDR=#{ORDR},
+            SCR_NO=#{SCR_NO},
+            MENU_DPH=#{MENU_DPH},
+            BTN_SEARCH=#{BTN_SEARCH},
+            BTN_ADD=#{BTN_ADD},
+            BTN_DELET=#{BTN_DELET},
+            BTN_STRG=#{BTN_STRG},
+            BTN_EXCEL=#{BTN_EXCEL},
+            BTN_PRT=#{BTN_PRT},
+            ACC7=#{ACC7},
+            ACC8=#{ACC8},
+            ACC9=#{ACC9},
+            ACC10=#{ACC10},
+            PRG_NOTE=#{PRG_NOTE},
+            RPT_YN=#{RPT_YN},
+            RPT_APP_CODE=#{RPT_APP_CODE},
+            USE_YN=#{USE_YN}
+        WHERE IC_CODE = #{IC_CODE}
+          AND PRG_CODE = #{PRG_CODE}
+    </update>
+
+    <select id="selectReportImageInformation" parameterType="hashMap" resultType="hashMap">
+        <!-- MapperID : selectReportImageInformation -->
+        SELECT IC_CODE, RPT_APP_CODE, INST_DT, IMG_PTH
+        FROM BASE_REPORTIMG
+        WHERE IC_CODE = #{IC_CODE}
+        <if test="RPT_APP_CODE != null and RPT_APP_CODE != ''">
+            AND RPT_APP_CODE = #{RPT_APP_CODE}
+        </if>
+    </select>
+
+    <update id="mergeReportImageInformation" parameterType="hashMap">
+        MERGE INTO BASE_REPORTIMG A
+            USING dual
+            ON (A.IC_CODE = #{IC_CODE} AND A.RPT_APP_CODE = #{RPT_APP_CODE})
+            WHEN MATCHED THEN
+                UPDATE SET A.INST_DT = TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'), A.IMG_PTH = #{IMG_PTH}
+            WHERE A.IC_CODE = #{IC_CODE} AND A.RPT_APP_CODE = #{RPT_APP_CODE}
+            WHEN NOT MATCHED THEN
+            INSERT (A.IC_CODE, A.RPT_APP_CODE, A.INST_DT, A.IMG_DATA, A.IMG_PTH)
+            VALUES (#{IC_CODE}, #{RPT_APP_CODE}, TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'), NULL, #{IMG_PTH})
+    </update>
+
+    <select id="selectContinuousPassIcList" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               IC_NM,
+               EXMT_IC_CNT,
+               EXMT_DIV,
+               FC_CHG_CODEDP('047', EXMT_DIV) AS EXMT_DIV_NM,
+               APPLY_DIV,
+               FC_CHG_CODEDP('049', APPLY_DIV) AS APPLY_DIV_NM,
+               EXMT_APPLY_BGN_DT,
+               FC_CHG_FORMAT(EXMT_APPLY_BGN_DT, 'DATE') AS EXMT_APPLY_BGN_DT_FORMAT,
+               EXMT_APPLY_DT,
+               FC_CHG_FORMAT(EXMT_APPLY_DT, 'DATETIME') AS EXMT_APPLY_DT_FORMAT,
+               EXMT_CLS_DT,
+               FC_CHG_FORMAT(EXMT_CLS_DT, 'DATETIME') AS EXMT_CLS_DT_FORMAT,
+               BASE_DIV,
+               FC_CHG_CODEDP('349', BASE_DIV) AS BASE_DIV_NM,
+               MAKE_DT,
+               MAKE_ADMIN,
+               MDFY_DT AS MDFY_CONT_DT,
+               MDFY_ADMIN
+        FROM BASE_EXMT_ICINFO
+        ORDER BY IC_CODE ASC
+    </select>
+
+    <select id="selectEcardDiscountCarType" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               INST_DT,
+               TO_CHAR(TO_DATE(INST_DT, 'yyyyMMddHH24MISS'), 'YYYY-MM-DD HH24:MI') AS INST_DT_FORMAT,
+               DC_NEW_DT,
+               TO_CHAR(TO_DATE(DC_NEW_DT, 'yyyyMMddHH24MISS'), 'YYYY-MM-DD HH24:MI') AS DC_NEW_DT_FORMAT,
+               OLD_DC_RATE1,
+               OLD_DC_RATE2,
+               OLD_DC_RATE3,
+               OLD_DC_RATE4,
+               OLD_DC_RATE5,
+               OLD_DC_RATE6,
+               OLD_DC_RATE7,
+               OLD_DC_RATE8,
+               NEW_DC_RATE1,
+               NEW_DC_RATE2,
+               NEW_DC_RATE3,
+               NEW_DC_RATE4,
+               NEW_DC_RATE5,
+               NEW_DC_RATE6,
+               NEW_DC_RATE7,
+               NEW_DC_RATE8,
+               IC_DIV,
+               FC_CHG_CODEDP('334', IC_DIV) AS IC_DIV_NM
+        FROM BASE_ECARDCARTYPEDCRATE
+        ORDER BY IC_CODE ASC
+    </select>
+
+    <insert id="insertEcardDiscountCarTypeHistory" parameterType="hashMap">
+        INSERT INTO BASE_ECARDCARTYPEDCRATEHIST
+        (
+        REV_NO,
+        IC_CODE,
+        INST_DT,
+        DC_NEW_DT,
+        OLD_DC_RATE1,
+        OLD_DC_RATE2,
+        OLD_DC_RATE3,
+        OLD_DC_RATE4,
+        OLD_DC_RATE5,
+        OLD_DC_RATE6,
+        OLD_DC_RATE7,
+        OLD_DC_RATE8,
+        NEW_DC_RATE1,
+        NEW_DC_RATE2,
+        NEW_DC_RATE3,
+        NEW_DC_RATE4,
+        NEW_DC_RATE5,
+        NEW_DC_RATE6,
+        NEW_DC_RATE7,
+        NEW_DC_RATE8,
+        MDFY_ADMIN_ID,
+        IC_DIV
+        )
+        VALUES
+        (
+        #{REV_NO},
+        #{IC_CODE},
+        TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+        #{DC_NEW_DT},
+        #{OLD_DC_RATE1},
+        #{OLD_DC_RATE2},
+        #{OLD_DC_RATE3},
+        #{OLD_DC_RATE4},
+        #{OLD_DC_RATE5},
+        #{OLD_DC_RATE6},
+        #{OLD_DC_RATE7},
+        #{OLD_DC_RATE8},
+        #{NEW_DC_RATE1},
+        #{NEW_DC_RATE2},
+        #{NEW_DC_RATE3},
+        #{NEW_DC_RATE4},
+        #{NEW_DC_RATE5},
+        #{NEW_DC_RATE6},
+        #{NEW_DC_RATE7},
+        #{NEW_DC_RATE8},
+        #{MDFY_ADMIN_ID},
+        #{IC_DIV}
+        )
+        <selectKey resultType="string" keyProperty="REV_NO" order="BEFORE">
+            SELECT NVL(MAX(REV_NO), 0) + 1 AS REV_NO FROM BASE_ECARDCARTYPEDCRATEHIST WHERE IC_CODE = #{IC_CODE}
+        </selectKey>
+    </insert>
+
+    <update id="updateEcardDiscountCarType" parameterType="hashMap">
+        UPDATE BASE_ECARDCARTYPEDCRATE
+        SET INST_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            DC_NEW_DT=#{DC_NEW_DT},
+            OLD_DC_RATE1=#{OLD_DC_RATE1},
+            OLD_DC_RATE2=#{OLD_DC_RATE2},
+            OLD_DC_RATE3=#{OLD_DC_RATE3},
+            OLD_DC_RATE4=#{OLD_DC_RATE4},
+            OLD_DC_RATE5=#{OLD_DC_RATE5},
+            OLD_DC_RATE6=#{OLD_DC_RATE6},
+            OLD_DC_RATE7=#{OLD_DC_RATE7},
+            OLD_DC_RATE8=#{OLD_DC_RATE8},
+            NEW_DC_RATE1=#{NEW_DC_RATE1},
+            NEW_DC_RATE2=#{NEW_DC_RATE2},
+            NEW_DC_RATE3=#{NEW_DC_RATE3},
+            NEW_DC_RATE4=#{NEW_DC_RATE4},
+            NEW_DC_RATE5=#{NEW_DC_RATE5},
+            NEW_DC_RATE6=#{NEW_DC_RATE6},
+            NEW_DC_RATE7=#{NEW_DC_RATE7},
+            NEW_DC_RATE8=#{NEW_DC_RATE8}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <select id="selectEcardDiscount" parameterType="hashMap" resultType="hashMap">
+        SELECT NEW_EPCARD_DC_APPLY_DT,
+               FC_CHG_FORMAT(NEW_EPCARD_DC_APPLY_DT, 'DATETIME12') AS NEW_EPCARD_DC_APPLY_DT_FORMAT,
+               OLD_EPCARD_DC_CLS_DT,
+               FC_CHG_FORMAT(NEW_EPCARD_DC_APPLY_DT, 'DATETIME12') AS NEW_EPCARD_DC_APPLY_DT_FORMAT,
+               NEW_EPCARD_DC_RATE1,
+               NEW_EPCARD_DC_RATE2,
+               NEW_EPCARD_DC_RATE3,
+               NEW_EPCARD_DC_RATE4,
+               NEW_EPCARD_DC_RATE5,
+               NEW_EPCARD_DC_RATE6,
+               NEW_EPCARD_DC_RATE7,
+               NEW_EPCARD_DC_RATE8,
+               OLD_EPCARD_DC_RATE1,
+               OLD_EPCARD_DC_RATE2,
+               OLD_EPCARD_DC_RATE3,
+               OLD_EPCARD_DC_RATE4,
+               OLD_EPCARD_DC_RATE5,
+               OLD_EPCARD_DC_RATE6,
+               OLD_EPCARD_DC_RATE7,
+               OLD_EPCARD_DC_RATE8,
+               NEW_ELCARD_DC_APPLY_DT,
+               FC_CHG_FORMAT(NEW_ELCARD_DC_APPLY_DT, 'DATETIME12') AS NEW_ELCARD_DC_APPLY_DT_FORMAT,
+               OLD_ELCARD_DC_CLS_DT,
+               FC_CHG_FORMAT(OLD_ELCARD_DC_CLS_DT, 'DATETIME12') AS OLD_ELCARD_DC_CLS_DT_FORMAT,
+               NEW_ELCARD_DC_RATE1,
+               NEW_ELCARD_DC_RATE2,
+               NEW_ELCARD_DC_RATE3,
+               NEW_ELCARD_DC_RATE4,
+               NEW_ELCARD_DC_RATE5,
+               NEW_ELCARD_DC_RATE6,
+               NEW_ELCARD_DC_RATE7,
+               NEW_ELCARD_DC_RATE8,
+               OLD_ELCARD_DC_RATE1,
+               OLD_ELCARD_DC_RATE2,
+               OLD_ELCARD_DC_RATE3,
+               OLD_ELCARD_DC_RATE4,
+               OLD_ELCARD_DC_RATE5,
+               OLD_ELCARD_DC_RATE6,
+               OLD_ELCARD_DC_RATE7,
+               OLD_ELCARD_DC_RATE8
+        FROM BASE_ECARDDCRATE
+    </select>
+
+    <update id="updateEcardDiscount" parameterType="hashMap">
+        UPDATE BASE_ECARDDCRATE
+        SET NEW_EPCARD_DC_APPLY_DT=#{NEW_EPCARD_DC_APPLY_DT},
+            NEW_EPCARD_DC_RATE1=#{NEW_EPCARD_DC_RATE1},
+            NEW_EPCARD_DC_RATE2=#{NEW_EPCARD_DC_RATE2},
+            NEW_EPCARD_DC_RATE3=#{NEW_EPCARD_DC_RATE3},
+            NEW_EPCARD_DC_RATE4=#{NEW_EPCARD_DC_RATE4},
+            NEW_EPCARD_DC_RATE5=#{NEW_EPCARD_DC_RATE5},
+            NEW_EPCARD_DC_RATE6=#{NEW_EPCARD_DC_RATE6},
+            NEW_EPCARD_DC_RATE7=#{NEW_EPCARD_DC_RATE7},
+            NEW_EPCARD_DC_RATE8=#{NEW_EPCARD_DC_RATE8},
+            OLD_EPCARD_DC_RATE1=#{OLD_EPCARD_DC_RATE1},
+            OLD_EPCARD_DC_RATE2=#{OLD_EPCARD_DC_RATE2},
+            OLD_EPCARD_DC_RATE3=#{OLD_EPCARD_DC_RATE3},
+            OLD_EPCARD_DC_RATE4=#{OLD_EPCARD_DC_RATE4},
+            OLD_EPCARD_DC_RATE5=#{OLD_EPCARD_DC_RATE5},
+            OLD_EPCARD_DC_RATE6=#{OLD_EPCARD_DC_RATE6},
+            OLD_EPCARD_DC_RATE7=#{OLD_EPCARD_DC_RATE7},
+            OLD_EPCARD_DC_RATE8=#{OLD_EPCARD_DC_RATE8},
+            NEW_ELCARD_DC_APPLY_DT=#{NEW_ELCARD_DC_APPLY_DT},
+            NEW_ELCARD_DC_RATE1=#{NEW_ELCARD_DC_RATE1},
+            NEW_ELCARD_DC_RATE2=#{NEW_ELCARD_DC_RATE2},
+            NEW_ELCARD_DC_RATE3=#{NEW_ELCARD_DC_RATE3},
+            NEW_ELCARD_DC_RATE4=#{NEW_ELCARD_DC_RATE4},
+            NEW_ELCARD_DC_RATE5=#{NEW_ELCARD_DC_RATE5},
+            NEW_ELCARD_DC_RATE6=#{NEW_ELCARD_DC_RATE6},
+            NEW_ELCARD_DC_RATE7=#{NEW_ELCARD_DC_RATE7},
+            NEW_ELCARD_DC_RATE8=#{NEW_ELCARD_DC_RATE8},
+            OLD_ELCARD_DC_RATE1=#{OLD_ELCARD_DC_RATE1},
+            OLD_ELCARD_DC_RATE2=#{OLD_ELCARD_DC_RATE2},
+            OLD_ELCARD_DC_RATE3=#{OLD_ELCARD_DC_RATE3},
+            OLD_ELCARD_DC_RATE4=#{OLD_ELCARD_DC_RATE4},
+            OLD_ELCARD_DC_RATE5=#{OLD_ELCARD_DC_RATE5},
+            OLD_ELCARD_DC_RATE6=#{OLD_ELCARD_DC_RATE6},
+            OLD_ELCARD_DC_RATE7=#{OLD_ELCARD_DC_RATE7},
+            OLD_ELCARD_DC_RATE8=#{OLD_ELCARD_DC_RATE8}
+    </update>
+
+    <select id="selectHourDiscount" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               DATE_DIV,
+               FC_CHG_CODENM('193', DATE_DIV) AS DATE_DIV_NM,
+               HR_SEQ,
+               '할인율' || HR_SEQ AS HR_SEQ_NM,
+               INST_DT,
+               FC_CHG_FORMAT(INST_DT, 'DATETIME') AS INST_DT_FORMAT,
+               NEW_START_TM,
+               FC_CHG_FORMAT(NEW_START_TM, 'HH24MI') AS NEW_START_TM_FORMAT,
+               NEW_END_TM,
+               FC_CHG_FORMAT(NEW_END_TM, 'HH24MI') AS NEW_END_TM_FORMAT,
+               OLD_START_TM,
+               FC_CHG_FORMAT(OLD_START_TM, 'HH24MI') AS OLD_START_TM_FORMAT,
+               OLD_END_TM,
+               FC_CHG_FORMAT(OLD_END_TM, 'HH24MI') AS OLD_END_TM_FORMAT,
+               NEW_DC_RATE1,
+               OLD_DC_RATE1,
+               NEW_DC_RATE2,
+               OLD_DC_RATE2,
+               NEW_DC_RATE3,
+               OLD_DC_RATE3,
+               NEW_DC_RATE4,
+               OLD_DC_RATE4,
+               NEW_DC_RATE5,
+               OLD_DC_RATE5,
+               NEW_DC_RATE6,
+               OLD_DC_RATE6,
+               NEW_DC_RATE7,
+               OLD_DC_RATE7,
+               NEW_DC_RATE8,
+               OLD_DC_RATE8,
+               LANE_DIV,
+               FC_CHG_CODENM('338', LANE_DIV) AS LANE_DIV_NM,
+               IC_DIV,
+               FC_CHG_CODENM('334', IC_DIV) AS IC_DIV_NM
+        FROM BASE_HRDCRATE
+        WHERE IC_CODE = #{IC_CODE}
+          AND DATE_DIV = #{DATE_DIV}
+          AND LANE_DIV = #{LANE_DIV}
+    </select>
+
+    <insert id="insertHourDiscountHistory" parameterType="hashMap">
+        INSERT INTO BASE_HRDCRATEHIST
+        (
+        IC_CODE,
+        MDFY_NO,
+        MDFY_DT,
+        DATE_DIV,
+        HR_SEQ,
+        MDFY_ADMIN_ID,
+        NEW_START_TM,
+        NEW_END_TM,
+        OLD_START_TM,
+        OLD_END_TM,
+        NEW_DC_RATE1,
+        OLD_DC_RATE1,
+        NEW_DC_RATE2,
+        OLD_DC_RATE2,
+        NEW_DC_RATE3,
+        OLD_DC_RATE3,
+        NEW_DC_RATE4,
+        OLD_DC_RATE4,
+        NEW_DC_RATE5,
+        OLD_DC_RATE5,
+        NEW_DC_RATE6,
+        OLD_DC_RATE6,
+        NEW_DC_RATE7,
+        OLD_DC_RATE7,
+        NEW_DC_RATE8,
+        OLD_DC_RATE8,
+        LANE_DIV,
+        IC_DIV
+        )
+        VALUES
+        (
+        #{IC_CODE},
+        #{MDFY_NO},
+        TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+        #{DATE_DIV},
+        #{HR_SEQ},
+        #{MDFY_ADMIN_ID},
+        #{NEW_START_TM},
+        #{NEW_END_TM},
+        #{OLD_START_TM},
+        #{OLD_END_TM},
+        #{NEW_DC_RATE1},
+        #{OLD_DC_RATE1},
+        #{NEW_DC_RATE2},
+        #{OLD_DC_RATE2},
+        #{NEW_DC_RATE3},
+        #{OLD_DC_RATE3},
+        #{NEW_DC_RATE4},
+        #{OLD_DC_RATE4},
+        #{NEW_DC_RATE5},
+        #{OLD_DC_RATE5},
+        #{NEW_DC_RATE6},
+        #{OLD_DC_RATE6},
+        #{NEW_DC_RATE7},
+        #{OLD_DC_RATE7},
+        #{NEW_DC_RATE8},
+        #{OLD_DC_RATE8},
+        #{LANE_DIV},
+        #{IC_DIV}
+        )
+        <selectKey resultType="string" keyProperty="MDFY_NO" order="BEFORE">
+            SELECT NVL(MAX(MDFY_NO), 0) + 1 AS MDFY_NO FROM BASE_HRDCRATEHIST WHERE IC_CODE = #{IC_CODE} AND LANE_DIV = #{LANE_DIV} AND DATE_DIV = #{DATE_DIV} AND HR_SEQ = #{HR_SEQ}
+        </selectKey>
+    </insert>
+
+    <update id="updateHourDiscount" parameterType="hashMap">
+        UPDATE BASE_HRDCRATE
+        SET INST_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            NEW_START_TM=#{NEW_START_TM},
+            NEW_END_TM=#{NEW_END_TM},
+            OLD_START_TM=#{OLD_START_TM},
+            OLD_END_TM=#{OLD_END_TM},
+            NEW_DC_RATE1=#{NEW_DC_RATE1},
+            OLD_DC_RATE1=#{OLD_DC_RATE1},
+            NEW_DC_RATE2=#{NEW_DC_RATE2},
+            OLD_DC_RATE2=#{OLD_DC_RATE2},
+            NEW_DC_RATE3=#{NEW_DC_RATE3},
+            OLD_DC_RATE3=#{OLD_DC_RATE3},
+            NEW_DC_RATE4=#{NEW_DC_RATE4},
+            OLD_DC_RATE4=#{OLD_DC_RATE4},
+            NEW_DC_RATE5=#{NEW_DC_RATE5},
+            OLD_DC_RATE5=#{OLD_DC_RATE5},
+            NEW_DC_RATE6=#{NEW_DC_RATE6},
+            OLD_DC_RATE6=#{OLD_DC_RATE6},
+            NEW_DC_RATE7=#{NEW_DC_RATE7},
+            OLD_DC_RATE7=#{OLD_DC_RATE7},
+            NEW_DC_RATE8=#{NEW_DC_RATE8},
+            OLD_DC_RATE8=#{OLD_DC_RATE8}
+        WHERE IC_CODE = #{IC_CODE}
+          AND DATE_DIV = #{DATE_DIV}
+          AND LANE_DIV = #{LANE_DIV}
+          AND HR_SEQ = #{HR_SEQ}
+    </update>
+
+    <select id="selectDiscountExtra" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               TYPE_DIV,
+               DC_EXTRA_DIV,
+               INST_DT,
+               FC_CHG_FORMAT(INST_DT, 'DATETIME') AS INST_DT_FORMAT,
+               START_TM,
+               FC_CHG_FORMAT(START_TM, 'HH24MI') AS START_TM_FORMAT,
+               END_TM,
+               FC_CHG_FORMAT(END_TM, 'HH24MI') AS END_TM_FORMAT,
+               CAR1_DC_EXTRA,
+               CAR2_DC_EXTRA,
+               CAR3_DC_EXTRA,
+               CAR4_DC_EXTRA,
+               CAR5_DC_EXTRA,
+               CAR6_DC_EXTRA,
+               CAR7_DC_EXTRA,
+               CAR8_DC_EXTRA,
+               IC_DIV
+        FROM BASE_DCEXTRARATE
+        WHERE IC_CODE = #{IC_CODE}
+          AND TYPE_DIV = #{TYPE_DIV}
+          AND DC_EXTRA_DIV = #{DC_EXTRA_DIV}
+    </select>
+
+    <insert id="insertDiscountExtraHistory" parameterType="hashMap">
+        INSERT INTO BASE_DCEXTRARATEHIST
+        (
+        IC_CODE,
+        MDFY_NO,
+        INST_DT,
+        TYPE_DIV,
+        DC_EXTRA_DIV,
+        MDFY_ADMIN_ID,
+        START_TM,
+        END_TM,
+        CAR1_DC_EXTRA,
+        CAR2_DC_EXTRA,
+        CAR3_DC_EXTRA,
+        CAR4_DC_EXTRA,
+        CAR5_DC_EXTRA,
+        CAR6_DC_EXTRA,
+        CAR7_DC_EXTRA,
+        CAR8_DC_EXTRA,
+        IC_DIV
+        )
+        VALUES
+        (
+        #{IC_CODE},
+        #{MDFY_NO},
+        TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+        #{TYPE_DIV},
+        #{DC_EXTRA_DIV},
+        #{MDFY_ADMIN_ID},
+        #{START_TM},
+        #{END_TM},
+        #{CAR1_DC_EXTRA},
+        #{CAR2_DC_EXTRA},
+        #{CAR3_DC_EXTRA},
+        #{CAR4_DC_EXTRA},
+        #{CAR5_DC_EXTRA},
+        #{CAR6_DC_EXTRA},
+        #{CAR7_DC_EXTRA},
+        #{CAR8_DC_EXTRA},
+        #{IC_DIV}
+        )
+        <selectKey resultType="string" keyProperty="MDFY_NO" order="BEFORE">
+            SELECT NVL(MAX(MDFY_NO), 0) + 1 AS MDFY_NO FROM BASE_DCEXTRARATEHIST WHERE IC_CODE = #{IC_CODE} AND TYPE_DIV = #{TYPE_DIV} AND DC_EXTRA_DIV = #{DC_EXTRA_DIV}
+        </selectKey>
+    </insert>
+
+    <update id="updateDiscountExtra" parameterType="hashMap">
+        UPDATE BASE_DCEXTRARATE
+        SET INST_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            START_TM=#{START_TM},
+            END_TM=#{END_TM},
+            CAR1_DC_EXTRA=#{CAR1_DC_EXTRA},
+            CAR2_DC_EXTRA=#{CAR2_DC_EXTRA},
+            CAR3_DC_EXTRA=#{CAR3_DC_EXTRA},
+            CAR4_DC_EXTRA=#{CAR4_DC_EXTRA},
+            CAR5_DC_EXTRA=#{CAR5_DC_EXTRA},
+            CAR6_DC_EXTRA=#{CAR6_DC_EXTRA},
+            CAR7_DC_EXTRA=#{CAR7_DC_EXTRA},
+            CAR8_DC_EXTRA=#{CAR8_DC_EXTRA}
+        WHERE IC_CODE = #{IC_CODE}
+          AND TYPE_DIV = #{TYPE_DIV}
+          AND DC_EXTRA_DIV = #{DC_EXTRA_DIV}
+    </update>
+
+    <select id="selectChargeExtra" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               NEW_APPLY_DT,
+               FC_CHG_FORMAT(NEW_APPLY_DT, 'DATETIME') AS NEW_APPLY_DT_FORMAT,
+               OLD_CLS_DT,
+               FC_CHG_FORMAT(OLD_CLS_DT, 'DATETIME') AS OLD_CLS_DT_FORMAT,
+               NEW_CHRG_EXTRA_RATE1,
+               NEW_FARE_UNIT1,
+               NEW_CHRG_EXTRA_RATE2,
+               NEW_FARE_UNIT2,
+               NEW_CHRG_EXTRA_RATE3,
+               NEW_FARE_UNIT3,
+               NEW_CHRG_EXTRA_RATE4,
+               NEW_FARE_UNIT4,
+               NEW_CHRG_EXTRA_RATE5,
+               NEW_FARE_UNIT5,
+               NEW_CHRG_EXTRA_RATE6,
+               NEW_FARE_UNIT6,
+               NEW_CHRG_EXTRA_RATE7,
+               NEW_FARE_UNIT7,
+               NEW_CHRG_EXTRA_RATE8,
+               NEW_FARE_UNIT8,
+               NEW_CHRG_EXTRA_RATE9,
+               NEW_FARE_UNIT9,
+               NEW_CHRG_EXTRA_RATE10,
+               NEW_FARE_UNIT10,
+               OLD_CHRG_EXTRA_RATE1,
+               OLD_FARE_UNIT1,
+               OLD_CHRG_EXTRA_RATE2,
+               OLD_FARE_UNIT2,
+               OLD_CHRG_EXTRA_RATE3,
+               OLD_FARE_UNIT3,
+               OLD_CHRG_EXTRA_RATE4,
+               OLD_FARE_UNIT4,
+               OLD_CHRG_EXTRA_RATE5,
+               OLD_FARE_UNIT5,
+               OLD_CHRG_EXTRA_RATE6,
+               OLD_FARE_UNIT6,
+               OLD_CHRG_EXTRA_RATE7,
+               OLD_FARE_UNIT7,
+               OLD_CHRG_EXTRA_RATE8,
+               OLD_FARE_UNIT8,
+               OLD_CHRG_EXTRA_RATE9,
+               OLD_FARE_UNIT9,
+               OLD_CHRG_EXTRA_RATE10,
+               OLD_FARE_UNIT10,
+               MDFY_DT,
+               FC_CHG_FORMAT(MDFY_DT, 'DATETIME') AS MDFY_DT_FORMAT
+        FROM BASE_CHRGEXTRATE
+        WHERE IC_CODE = #{IC_CODE}
+    </select>
+
+    <insert id="insertChargeExtraHistory" parameterType="hashMap">
+        INSERT INTO BASE_CHRGEXTRATEHIST
+        (
+        IC_CODE,
+        REV_NO,
+        NEW_APPLY_DT,
+        OLD_CLS_DT,
+        NEW_CHRG_EXTRA_RATE1,
+        NEW_FARE_UNIT1,
+        NEW_CHRG_EXTRA_RATE2,
+        NEW_FARE_UNIT2,
+        NEW_CHRG_EXTRA_RATE3,
+        NEW_FARE_UNIT3,
+        NEW_CHRG_EXTRA_RATE4,
+        NEW_FARE_UNIT4,
+        NEW_CHRG_EXTRA_RATE5,
+        NEW_FARE_UNIT5,
+        NEW_CHRG_EXTRA_RATE6,
+        NEW_FARE_UNIT6,
+        NEW_CHRG_EXTRA_RATE7,
+        NEW_FARE_UNIT7,
+        NEW_CHRG_EXTRA_RATE8,
+        NEW_FARE_UNIT8,
+        NEW_CHRG_EXTRA_RATE9,
+        NEW_FARE_UNIT9,
+        NEW_CHRG_EXTRA_RATE10,
+        NEW_FARE_UNIT10,
+        OLD_CHRG_EXTRA_RATE1,
+        OLD_FARE_UNIT1,
+        OLD_CHRG_EXTRA_RATE2,
+        OLD_FARE_UNIT2,
+        OLD_CHRG_EXTRA_RATE3,
+        OLD_FARE_UNIT3,
+        OLD_CHRG_EXTRA_RATE4,
+        OLD_FARE_UNIT4,
+        OLD_CHRG_EXTRA_RATE5,
+        OLD_FARE_UNIT5,
+        OLD_CHRG_EXTRA_RATE6,
+        OLD_FARE_UNIT6,
+        OLD_CHRG_EXTRA_RATE7,
+        OLD_FARE_UNIT7,
+        OLD_CHRG_EXTRA_RATE8,
+        OLD_FARE_UNIT8,
+        OLD_CHRG_EXTRA_RATE9,
+        OLD_FARE_UNIT9,
+        OLD_CHRG_EXTRA_RATE10,
+        OLD_FARE_UNIT10,
+        MDFY_DT,
+        ADMIN_ID
+        )
+        VALUES
+        (
+        #{IC_CODE},
+        #{REV_NO},
+        #{NEW_APPLY_DT},
+        #{OLD_CLS_DT},
+        #{NEW_CHRG_EXTRA_RATE1},
+        #{NEW_FARE_UNIT1},
+        #{NEW_CHRG_EXTRA_RATE2},
+        #{NEW_FARE_UNIT2},
+        #{NEW_CHRG_EXTRA_RATE3},
+        #{NEW_FARE_UNIT3},
+        #{NEW_CHRG_EXTRA_RATE4},
+        #{NEW_FARE_UNIT4},
+        #{NEW_CHRG_EXTRA_RATE5},
+        #{NEW_FARE_UNIT5},
+        #{NEW_CHRG_EXTRA_RATE6},
+        #{NEW_FARE_UNIT6},
+        #{NEW_CHRG_EXTRA_RATE7},
+        #{NEW_FARE_UNIT7},
+        #{NEW_CHRG_EXTRA_RATE8},
+        #{NEW_FARE_UNIT8},
+        #{NEW_CHRG_EXTRA_RATE9},
+        #{NEW_FARE_UNIT9},
+        #{NEW_CHRG_EXTRA_RATE10},
+        #{NEW_FARE_UNIT10},
+        #{OLD_CHRG_EXTRA_RATE1},
+        #{OLD_FARE_UNIT1},
+        #{OLD_CHRG_EXTRA_RATE2},
+        #{OLD_FARE_UNIT2},
+        #{OLD_CHRG_EXTRA_RATE3},
+        #{OLD_FARE_UNIT3},
+        #{OLD_CHRG_EXTRA_RATE4},
+        #{OLD_FARE_UNIT4},
+        #{OLD_CHRG_EXTRA_RATE5},
+        #{OLD_FARE_UNIT5},
+        #{OLD_CHRG_EXTRA_RATE6},
+        #{OLD_FARE_UNIT6},
+        #{OLD_CHRG_EXTRA_RATE7},
+        #{OLD_FARE_UNIT7},
+        #{OLD_CHRG_EXTRA_RATE8},
+        #{OLD_FARE_UNIT8},
+        #{OLD_CHRG_EXTRA_RATE9},
+        #{OLD_FARE_UNIT9},
+        #{OLD_CHRG_EXTRA_RATE10},
+        #{OLD_FARE_UNIT10},
+        TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+        #{ADMIN_ID}
+        )
+        <selectKey resultType="string" keyProperty="REV_NO" order="BEFORE">
+            SELECT NVL(MAX(REV_NO), 0) + 1 AS REV_NO FROM BASE_CHRGEXTRATEHIST WHERE IC_CODE = #{IC_CODE}
+        </selectKey>
+    </insert>
+
+    <update id="updateChargeExtra" parameterType="hashMap">
+        UPDATE BASE_CHRGEXTRATE
+        SET NEW_APPLY_DT=${NEW_APPLY_DT},
+            OLD_CLS_DT=${OLD_CLS_DT},
+            NEW_CHRG_EXTRA_RATE1=${NEW_CHRG_EXTRA_RATE1},
+            NEW_FARE_UNIT1=${NEW_FARE_UNIT1},
+            NEW_CHRG_EXTRA_RATE2=${NEW_CHRG_EXTRA_RATE2},
+            NEW_FARE_UNIT2=${NEW_FARE_UNIT2},
+            NEW_CHRG_EXTRA_RATE3=${NEW_CHRG_EXTRA_RATE3},
+            NEW_FARE_UNIT3=${NEW_FARE_UNIT3},
+            NEW_CHRG_EXTRA_RATE4=${NEW_CHRG_EXTRA_RATE4},
+            NEW_FARE_UNIT4=${NEW_FARE_UNIT4},
+            NEW_CHRG_EXTRA_RATE5=${NEW_CHRG_EXTRA_RATE5},
+            NEW_FARE_UNIT5=${NEW_FARE_UNIT5},
+            NEW_CHRG_EXTRA_RATE6=${NEW_CHRG_EXTRA_RATE6},
+            NEW_FARE_UNIT6=${NEW_FARE_UNIT6},
+            NEW_CHRG_EXTRA_RATE7=${NEW_CHRG_EXTRA_RATE7},
+            NEW_FARE_UNIT7=${NEW_FARE_UNIT7},
+            NEW_CHRG_EXTRA_RATE8=${NEW_CHRG_EXTRA_RATE8},
+            NEW_FARE_UNIT8=${NEW_FARE_UNIT8},
+            NEW_CHRG_EXTRA_RATE9=${NEW_CHRG_EXTRA_RATE9},
+            NEW_FARE_UNIT9=${NEW_FARE_UNIT9},
+            NEW_CHRG_EXTRA_RATE10=${NEW_CHRG_EXTRA_RATE10},
+            NEW_FARE_UNIT10=${NEW_FARE_UNIT10},
+            OLD_CHRG_EXTRA_RATE1=${OLD_CHRG_EXTRA_RATE1},
+            OLD_FARE_UNIT1=${OLD_FARE_UNIT1},
+            OLD_CHRG_EXTRA_RATE2=${OLD_CHRG_EXTRA_RATE2},
+            OLD_FARE_UNIT2=${OLD_FARE_UNIT2},
+            OLD_CHRG_EXTRA_RATE3=${OLD_CHRG_EXTRA_RATE3},
+            OLD_FARE_UNIT3=${OLD_FARE_UNIT3},
+            OLD_CHRG_EXTRA_RATE4=${OLD_CHRG_EXTRA_RATE4},
+            OLD_FARE_UNIT4=${OLD_FARE_UNIT4},
+            OLD_CHRG_EXTRA_RATE5=${OLD_CHRG_EXTRA_RATE5},
+            OLD_FARE_UNIT5=${OLD_FARE_UNIT5},
+            OLD_CHRG_EXTRA_RATE6=${OLD_CHRG_EXTRA_RATE6},
+            OLD_FARE_UNIT6=${OLD_FARE_UNIT6},
+            OLD_CHRG_EXTRA_RATE7=${OLD_CHRG_EXTRA_RATE7},
+            OLD_FARE_UNIT7=${OLD_FARE_UNIT7},
+            OLD_CHRG_EXTRA_RATE8=${OLD_CHRG_EXTRA_RATE8},
+            OLD_FARE_UNIT8=${OLD_FARE_UNIT8},
+            OLD_CHRG_EXTRA_RATE9=${OLD_CHRG_EXTRA_RATE9},
+            OLD_FARE_UNIT9=${OLD_FARE_UNIT9},
+            OLD_CHRG_EXTRA_RATE10=${OLD_CHRG_EXTRA_RATE10},
+            OLD_FARE_UNIT10=${OLD_FARE_UNIT10},
+            MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS')
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <select id="selectEcardChargeLimit" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               APPLY_DT,
+               FC_CHG_FORMAT(APPLY_DT, 'DATETIME') AS APPLY_DT_FORMAT,
+               NEW_MAX_CHRG,
+               NEW_MAX_BALC,
+               OLD_MAX_CHRG,
+               OLD_MAX_BALC,
+               MDFY_DT,
+               FC_CHG_FORMAT(MDFY_DT, 'DATETIME') AS MDFY_DT_FORMAT
+        FROM BASE_ECARDCHRGLMT
+        WHERE IC_CODE = #{IC_CODE}
+    </select>
+
+    <update id="updateEcardChargeLimit" parameterType="hashMap">
+        UPDATE BASE_ECARDCHRGLMT
+        SET APPLY_DT=#{APPLY_DT},
+            NEW_MAX_CHRG=#{NEW_MAX_CHRG},
+            NEW_MAX_BALC=#{NEW_MAX_BALC},
+            OLD_MAX_CHRG=#{OLD_MAX_CHRG},
+            OLD_MAX_BALC=#{OLD_MAX_BALC},
+            MDFY_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS')
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <select id="selectObuDiscount" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               INST_DT,
+               FC_CHG_FORMAT(INST_DT, 'DATETIME') AS INST_DT_FORMAT,
+               DCRATE_NEW_DT,
+               FC_CHG_FORMAT(DCRATE_NEW_DT, 'DATETIME12') AS DCRATE_NEW_DT_FORMAT,
+               OLD_DCRATE00,
+               OLD_DCRATE10,
+               OLD_DCRATE20,
+               OLD_DCRATE30,
+               OLD_DCRATE40,
+               OLD_DCRATE50,
+               OLD_DCRATE60,
+               OLD_DCRATE70,
+               OLD_DCRATE80,
+               OLD_DCRATE90,
+               NEW_DCRATE00,
+               NEW_DCRATE10,
+               NEW_DCRATE20,
+               NEW_DCRATE30,
+               NEW_DCRATE40,
+               NEW_DCRATE50,
+               NEW_DCRATE60,
+               NEW_DCRATE70,
+               NEW_DCRATE80,
+               NEW_DCRATE90
+        FROM BASE_OBUDCRATE
+        WHERE IC_CODE = #{IC_CODE}
+    </select>
+
+    <insert id="insertObuDiscountHistory" parameterType="hashMap">
+        INSERT INTO BASE_OBUDCRATEHIST
+        (
+        IC_CODE,
+        MDFY_NO,
+        INST_DT,
+        DCRATE_NEW_DT,
+        OLD_DCRATE00,
+        OLD_DCRATE10,
+        OLD_DCRATE20,
+        OLD_DCRATE30,
+        OLD_DCRATE40,
+        OLD_DCRATE50,
+        OLD_DCRATE60,
+        OLD_DCRATE70,
+        OLD_DCRATE80,
+        OLD_DCRATE90,
+        NEW_DCRATE00,
+        NEW_DCRATE10,
+        NEW_DCRATE20,
+        NEW_DCRATE30,
+        NEW_DCRATE40,
+        NEW_DCRATE50,
+        NEW_DCRATE60,
+        NEW_DCRATE70,
+        NEW_DCRATE80,
+        NEW_DCRATE90,
+        MDFY_ADMIN_ID
+        )
+        VALUES
+        (
+        #{IC_CODE},
+        #{MDFY_NO},
+        TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+        #{DCRATE_NEW_DT},
+        #{OLD_DCRATE00},
+        #{OLD_DCRATE10},
+        #{OLD_DCRATE20},
+        #{OLD_DCRATE30},
+        #{OLD_DCRATE40},
+        #{OLD_DCRATE50},
+        #{OLD_DCRATE60},
+        #{OLD_DCRATE70},
+        #{OLD_DCRATE80},
+        #{OLD_DCRATE90},
+        #{NEW_DCRATE00},
+        #{NEW_DCRATE10},
+        #{NEW_DCRATE20},
+        #{NEW_DCRATE30},
+        #{NEW_DCRATE40},
+        #{NEW_DCRATE50},
+        #{NEW_DCRATE60},
+        #{NEW_DCRATE70},
+        #{NEW_DCRATE80},
+        #{NEW_DCRATE90},
+        #{MDFY_ADMIN_ID}
+        )
+        <selectKey resultType="string" keyProperty="MDFY_NO" order="BEFORE">
+            SELECT NVL(MAX(MDFY_NO), 0) + 1 AS MDFY_NO FROM BASE_OBUDCRATEHIST WHERE IC_CODE = #{IC_CODE}
+        </selectKey>
+    </insert>
+
+    <update id="updateObuDiscount" parameterType="hashMap">
+        UPDATE BASE_OBUDCRATE
+        SET INST_DT=TO_CHAR(SYSDATE, 'yyyyMMddHH24MISS'),
+            DCRATE_NEW_DT=#{DCRATE_NEW_DT},
+            OLD_DCRATE00=#{OLD_DCRATE00},
+            OLD_DCRATE10=#{OLD_DCRATE10},
+            OLD_DCRATE20=#{OLD_DCRATE20},
+            OLD_DCRATE30=#{OLD_DCRATE30},
+            OLD_DCRATE40=#{OLD_DCRATE40},
+            OLD_DCRATE50=#{OLD_DCRATE50},
+            OLD_DCRATE60=#{OLD_DCRATE60},
+            OLD_DCRATE70=#{OLD_DCRATE70},
+            OLD_DCRATE80=#{OLD_DCRATE80},
+            OLD_DCRATE90=#{OLD_DCRATE90},
+            NEW_DCRATE00=#{NEW_DCRATE00},
+            NEW_DCRATE10=#{NEW_DCRATE10},
+            NEW_DCRATE20=#{NEW_DCRATE20},
+            NEW_DCRATE30=#{NEW_DCRATE30},
+            NEW_DCRATE40=#{NEW_DCRATE40},
+            NEW_DCRATE50=#{NEW_DCRATE50},
+            NEW_DCRATE60=#{NEW_DCRATE60},
+            NEW_DCRATE70=#{NEW_DCRATE70},
+            NEW_DCRATE80=#{NEW_DCRATE80},
+            NEW_DCRATE90=#{NEW_DCRATE90}
+        WHERE IC_CODE = #{IC_CODE}
+    </update>
+
+    <select id="selectContinuousDiscount" parameterType="hashMap" resultType="hashMap">
+        SELECT IC_CODE,
+               FC_CHG_ICNM(IC_CODE) AS IC_NM,
+               APPLY_DIV,
+               TRG_IC_CODE,
+               FC_CHG_CODEDP('370', TRG_IC_CODE) AS TRG_IC_NM,
+               NEW_LMT_HR,
+               NEW_LMT_MIN,
+               OLD_LMT_HR,
+               OLD_LMT_MIN,
+               NEW_DC_FARE1,
+               NEW_DC_FARE2,
+               NEW_DC_FARE3,
+               NEW_DC_FARE4,
+               NEW_DC_FARE5,
+               NEW_DC_FARE6,
+               NEW_DC_FARE7,
+               NEW_DC_FARE8,
+               OLD_DC_FARE1,
+               OLD_DC_FARE2,
+               OLD_DC_FARE3,
+               OLD_DC_FARE4,
+               OLD_DC_FARE5,
+               OLD_DC_FARE6,
+               OLD_DC_FARE7,
+               OLD_DC_FARE8,
+               BASE_DIV,
+               FC_CHG_CODEDP('349', BASE_DIV) AS BASE_DIV_NM,
+               MAKE_DT,
+               TO_CHAR(MAKE_DT, 'yyyy-MM-dd') AS MAKE_DT_FORMAT,
+               MAKE_ADMIN,
+               MDFY_DT AS MDFY_CONT_DT,
+               TO_CHAR(MDFY_DT, 'yyyy-MM-dd') AS MDFY_CONT_DT_FORMAT,
+               MDFY_ADMIN
+        FROM BASE_EXMT_FAREINFO
+        WHERE IC_CODE = #{IC_CODE}
+    </select>
+
+    <!-- 달력 컴포넌트가 받아들일 수 있는 형태로 일자 정보를 가져온다. -->
+    <select id="selectBaseDateForCalendar" parameterType="map" resultType="camelMap">
+        SELECT
+            COUNT(*) OVER(ORDER BY WEEK_MON) AS WEEK_MON
+, 	MIN(NVL(DECODE(DW_NUM,1,DT),'')) SUN
+             , 	MIN(NVL(DECODE(DW_NUM,2,DT),'')) MON
+             , 	MIN(NVL(DECODE(DW_NUM,3,DT),'')) TUE
+             , 	MIN(NVL(DECODE(DW_NUM,4,DT),'')) WED
+             , 	MIN(NVL(DECODE(DW_NUM,5,DT),'')) THU
+             , 	MIN(NVL(DECODE(DW_NUM,6,DT),'')) FRI
+             , 	MIN(NVL(DECODE(DW_NUM,7,DT),'')) SAT
+             , 	MIN(NVL(DECODE(DW_NUM,1,DW_NUM),'')) SUN_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,2,DW_NUM),'')) MON_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,3,DW_NUM),'')) TUE_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,4,DW_NUM),'')) WED_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,5,DW_NUM),'')) THU_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,6,DW_NUM),'')) FRI_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,7,DW_NUM),'')) SAT_NUM
+             , 	MIN(NVL(DECODE(DW_NUM,1,NOTE),'')) SUN_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,2,NOTE),'')) MON_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,3,NOTE),'')) TUE_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,4,NOTE),'')) WED_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,5,NOTE),'')) THU_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,6,NOTE),'')) FRI_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,7,NOTE),'')) SAT_NOTE
+             , 	MIN(NVL(DECODE(DW_NUM,1,WORK_DIV_NM),'')) SUN_WORK_DIV_NM
+             , 	MIN(NVL(DECODE(DW_NUM,2,WORK_DIV_NM),'')) MON_WORK_DIV_NM
+             , 	MIN(NVL(DECODE(DW_NUM,3,WORK_DIV_NM),'')) TUE_WORK_DIV_NM
+             , 	MIN(NVL(DECODE(DW_NUM,4,WORK_DIV_NM),'')) WED_WORK_DIV_NM
+             , 	MIN(NVL(DECODE(DW_NUM,5,WORK_DIV_NM),'')) THU_WORK_DIV_NM
+             , 	MIN(NVL(DECODE(DW_NUM,6,WORK_DIV_NM),'')) FRI_WORK_DIV_NM
+             , 	MIN(NVL(DECODE(DW_NUM,7,WORK_DIV_NM),'')) SAT_WORK_DIV_NM
+        FROM (
+                 SELECT
+                     AA.*
+                      ,	DECODE(NVL(BB.WORK_DATE_DIV,AA.WORK_DATE_DIV),'1','평일','2','토요일','3','공휴일','4','특정일면제') AS WORK_DIV_NM
+                      ,	BB.NOTE
+                 FROM
+                     (
+                         SELECT
+                             TO_CHAR(DAYS,'YYYY-MM-DD') AS DT
+                              ,	TO_CHAR(DAYS,'YYYYMMDD') AS DT_STR
+                              ,	TO_CHAR(DAYS,'D') AS DW_NUM
+                              ,	DECODE(TO_CHAR(DAYS,'D'),'1','3','7','2','1') AS WORK_DATE_DIV
+                              ,	LPAD(TRUNC((TRUNC(DAYS) - TRUNC(TRUNC(DAYS,'MM'),'D'))/7)+1,2,'0') AS WEEK_MON
+                         FROM (
+                                  SELECT
+                                      TRUNC(TO_DATE(#{searchDiToday},'YYYYMMDD'),'MM')+LEVEL-1 AS DAYS
+                                  FROM DUAL
+                                      CONNECT BY LEVEL <![CDATA[<=]]> (TRUNC(LAST_DAY(TO_DATE(#{searchDiToday},'YYYYMMDD'))) - TRUNC(TO_DATE(#{searchDiToday},'YYYYMMDD'),'MM') + 1)
+                              )
+                     ) AA
+                         LEFT JOIN BASE_DATE BB ON AA.DT_STR = BB.DAY_DATE AND BB.IC_CODE = #{icCode}
+             )
+        GROUP BY WEEK_MON
+    </select>
+
+    <select id="selectBaseDateInfo" parameterType="map" resultType="camelMap">
+        SELECT
+            AA.DAY_DATE
+             ,	AA.LUNA_DATE
+             ,	AA.WORK_DATE_DIV
+             ,	AA.NOTE
+             ,	NVL(TO_CHAR(TO_DATE(BB.START_TM,'HH24MI'),'HH24:MI'),'') AS START_TM
+             ,	NVL(TO_CHAR(TO_DATE(BB.END_TM,'HH24MI'),'HH24:MI'),'') AS END_TM
+        FROM BASE_DATE AA
+                 LEFT JOIN BASE_HLDAYINFO BB ON AA.IC_CODE = BB.IC_CODE AND AA.DAY_DATE = BB.HLDAY_DATE
+        WHERE AA.IC_CODE = #{icCode}
+          AND AA.DAY_DATE = #{dayDate}
+          AND AA.IC_DIV = #{icDiv}
+    </select>
+
+    <select id="selectYearToDate" parameterType="map" resultType="camelMap">
+        SELECT
+            AA.*
+             ,	BB.NOTE
+        FROM
+            (
+                SELECT
+                    TO_CHAR(DAYS,'YYYYMMDD') AS DAY_DATE
+                     ,	DECODE(TO_CHAR(DAYS,'D'),'1','2','7','2','1') AS WORK_DATE_DIV
+                FROM (
+                         SELECT
+                             TRUNC(TO_DATE(#{strYear}||'0101','YYYYMMDD'),'MM')+LEVEL-1 AS DAYS
+                         FROM DUAL
+                             CONNECT BY LEVEL  <![CDATA[<=]]> (TRUNC(LAST_DAY(TO_DATE(#{strYear}||'1231','YYYYMMDD'))) - TRUNC(TO_DATE(#{strYear}||'0101','YYYYMMDD'),'MM') + 1)
+                     )
+            ) AA
+                LEFT JOIN BASE_DATE BB ON AA.DAY_DATE = BB.DAY_DATE AND BB.IC_CODE = #{icCode}
+    </select>
+
+    <!--  일자정보 저장 -->
+    <update id="updateBaseDate" parameterType="map">
+        MERGE INTO BASE_DATE AA
+            USING (
+                SELECT
+                    #{icCode} AS IC_CODE
+                     ,	#{dayDate} AS DAY_DATE
+                     ,	#{workDateDiv} AS WORK_DATE_DIV
+                     ,	#{lunaDate} AS LUNA_DATE
+                     ,	#{note} AS NOTE
+                FROM DUAL
+            ) BB ON (AA.DAY_DATE = BB.DAY_DATE AND AA.IC_CODE = BB.IC_CODE)
+            WHEN MATCHED THEN
+                UPDATE
+                    SET
+                        AA.WORK_DATE_DIV = BB.WORK_DATE_DIV
+                        , 	AA.LUNA_DATE = BB.LUNA_DATE
+                        , 	AA.NOTE = BB.NOTE
+            WHEN NOT MATCHED THEN
+                INSERT (
+                        IC_CODE
+                    ,	DAY_DATE
+                    ,	WORK_DATE_DIV
+                    ,	LUNA_DATE
+                    ,	NOTE
+                    ) VALUES (
+                                  BB.IC_CODE
+                             ,	BB.DAY_DATE
+                             ,	BB.WORK_DATE_DIV
+                             ,	BB.LUNA_DATE
+                             ,	BB.NOTE
+                             )
+    </update>
+
+    <!--  명절정보 저장 -->
+    <update id="updateBaseHolyDay" parameterType="map">
+        MERGE INTO BASE_HLDAYINFO AA
+            USING (
+                SELECT
+                    #{icCode} AS IC_CODE
+                     ,	#{dayDate} AS HLDAY_DATE
+                     ,	#{startTm} AS START_TM
+                     ,	#{endTm} AS END_TM
+                FROM DUAL
+            ) BB ON (AA.HLDAY_DATE = BB.HLDAY_DATE AND AA.IC_CODE = BB.IC_CODE)
+            WHEN MATCHED THEN
+                UPDATE
+                    SET
+                        AA.START_TM = BB.START_TM
+                        ,	AA.END_TM = BB.END_TM
+            WHEN NOT MATCHED THEN
+                INSERT (
+                        IC_CODE
+                    ,	HLDAY_DATE
+                    ,	START_TM
+                    ,	END_TM
+                    ) VALUES (
+                                  BB.IC_CODE
+                             ,	BB.HLDAY_DATE
+                             ,	BB.START_TM
+                             ,	BB.END_TM
+                             )
+    </update>
+
+    <!--  일자정보 삭제 -->
+    <delete id="deleteBaseDate" parameterType="map">
+        DELETE FROM BASE_DATE
+        WHERE DAY_DATE = #{dayDate}
+          AND IC_CODE = #{icCode}
+    </delete>
+
+    <!--  명절정보 삭제 -->
+    <delete id="deleteBaseHolyDay" parameterType="map">
+        DELETE FROM BASE_HLDAYINFO
+        WHERE HLDAY_DATE = #{dayDate}
+          AND IC_CODE = #{icCode}
+    </delete>
+
+    <!-- 저장일시 -->
+    <select id="selectSaveTermDate" resultType="camelMap">
+        SELECT
+            TO_CHAR(TO_DATE(MIN(DAY_DATE), 'YYYYMMDD'), 'YYYY-MM-DD') AS MIN_DATE
+             ,	TO_CHAR(TO_DATE(MAX(DAY_DATE), 'YYYYMMDD'), 'YYYY-MM-DD') AS MAX_DATE
+        FROM BASE_DATE
+    </select>
+
+    <select id="selectDateList" parameterType="hashMap" resultType="hashMap">
+        /* Mapper ID: selectDateList */
+        SELECT DAY_DATE, FC_CHG_FORMAT(DAY_DATE, 'DATE') DAY_DATE_DP,
+        WORK_DATE_DIV, FC_CHG_CODENM('195', WORK_DATE_DIV) WORK_DATE_DIV_DP,
+        LUNA_DATE, FC_CHG_FORMAT(LUNA_DATE, 'DATE') LUNA_DATE_DP,
+        NOTE,
+        CMT_DIV, FC_CHG_CODENM('194', CMT_DIV) CMT_DIV_DP,
+        IC_CODE,
+        WTR_INFO,
+        EVT_INFO
+        FROM BASE_DATE
+        WHERE 1=1
+        <if test="IC_CODE != null and IC_CODE != ''">AND IC_CODE = #{IC_CODE}</if>
+        <if test="SEARCH_YEAR != null and SEARCH_YEAR != ''">AND DAY_DATE LIKE #{SEARCH_YEAR} || '%'</if>
+        ORDER BY DAY_DATE
+    </select>
+
+    <update id="updateDate" parameterType="hashMap">
+        UPDATE BASE_DATE
+        SET WORK_DATE_DIV=#{WORK_DATE_DIV},
+            LUNA_DATE=#{LUNA_DATE},
+            NOTE=#{NOTE},
+            CMT_DIV=#{CMT_DIV},
+            WTR_INFO=#{WTR_INFO},
+            EVT_INFO=#{EVT_INFO}
+        WHERE DAY_DATE = #{DAY_DATE}
+          AND IC_CODE = #{IC_CODE}
+    </update>
+
+    <update id="mergeHolyday" parameterType="hashMap">
+        MERGE INTO BASE_HLDAYINFO A
+            USING dual
+            ON (A.IC_CODE = #{IC_CODE} AND A.HLDAY_DATE = #{DAY_DATE})
+            WHEN MATCHED THEN
+                UPDATE SET A.START_TM='0000',
+                    A.END_TM='2359'
+            WHERE A.IC_CODE = #{IC_CODE}
+            AND A.HLDAY_DATE = #{DAY_DATE}
+            WHEN NOT MATCHED THEN
+            INSERT (A.IC_CODE, A.HLDAY_DATE, A.START_TM, A.END_TM)
+            VALUES (#{IC_CODE}, #{DAY_DATE}, '0000', '2359')
+    </update>
+
+    <delete id="deleteHolyday" parameterType="hashMap">
+        DELETE FROM BASE_HLDAYINFO
+        WHERE IC_CODE = #{IC_CODE}
+          AND HLDAY_DATE = #{DAY_DATE}
+    </delete>
+
+    <select id="selectVehicleManage" resultType="hashMap">
+        /* Mapper ID: selectVehicleManage 차적DB 관리 */
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY MDFY_DT DESC) AS ROW_NUMBER, -- 순번
+            VCAR_NO AS VCAR_NO,                                      -- 차량번호
+            FC_CHG_CARTYPE(CAR_TYPE) AS CAR_TYPE,                    -- 현재차종
+            CRATE_DT AS CRATE_DT,                                    -- 생성시간
+            NVL(FC_CHG_CARTYPE(OLD_CAR_TYPE), '-') AS OLD_CAR_TYPE,  -- 이전차종
+            MDFY_DT AS MDFY_DT                                       -- 과거차종- > 현재차종 수정한 시간
+        FROM BASE_VEHICLEINFO
+        WHERE 1 = 1
+        <if test='VCAR_NO != null or VCAR_NO != ""'>
+            AND VCAR_NO LIKE '%'||#{VCAR_NO}||'%'
+        </if>
+        ORDER BY MDFY_DT DESC
+        FETCH FIRST 1000 ROWS ONLY
+    </select>
+
+    <select id="checkVehicleExists" parameterType="String" resultType="int">
+        /* Mapper ID: checkVehicleExists 차적DB 존재하는지 확인 */
+        SELECT COUNT(*)
+        FROM BASE_VEHICLEINFO
+        WHERE VCAR_NO = #{carNo}
+    </select>
+
+    <insert id="insertVehicleInfo" parameterType="map">
+        /* Mapper ID: insertVehicleInfo 엑셀 차적DB 없을경우 새롭게 추가 */
+        INSERT INTO BASE_VEHICLEINFO (VCAR_NO, CAR_TYPE, CRATE_DT, MDFY_DT)
+        VALUES (#{carNo}, #{carType}, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+    </insert>
+
+    <update id="updateVehicleInfo" parameterType="map">
+        /* Mapper ID: updateVehicleInfo 엑셀 차적DB 있을경우 수정 */
+        UPDATE BASE_VEHICLEINFO
+        SET
+            CAR_TYPE = #{carType},
+            OLD_CAR_TYPE = (SELECT CAR_TYPE FROM BASE_VEHICLEINFO WHERE VCAR_NO = #{carNo}),
+            MDFY_DT = #{mdfyDt}
+        WHERE VCAR_NO = #{carNo}
+    </update>
+
+    <insert id="addVehicleInfo" parameterType="map">
+        /* Mapper ID: addVehicleInfo 차종 단건 추가  */
+        INSERT INTO BASE_VEHICLEINFO (VCAR_NO, CAR_TYPE, CRATE_DT, MDFY_DT)
+        VALUES (#{VCAR_NO}, #{CAR_TYPE}, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+    </insert>
+
+    <delete id="deleteVehicleInfo" parameterType="map">
+        /* Mapper ID: deleteVehicleInfo 차종 단건 삭제  */
+        DELETE FROM BASE_VEHICLEINFO WHERE VCAR_NO = #{VCAR_NO}
+    </delete>
+
+    <update id="oneUpdateVehicleInfo" parameterType="map">
+        /* Mapper ID: oneUpdateVehicleInfo 차종 단건 수정  */
+        UPDATE BASE_VEHICLEINFO
+        SET
+            CAR_TYPE = #{CAR_TYPE},
+            OLD_CAR_TYPE = (SELECT CAR_TYPE FROM BASE_VEHICLEINFO WHERE VCAR_NO = #{VCAR_NO}),
+            MDFY_DT = #{MDFY_DT}
+        WHERE VCAR_NO = #{VCAR_NO}
+    </update>
+</mapper>

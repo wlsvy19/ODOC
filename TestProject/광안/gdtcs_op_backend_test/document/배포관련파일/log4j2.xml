@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	참조문서: https://logging.apache.org/log4j/2.x/manual/configuration.html
+-->
+<Configuration status="INFO" monitorInterval="300">
+	<Properties>
+		<!-- application.yml에 선언된 변수를 불러온다. -->
+		<Property name="LOG_LEVEL_ROOT"			value="DEBUG" /> <!-- 루트 로그 레벨 -->
+		<Property name="LOG_LEVEL_QUERY"		value="DEBUG" /> <!-- 쿼리 로그 레밸 -->
+		<Property name="LOG_CONSOLE_PATTERN" 	value="%d %5p [%c] %m%n" /> <!-- 로그 기록 형식 -->
+		<Property name="LOG_FILE_PATTERN" 		value="%d{yyyy-MMM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n" /> <!-- 로그 기록 형식 -->
+		<Property name="LOG_FILE_PATH"			value="./" /> <!-- 로그 저장 경로 --> 
+		<Property name="LOG_FILE_NAME"			value="out" /> <!-- 로그 파일명 -->
+		<Property name="LOG_FILE_EXTENSION"		value="log" /> <!-- 로그 저장 확장자 -->
+		<Property name="LOG_MAX_FILE_DURATION"	value="60" /> <!-- 로그 보관 기간 -->
+		<Property name="LOG_MAX_FILE_SIZE"		value="0" /> <!-- 로그 파일 최대 용량 -->
+		<Property name="LOG_TOTAL_FILE_SIZE"	value="0" /> <!-- 로그 파일 최대 용량 -->
+		<Property name="LOG_FILE_NAME_PATTERN" 	value="%d{yyyy-MM-dd}" /> <!-- 로그 파일명 형식 -->
+	</Properties>
+	
+	<Appenders>
+        <Console name="logConsole" target="SYSTEM_OUT">
+            <PatternLayout>
+            	<pattern>${LOG_CONSOLE_PATTERN}</pattern>
+            </PatternLayout>
+        </Console>
+
+        <RollingFile name="logFile">
+            <fileName>${LOG_FILE_PATH}${LOG_FILE_NAME}.${LOG_FILE_EXTENSION}</fileName>
+            <filePattern>${LOG_FILE_PATH}${LOG_FILE_NAME}_${LOG_FILE_NAME_PATTERN}.${LOG_FILE_EXTENSION}</filePattern>
+            <PatternLayout>
+            	<pattern>${LOG_FILE_PATTERN}</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy fileIndex="min">
+            	<max>${LOG_MAX_FILE_DURATION}</max>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="jdbc.sqlonly" level="WARN" additivity="false">
+            <AppenderRef ref="logConsole"/>
+            <AppenderRef ref="logFile"/>
+        </Logger>
+        <Logger name="jdbc.sqltiming" level="INFO" additivity="false">
+            <AppenderRef ref="logConsole"/>
+            <AppenderRef ref="logFile"/>
+        </Logger>
+        <Logger name="jdbc.audit" level="WARN" additivity="false">
+            <AppenderRef ref="logConsole"/>
+            <AppenderRef ref="logFile"/>
+        </Logger>
+        <Logger name="jdbc.resultset" level="WARN" additivity="false">
+            <AppenderRef ref="logConsole"/>
+            <AppenderRef ref="logFile"/>
+        </Logger>
+        <Logger name="jdbc.resultsettable" level="WARN" additivity="false">
+            <AppenderRef ref="logConsole"/>
+            <AppenderRef ref="logFile"/>
+        </Logger>
+        
+        <!-- 
+        	FATAL: 시스템의 심각한 문제가 발생하면 관련된 정보를 출력합니다.
+        	ERROR: 
+        	WARN: 
+        	INFO: 시스템 운영과 관련된 정보를 출력합니다.
+        	DEBUG: 디버깅 용도의 정보를 출력합니다.
+        	TRACE: 
+         -->
+        <Root level="${LOG_LEVEL_ROOT}">
+            <AppenderRef ref="logConsole" />
+            <AppenderRef ref="logFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

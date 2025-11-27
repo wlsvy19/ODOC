@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.inter.mapper.InterMapper">
+    <select id="selectInter" parameterType="map" resultType="map">
+        /* Mapper ID: selectInter 송수신 관리 조회 */
+        SELECT TO_CHAR(TO_DATE(CALC_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                    AS CALC_DATE,
+               TO_CHAR(TO_DATE(TRNRCP_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS TRNRCP_DT,
+               CASE
+                   WHEN TRNRCP_DIV = 'S' THEN '전송'
+                   ELSE '미전송'
+                   END                                                                  AS TRNRCP_DIV,
+               CASE
+                   WHEN TRNRCP_RSLT = '1' THEN '성공'
+                   WHEN TRNRCP_RSLT = '2' THEN '실패'
+                   ELSE '미전송'
+                   END                                                                  AS TRNRCP_RSLT
+        FROM (SELECT CALC_DATE,
+                     TRNRCP_DT,
+                     TRNRCP_DIV,
+                     TRNRCP_RSLT,
+                     ROW_NUMBER() OVER (ORDER BY TRNRCP_DT DESC) AS ROW_NUM
+              FROM CALC_ECARDSTLTRNRCP
+              WHERE 1 = 1
+                AND IC_CODE = #{IC_CODE}
+                AND CALC_DATE = #{CALC_DATE}
+                AND FILE_DIV = #{FILE_DIV})
+        WHERE ROW_NUM = 1
+
+        UNION ALL
+
+        SELECT TO_CHAR(TO_DATE(#{CALC_DATE}, 'YYYYMMDD'), 'YYYY-MM-DD') AS CALC_DATE,
+               '미전송'                                                    AS TRNRCP_DT,
+               '미전송'                                                    AS TRNRCP_DIV,
+               '미전송'                                                    AS TRNRCP_RSLT
+        FROM DUAL
+        WHERE NOT EXISTS (SELECT 1
+                          FROM CALC_ECARDSTLTRNRCP
+                          WHERE 1 = 1
+                            AND IC_CODE = #{IC_CODE}
+                            AND CALC_DATE = #{CALC_DATE}
+                            AND FILE_DIV = #{FILE_DIV})
+    </select>
+
+    <select id="selectIsDayFin" parameterType="hashMap" resultType="hashMap">
+        /* Mapper ID: selectIsDayFin 송수신 전송 - 일마감 확인 */
+        SELECT CASE
+                   WHEN EXISTS (
+                                SELECT 1
+                                FROM PROC_DAYFININFO
+                                WHERE 1 = 1
+                                  AND IC_CODE = #{IC_CODE}
+                                  AND WORK_DATE = #{CALC_DATE}
+                                )
+                       THEN '일마감완료'
+                   ELSE '일마감미완료'
+                   END AS DAY_FIN_STATE
+        FROM DUAL
+    </select>
+
+    <insert id="insertInter" parameterType="hashMap">
+        /* Mapper ID: insertInter 송수신 전송 결과 이력 추가 */
+        INSERT INTO CALC_ECARDSTLTRNRCP(CALC_CO_CODE,
+                                        CALC_DATE,
+                                        TRNRCP_DT,
+                                        FILE_NM,
+                                        FILE_DIV,
+                                        HAND_CNT,
+                                        TRNRCP_DIV,
+                                        TRNRCP_RSLT,
+                                        IC_CODE,
+                                        CARD_CO_CODE,
+                                        HAND_IC_CODE,
+                                        WORKER_NO)
+        VALUES ('99',
+                #{CALC_DATE},
+                TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+                'DAYEND',
+                'DAYE',
+                '0',
+                'S',
+                #{TRNRCP_RSLT},
+                #{IC_CODE},
+                '000',
+                '',
+                #{WORKER_NO})
+    </insert>
+
+    <select id="selectCenterInter" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectCenterInter 센터 송수신내역 조회*/
+        SELECT
+            -- 순번
+            ROW_NUMBER() OVER (ORDER BY IC_CODE, CALC_CO_CODE, CALC_DATE, TRNRCP_DT) AS ROW_NUMBER,
+
+            -- 기관
+            CALC_CO_CODE,
+
+            -- 정산일자
+            SUBSTR(CALC_DATE, 1, 4) || '-' || SUBSTR(CALC_DATE, 5, 2) || '-' || SUBSTR(CALC_DATE, 7, 2) AS CALC_DATE,
+
+            -- 전송일시
+            SUBSTR(TRNRCP_DT, 1, 4) || '-' || 
+            SUBSTR(TRNRCP_DT, 5, 2) || '-' || 
+            SUBSTR(TRNRCP_DT, 7, 2) || ' ' || 
+            SUBSTR(TRNRCP_DT, 9, 2) || ':' || 
+            SUBSTR(TRNRCP_DT, 11, 2) || ':' || 
+            SUBSTR(TRNRCP_DT, 13, 2) AS INTER_DATE,
+
+            -- 파일명
+            FILE_NM,
+
+            -- 파일종류
+            FC_CHG_CODENM('074', FILE_DIV) AS FILE_DIV,
+
+            -- 건수
+            HAND_CNT,
+
+            -- 처리영업소
+            HAND_IC_CODE,
+
+            -- 처리근무자
+            CASE
+                WHEN WORKER_NO = '9999' THEN WORKER_NO || '[' || '자동처리' || ']'
+                ELSE FC_CHG_WORKERNM(IC_CODE, WORKER_NO)
+            END AS WORKER_NM,
+
+            -- 송수신 구분
+            CASE
+                WHEN TRNRCP_DIV = 'S' THEN '송신'
+                WHEN TRNRCP_DIV = 'R' THEN '수신'
+                ELSE '0'
+            END AS INTER_DIV,
+
+            -- 전송결과
+            CASE
+                WHEN TRNRCP_RSLT = '0' THEN '대기'
+                WHEN TRNRCP_RSLT = '1' THEN '성공'
+                WHEN TRNRCP_RSLT = '2' THEN '실패'
+                ELSE 'UNKNOWN'
+            END AS INTER_RSLT 
+        FROM CALC_ECARDSTLTRNRCP
+        WHERE 1 = 1
+            AND IC_CODE = #{IC_CODE}
+            AND CALC_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+        <if test="TRNRCP_RSLT != null and TRNRCP_RSLT != ''">
+            AND TRNRCP_RSLT = #{TRNRCP_RSLT} -- 전송결과 0:대기 1:성공 2:실패
+        </if>
+        <if test="FILE_DIV != null and FILE_DIV != ''">
+            AND FILE_DIV = #{FILE_DIV}
+        </if>
+        <if test="TRNRCP_DIV != null and TRNRCP_DIV != ''">
+            AND TRNRCP_DIV = #{TRNRCP_DIV} -- 송수신 구분
+        </if>
+    </select>
+
+    <select id="selectFileDivNm" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectFileDivNm 파일종류*/
+        SELECT 
+            CODESC,
+            CODESC_NM
+        FROM BASE_CODESC
+        WHERE 1 = 1
+        AND CODELC = #{CODELC}
+        AND CODESC_USE_YN = #{CODESC_USE_YN}
+        ORDER BY ARY_ORDR ASC
+    </select>
+
+    <select id="selectTaxi" parameterType="hashMap" resultType="hashMap">
+        /* Mapper ID: selectTaxi 송수신관리 - 공차택시 수신 확인 */
+        SELECT
+            NVL(
+                (
+                    SELECT
+                        TO_CHAR(TO_DATE(TAXI_TRNRCP_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+                    FROM PROC_TAXI_HIST
+                    WHERE 1 = 1
+                    AND IC_CODE = #{IC_CODE}
+                    AND WORK_DATE = #{CALC_DATE}
+                    AND TAXI_TRNRCP_DT IS NOT NULL
+                ORDER BY
+                    TAXI_TRNRCP_DT DESC
+                FETCH FIRST 1 ROW ONLY
+            ),
+            '미수신'
+        ) AS TAXI_TRNRCP_DT
+        FROM DUAL
+    </select>
+
+    <select id="selectPreRegi" parameterType="hashMap" resultType="hashMap">
+        /* Mapper ID: selectPreRegi 송수신관리 - 사전등록 수신 확인 */
+        SELECT
+            NVL(
+                (
+                    SELECT
+                        TO_CHAR(TO_DATE(PRE_TRNRCP_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+                    FROM PRIM_ETCVLTN
+                    WHERE 1 = 1
+                    AND IC_CODE = #{IC_CODE}
+                    AND WORK_DATE = #{CALC_DATE}
+                    AND VLTN_PAY_TYPE = '30'
+                    AND PRE_TRNRCP_DT IS NOT NULL
+                    ORDER BY PRE_TRNRCP_DT DESC FETCH FIRST 1 ROW ONLY
+                ), '미수신'
+            ) AS PRE_TRNRCP_DT
+        FROM DUAL
+    </select>
+
+    <select id="checkIsHoliday" parameterType="hashMap" resultType="java.lang.Integer">
+        /* Mapper ID: checkIsHoliday 송수신관리 - 재집계시 특정일면제 확인 */
+        SELECT COUNT(1)
+        FROM BASE_HLDAYINFO
+        WHERE HLDAY_DATE = #{CALC_DATE}
+    </select>
+
+    <resultMap id="resultTransTaxiPre" type="hashMap"/>
+    <select id="transTaxiPre" statementType="CALLABLE" parameterType="hashMap">
+        /* Mapper ID: transTaxiPre 송수신관리 - 일마감 재집계 처리 */
+        {
+            CALL SP_DAYFIN_INIT_AFTER
+                (
+                    #{IC_CODE, mode=IN, jdbcType=VARCHAR},
+                    #{WORK_DATE, mode=IN, jdbcType=VARCHAR},
+                    #{WORKER_NO, mode=IN, jdbcType=VARCHAR},
+                    #{output, mode=OUT, jdbcType=CURSOR, javaType=ResultSet, resultMap=resultTransTaxiPre}
+                )
+            }
+    </select>
+
+    <select id="transTaxiPreTraffic" statementType="CALLABLE" parameterType="hashMap">
+        /* Mapper ID: transTaxiPreTraffic 송수신관리 - 교통량 재집계 처리*/
+        {
+            CALL SP_TRAFFIC_RECREATE
+                (
+                    #{IC_CODE, mode=IN, jdbcType=VARCHAR},
+                    #{WORK_DATE, mode=IN, jdbcType=VARCHAR}
+                )
+        }
+    </select>
+</mapper>

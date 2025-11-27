@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.maint.mapper.MaintMapper">
+
+
+    <!-- 장비이상내역조회-->
+<select id="getEquipErrorList" resultType="hashmap" >
+		SELECT
+            '1' SND_FLAG,
+            A.IC_CODE,
+            B.LOGC_LANE LANE_NO,
+            B.LANE_NM LANE_NM,                                                                --차로명
+            TO_CHAR(TO_DATE(A.DATE_DT,'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') DATE_DT,  --발생일시
+            FC_CHG_CODENM('095', A.MDL) KIND,      --기종     
+            FC_CHG_CODENM('097', A.MDL || UPPER(STAT_CODE)) DETAIL, --이상내역
+            DECODE(A.RECVR_YN,'0','발생','1','복구','기타') ORGTYPE,                              --발생/복구 구분
+            DECODE(A.WORK_STAT,'0','비근무','1','근무중','3','유지보수','기타') WORKTYPE,            --근무상태
+            A.WORK_NO,                                                                        --근무번호
+            DECODE(B.LANE_TYPE, 1, 'TCS', 2, 'ETC', 3, '혼용') LANETYPE                   --차로구분
+        FROM PRIM_EQUISTATHIST A,
+             BASE_LANEINFO B
+        WHERE A.IC_CODE = B.IC_CODE
+          AND A.LANE_NO = B.LOGC_LANE
+          AND B.COMM_MTD = 1  -- 차로별 구분 (1 Straffic 2. lotte)
+          AND A.IC_CODE = DECODE (#{IC_CODE}, '', A.IC_CODE,  #{IC_CODE})
+          AND SUBSTR(A.DATE_DT, 0, 8) BETWEEN #{START_DATE} AND #{END_DATE}
+          AND B.LANE_TYPE = '2'
+          AND A.LANE_NO = DECODE(#{LANE_NO}, '', A.LANE_NO, #{LANE_NO})
+          AND LPAD(A.MDL,2,'0') = DECODE(#{MDL}, '', LPAD(A.MDL,2,'0'), #{MDL})
+        
+    UNION ALL
+    
+        SELECT
+            '1' SND_FLAG,
+            A.IC_CODE,
+            B.LOGC_LANE LANE_NO,
+            B.LANE_NM LANE_NM,                                                                --차로명
+            TO_CHAR(TO_DATE(A.DATE_DT,'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') DATE_DT,  --발생일시
+            FC_CHG_CODENM('095', A.MDL) KIND,      --기종     
+            FC_CHG_CODENM('098', A.MDL || UPPER(STAT_CODE)) DETAIL, --이상내역
+            DECODE(A.RECVR_YN,'0','발생','1','복구','기타') ORGTYPE,                              --발생/복구 구분
+            DECODE(A.WORK_STAT,'0','비근무','1','근무중','3','유지보수','기타') WORKTYPE,            --근무상태
+            A.WORK_NO,                                                                        --근무번호
+            DECODE(B.LANE_TYPE, 1, 'TCS', 2, 'ETC', 3, '혼용') LANETYPE                   --차로구분
+        FROM PRIM_EQUISTATHIST A,
+             BASE_LANEINFO B
+        WHERE A.IC_CODE = B.IC_CODE
+          AND A.LANE_NO = B.LOGC_LANE
+          AND B.COMM_MTD = 2  -- 차로별 구분 (1 Straffic 2. lotte)
+          AND A.IC_CODE = DECODE (#{IC_CODE}, '', A.IC_CODE,  #{IC_CODE})
+          AND SUBSTR(A.DATE_DT, 0, 8) BETWEEN #{START_DATE} AND #{END_DATE}
+          AND B.LANE_TYPE = '2'
+          AND A.LANE_NO = DECODE(#{LANE_NO}, '', A.LANE_NO, #{LANE_NO})
+          AND LPAD(A.MDL,2,'0') = DECODE(#{MDL}, '', LPAD(A.MDL,2,'0'), #{MDL})
+          
+    UNION ALL
+    
+        SELECT
+            '2' SND_FLAG,
+            A.IC_CODE,
+            B.LOGC_LANE LANE_NO,
+            '차로소계' LANE_NM,
+            '' DATE_DT,
+            '' KIND,
+            '발생건수 : '||TO_CHAR(SUM(DECODE(RECVR_YN,'0',1,0))) DETAIL,
+            '복구건수 : '||TO_CHAR(SUM(DECODE(RECVR_YN,'1',1,0))) ORGTYPE,
+            '' WORKTYPE,
+            '' WORK_NO,
+            '' LANETYPE
+        FROM   PRIM_EQUISTATHIST A,
+               BASE_LANEINFO B
+        WHERE A.IC_CODE = B.IC_CODE
+          AND A.LANE_NO = B.LOGC_LANE
+          AND A.IC_CODE = DECODE (#{IC_CODE}, '', A.IC_CODE,  #{IC_CODE})
+          AND SUBSTR(A.DATE_DT, 0, 8) BETWEEN #{START_DATE} AND #{END_DATE}
+          AND B.LANE_TYPE = '2'
+          AND A.LANE_NO = DECODE(#{LANE_NO}, '', A.LANE_NO, #{LANE_NO})
+          AND LPAD(A.MDL,2,'0') = DECODE(#{MDL}, '', LPAD(A.MDL,2,'0'), #{MDL})
+         
+        GROUP BY A.IC_CODE, B.LOGC_LANE, LANE_NM
+        ORDER BY IC_CODE, LANE_NO,SND_FLAG, DATE_DT,KIND 
+        
+        
+    </select>
+
+
+    <!-- 장비이상누계조회 -->
+    <select id="getEquipErrorCum" resultType="hashmap" >
+              SELECT
+            '1' SND_FLAG, A.IC_CODE,
+            B.LANE_NM LANE_NM1, 
+            B.PHGC_LANE LANE_NO, 
+            B.LANE_NM,                                        --차로
+            FC_CHG_CODENM('095', A.MDL) KIND,        --기종(기기구분)     
+            FC_CHG_CODENM('097', A.MDL || UPPER(STAT_CODE)) DETAIL, --세부구분
+            SUM(DECODE(A.RECVR_YN,'0',1,0)) PCNT,                                                      --발생 건수
+            SUM(DECODE(A.RECVR_YN,'1',1,0)) BCNT,                                                      --복구 건수
+            NVL(ROUND(SUM(DECODE(A.RECVR_YN,'1',1,0))/SUM(DECODE(A.RECVR_YN,'0',1,0,1))*100,2),0) RECVR_YN    --복구비율
+        FROM
+            PRIM_EQUISTATHIST A,
+            BASE_LANEINFO B
+        WHERE A.IC_CODE = B.IC_CODE
+          AND A.LANE_NO = B.LOGC_LANE
+          AND A.IC_CODE = DECODE (#{IC_CODE}, '', A.IC_CODE,  #{IC_CODE})
+          AND A.DATE_DT BETWEEN #{START_DATE}||'000000' AND #{END_DATE}||'235959'
+          AND B.LANE_TYPE ='2'
+          AND B.COMM_MTD = 1  -- 차로별 구분 (1 Straffic 2. lotte)
+          AND A.LANE_NO = DECODE(#{LANE_NO}, '', A.LANE_NO, #{LANE_NO})
+          AND LPAD(A.MDL,2,'0') = DECODE(#{MDL}, '', LPAD(A.MDL,2,'0'), #{MDL})
+          
+        GROUP BY A.IC_CODE, B.PHGC_LANE, B.LANE_NM, A.RECVR_YN, A.LANE_NO,  B.LANE_TYPE, A.MDL, STAT_CODE
+        
+     UNION ALL
+        
+        SELECT
+            '1' SND_FLAG, A.IC_CODE,
+            B.LANE_NM LANE_NM1, 
+            B.PHGC_LANE LANE_NO, 
+            B.LANE_NM,                                        --차로
+            FC_CHG_CODENM('095', A.MDL) KIND,        --기종(기기구분)     
+            FC_CHG_CODENM('098', A.MDL || UPPER(STAT_CODE)) DETAIL, --세부구분
+            SUM(DECODE(A.RECVR_YN,'0',1,0)) PCNT,                                                      --발생 건수
+            SUM(DECODE(A.RECVR_YN,'1',1,0)) BCNT,                                                      --복구 건수
+            NVL(ROUND(SUM(DECODE(A.RECVR_YN,'1',1,0))/SUM(DECODE(A.RECVR_YN,'0',1,0,1))*100,2),0) RECVR_YN    --복구비율
+        FROM
+            PRIM_EQUISTATHIST A,
+            BASE_LANEINFO B
+        WHERE A.IC_CODE = B.IC_CODE
+          AND A.LANE_NO = B.LOGC_LANE
+          AND A.IC_CODE = DECODE (#{IC_CODE}, '', A.IC_CODE,  #{IC_CODE})
+          AND A.DATE_DT BETWEEN  #{START_DATE}||'000000' AND #{END_DATE}||'235959'
+          AND B.LANE_TYPE ='2'
+          AND B.COMM_MTD = 2  -- 차로별 구분 (1 Straffic 2. lotte)
+          AND A.LANE_NO = DECODE(#{LANE_NO}, '', A.LANE_NO, #{LANE_NO})
+          AND LPAD(A.MDL,2,'0') = DECODE(#{MDL}, '', LPAD(A.MDL,2,'0'), #{MDL})
+          
+        GROUP BY A.IC_CODE, B.PHGC_LANE, B.LANE_NM, A.RECVR_YN, A.LANE_NO,  B.LANE_TYPE, A.MDL, STAT_CODE
+        
+    UNION ALL
+        
+        SELECT
+            '2' SND_FLAG, A.IC_CODE,
+            '' LANE_NM1, B.PHGC_LANE LANE_NO,
+            B.LANE_NM || ' 합계' LANE_NM,
+            '-' KIND,
+            '-' DETAIL,
+            SUM(DECODE(A.RECVR_YN,'0',1,0)) BCNT ,
+            SUM(DECODE(A.RECVR_YN,'1',1,0)) PCNT,
+            ROUND(SUM(DECODE(A.RECVR_YN,'1',1,0))/SUM(DECODE(A.RECVR_YN,'0',1,0,1))*100,2) RECVR_YN    --복구비율
+        FROM
+            PRIM_EQUISTATHIST A,
+            BASE_LANEINFO B
+        WHERE A.IC_CODE = B.IC_CODE
+          AND A.LANE_NO = B.LOGC_LANE
+          AND A.IC_CODE = DECODE (#{IC_CODE}, '', A.IC_CODE,  #{IC_CODE})
+          AND A.DATE_DT BETWEEN #{START_DATE}||'000000' AND #{END_DATE}||'235959'
+          AND B.LANE_TYPE = '2'
+          AND A.LANE_NO = DECODE(#{LANE_NO}, '', A.LANE_NO, #{LANE_NO})
+          AND LPAD(A.MDL,2,'0') = DECODE(#{MDL}, '', LPAD(A.MDL,2,'0'), #{MDL})
+          
+        GROUP BY A.IC_CODE, B.PHGC_LANE, LANE_NM
+        ORDER BY IC_CODE, LANE_NO, LANE_NM1, LANE_NM, SND_FLAG, KIND
+    </select>
+
+
+
+    <!-- 차로 실시간 모니터링 -->
+    <select id="getCarLineMonitor" resultType="hashmap" >
+     SELECT LS.IC_CODE,  --영업소ID
+               '['||LS.LANE_NO||']'||LI.LANE_NM as LANE_NO,      --차로번호
+               LS.LANE_TYPE,    --차로타입
+               LS.WORK_STATE,   --근무상태
+               LS.SIG_STATE,    --신호등상태
+               LS.COM_STATE,   --통신상태
+               LS.LANE_NO_P,
+               TO_CHAR(TO_DATE(LS.HND_TM,'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') HND_TM  --최종수집시간
+        FROM VW_LANESTAT LS,
+             BASE_LANEINFO LI
+        WHERE LS.IC_CODE = DECODE(#{IC_CODE}, '', LS.IC_CODE, #{IC_CODE})
+          AND LS.LANE_NO_P = LI.LOGC_LANE
+          AND LS.IC_CODE = LI.IC_CODE
+        ORDER BY IC_CODE, LANE_NO
+    </select>
+
+    <!-- 테이블 스페이스 모니터링 -->
+    <select id="getTableSpaceMonitor" resultType="hashmap" >
+		SELECT
+            ROW_NUMBER() OVER ( ORDER BY u.TABLESPACE_NAME)             AS ROW_NUMBER,
+            u.TABLESPACE_NAME                                           AS TABL_SPC_NM,
+            MIN(FILE_NAME)                                              AS FILE_NAME,
+            round(u.BYTES / 1024 / 1024,1)                              AS TOTAL_BYTES,
+            round((SUM(NVL(f.BYTES,0))) / 1024 / 1024,1)                AS FREE_BYTES,
+            round((u.BYTES - SUM(NVL(f.BYTES,0))) / 1024 / 1024,1)      AS USED_BYTES,
+            TRUNC((SUM(NVL(f.BYTES,0)) / u.BYTES) * 100,2)              AS FREE_PERC,
+            TRUNC(((u.BYTES - SUM(NVL(F.BYTES,0))) / u.BYTES) * 100,2)  AS USED_PERC
+        FROM DBA_FREE_SPACE f, DBA_DATA_FILES u
+        WHERE f.FILE_ID(+) = u.FILE_ID
+        AND ( u.TABLESPACE_NAME LIKE 'GD_DAT_%' OR u.TABLESPACE_NAME LIKE 'GD_IDX_%')
+        GROUP BY u.TABLESPACE_NAME, u.FILE_NAME, u.bytes
+        ORDER BY u.TABLESPACE_NAME
+    </select>
+
+
+
+
+</mapper>

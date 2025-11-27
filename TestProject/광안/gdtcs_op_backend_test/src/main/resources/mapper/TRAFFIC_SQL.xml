@@ -1,0 +1,1428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.traffic.mapper.TrafficMapper">
+
+<!--    메인화면 차로별 교통량 현황-->
+    <select id="getCarLineTraffic" resultType="hashmap">
+    	/* Mapper ID: getCarLineTraffic*/
+    	
+    	SELECT
+			FC_CHG_CODENM('352',LANE_NO) LINE_NM,
+            SUM(CAR_HAND_CNT) HAND_CNT
+		
+		FROM PROC_HRTRF
+		 WHERE IC_CODE = #{IC_CODE}
+			 AND WORK_DATE = #{START_DATE}
+			 AND HAND_CODE NOT IN('VI','HL','VL')
+		 GROUP BY LANE_NO
+		 ORDER BY LANE_NO
+    </select>
+
+
+<!--    메인화면 차종별 교통량 현황-->
+    <select id="getCarTypeTraffic" resultType="hashmap">
+    	/* Mapper ID: getCarTypeTraffic*/
+
+		SELECT
+            FC_CHG_CODENM('172', TRF_CAR_TYPE) AS TRF_CAR_TYPE,
+            FC_CHG_CODENM('170',FC_CHG_CODENM('172', TRF_CAR_TYPE)) AS TRF_CAR_TYPE_NM,
+        
+            SUM(CAR_HAND_CNT) HAND_CNT
+		FROM PROC_HRTRF
+			 WHERE IC_CODE = #{IC_CODE}
+			 AND WORK_DATE = #{START_DATE}
+			 AND HAND_CODE NOT IN('VI','HL','VL')
+
+		GROUP BY FC_CHG_CODENM('172', TRF_CAR_TYPE)
+		ORDER BY TRF_CAR_TYPE
+		
+    </select>
+    
+    <!--    메인화면 자료 송수신, 일마감 현황-->
+    <select id="getDataReceive" resultType="hashmap">
+    	/* Mapper ID: getDataReceive*/
+    	SELECT LTRIM(FILE_DIV, '0') FILE_DIV, 
+			FC_CHG_FORMAT(MAX(TRNRCP_DT), '11') TRNRCP_DT,
+			DECODE(TRNRCP_RSLT, '0', '대기', '1', '성공', '2','실패') TRNRCP_RSLT
+		FROM CALC_ECARDSTLTRNRCP
+		WHERE IC_CODE = #{IC_CODE}
+			AND TRNRCP_DIV = 'R'
+			AND FILE_DIV IN ('0472', '0316', '285', '480', '0802', '0484')
+		GROUP BY FILE_DIV, TRNRCP_RSLT
+        
+        UNION ALL 
+        
+        SELECT LTRIM(FILE_DIV, '0') FILE_DIV,
+			FC_CHG_FORMAT(MAX(TRNRCP_DT), '11') TRNRCP_DT,
+			DECODE(TRNRCP_RSLT, '0', '대기', '1', '성공', '2','실패') TRNRCP_RSLT
+		FROM CALC_ECARDSTLTRNRCP
+		WHERE IC_CODE = #{IC_CODE}
+			AND TRNRCP_DIV = 'S'
+			AND FILE_DIV IN ('DAYE')
+            AND TRNRCP_RSLT = '1'
+		GROUP BY FILE_DIV, TRNRCP_RSLT
+        
+       UNION ALL 
+        
+       SELECT 
+		    '일마감' AS FILE_DIV, 
+		    FC_CHG_FORMAT(MAX(DAY_FIN_PROC_DT), '11') AS TRNRCP_DT,
+		    CASE 
+		        WHEN (SELECT COUNT(*) FROM PROC_DAYFININFO WHERE IC_CODE =  #{IC_CODE}  AND WORK_DATE = TO_CHAR(SYSDATE - 1, 'YYYYMMDD') ) > 0 THEN '완료'
+		    END AS TRNRCP_RSLT
+		FROM PROC_DAYFININFO
+		WHERE IC_CODE =  #{IC_CODE} 
+		  AND WORK_DATE = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+		GROUP BY IC_CODE, WORK_DATE
+		
+		UNION ALL
+		
+		SELECT 
+		    '일마감' FILE_DIV, 
+		    '-' TRNRCP_DT, 
+		    '취소' TRNRCP_RSLT
+		FROM DUAL
+		WHERE EXISTS (
+		    SELECT 1
+		    FROM PROC_DAYFINMDFY B
+		    WHERE B.IC_CODE = #{IC_CODE} 
+		      AND B.WORK_DATE = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+		) 
+		AND NOT EXISTS (
+		    SELECT 1
+		    FROM PROC_DAYFININFO A
+		    WHERE A.IC_CODE = #{IC_CODE}
+		      AND A.WORK_DATE = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+		)
+		
+		UNION ALL
+		
+		SELECT 
+		    '일마감' FILE_DIV, 
+		    '-' TRNRCP_DT, 
+		    '미완료' TRNRCP_RSLT
+		FROM DUAL
+		WHERE NOT EXISTS (
+		    SELECT 1
+		    FROM PROC_DAYFININFO A
+		    WHERE A.IC_CODE = #{IC_CODE}
+		      AND A.WORK_DATE = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+		)
+		AND NOT EXISTS (
+		    SELECT 1
+		    FROM PROC_DAYFINMDFY B
+		    WHERE B.IC_CODE = #{IC_CODE}
+		      AND B.WORK_DATE = TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+		)
+
+        
+    
+        
+		--472 전자카드 BL 마스터
+		--316 무효 OBU : OBU B/L 마스터
+		--285 통복 카드 P/L 마스터
+		--480 경차PL
+		--802 선불호환 전자카드 지불명세(일마감)
+		--484 후불전자카드 지불명세(일마감)
+        --499 일마감 관련 데이터
+    
+    </select>
+    
+
+<!--    일별 교통량 조회-->
+    <select id="getTrafficDaily" resultType="hashmap">
+    	/* Mapper ID: getTrafficDaily*/       
+          <![CDATA[     
+         SELECT ROW_NUMBER() over (order by TRF_DATE)                         as row_Seq,
+               case grouping(TRF_DATE)when 0 then NVL(TO_CHAR(TO_DATE(TRF_DATE, 'YYYYMMDD'), 'YYYY-MM-DD'), '') 
+                when 1 then '합계' end as TRF_DATE,
+               IC_CODE,
+               CASE GROUPING(LIGHT_CAR) WHEN 0 THEN FC_CHG_FORMAT(LIGHT_CAR,'4') 
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(LIGHT_CAR),'4') END  AS LIGHT_CAR,
+                
+               CASE GROUPING(SMALLSIZE_CAR) WHEN 0 THEN FC_CHG_FORMAT(SMALLSIZE_CAR,'4')
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(SMALLSIZE_CAR),'4') END  AS SMALLSIZE_CAR,
+                
+               CASE GROUPING(FULLSIZED_CAR) WHEN 0 THEN FC_CHG_FORMAT(FULLSIZED_CAR,'4')
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(FULLSIZED_CAR),'4') END AS FULLSIZED_CAR,
+                
+               CASE GROUPING(SPECIAL_CAR) WHEN 0 THEN FC_CHG_FORMAT(SPECIAL_CAR,'4')
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(SPECIAL_CAR),'4') END AS SPECIAL_CAR,
+                
+               CASE GROUPING(CARTYPE_TOTAL) WHEN 0 THEN FC_CHG_FORMAT(CARTYPE_TOTAL,'4')
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(CARTYPE_TOTAL),'4') END AS CARTYPE_TOTAL,
+                
+               CASE GROUPING(up) WHEN 0 THEN FC_CHG_FORMAT(up,'4') 
+                 WHEN 1 THEN FC_CHG_FORMAT(SUM(up),'4') END as up,
+               
+               CASE GROUPING(down) WHEN 0 THEN FC_CHG_FORMAT(down,'4') 
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(down),'4') END as down,
+               
+               CASE GROUPING(up + down) WHEN 0 THEN FC_CHG_FORMAT(up + down,'4') 
+                WHEN 1 THEN FC_CHG_FORMAT(SUM(up + down),'4') END as DIR_TOTAL
+                    
+        FROM (SELECT TR.WORK_DATE                                                                          as TRF_DATE,
+                     TR.IC_CODE                                                                            as ic_Code,
+                     NVL(SUM(CASE WHEN TRF_CAR_TYPE =  '6' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT END), 0) as LIGHT_CAR,      -- 경차
+                     NVL(SUM(CASE WHEN TRF_CAR_TYPE =  '1' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT END), 0) as SMALLSIZE_CAR,  -- 소형
+                     NVL(SUM(CASE WHEN TRF_CAR_TYPE =  '2' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT END), 0) as FULLSIZED_CAR,  -- 대형
+                     NVL(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT END), 0) as SPECIAL_CAR, -- 특수
+                     NVL(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT ELSE 0 END), 0)                                 as CARTYPE_TOTAL,-- 차종별_소계
+                     NVL(SUM(CASE WHEN LI.DIR_DIV = '0' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT END), 0)     as UP,            -- 본선상행
+                     NVL(SUM(CASE WHEN LI.DIR_DIV = '1' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN CAR_HAND_CNT END), 0)     as down          -- 본선하행
+                     -- 방향별 소계
+              FROM
+                  PROC_HRTRF TR, BASE_LANEINFO LI
+              WHERE
+                    TR.IC_CODE = #{IC_CODE}
+                AND TR.WORK_DATE BETWEEN #{START_DATE} and #{END_DATE}
+                AND TR.IC_CODE = LI.IC_CODE
+                AND TR.LANE_NO = LI.LOGC_LANE
+              GROUP BY TR.WORK_DATE, TR.IC_CODE)
+        GROUP BY ROLLUP((TRF_DATE, IC_CODE, LIGHT_CAR, SMALLSIZE_CAR, FULLSIZED_CAR, SPECIAL_CAR, CARTYPE_TOTAL, UP, DOWN, UP+DOWN))                 
+      ]]>
+    </select>
+
+<!--    방향별 교통량 조회(기간별)-->
+    <select id="getTrafficDirectionPeriod" resultType="hashmap">
+    		/* Mapper ID: getTrafficDirectionPeriod*/
+        <![CDATA[
+            SELECT CASE WHEN GROUPING(CD.CODESC_NM) = 0 THEN CD.CODESC_NM ELSE '합계' END as TRF_HR,
+                   '0' DATA_TYP, '대수' DATA_TYP_NM,
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE = '6' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_LIGHT_CAR,-- 상행 경차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE = '1' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_SMALLSIZE_CAR,-- 상행 소형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE = '2' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_FULLSIZED_CAR,-- 상행 대형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL' THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_SPECIAL_CAR,-- 상행 특별
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_SUM,--합계
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE = '6' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_LIGHT_CAR,-- 하행 경차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE = '1' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_SMALLSIZE_CAR,--하행 소형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE = '2' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_FULLSIZED_CAR,--하행 대형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_SPECIAL_CAR,--하행 특별
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_SUM,--합계
+ 
+                   TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as TRF_TOTAL --합계
+                   
+            FROM (SELECT T1.IC_CODE, T1.LANE_NO, T1.WORK_DATE, T1.HR, T1.TRF_CAR_TYPE, T1.HAND_CODE, T1.CAR_HAND_CNT, T2.DIR_DIV, T2.IC_DIV
+                  FROM PROC_HRTRF T1, BASE_LANEINFO T2
+                  WHERE T1.IC_CODE = T2.IC_CODE
+                    AND T1.LANE_NO = T2.LOGC_LANE) A, BASE_CODESC CD
+            WHERE A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+              AND A.IC_CODE = #{IC_CODE}
+              AND CD.CODELC = '190'
+              AND CD.CODESC = A.HR
+            GROUP BY rollup(CD.CODESC_NM)
+            ORDER BY TRF_HR, DATA_TYP
+
+        ]]>
+    </select>
+
+<!--    방향별 교통량 조회(일별))-->
+    <select id="getTrafficDirectionDay" resultType="hashmap">
+    	/* Mapper ID: getTrafficDirectionDay*/
+        <![CDATA[
+            SELECT ROW_NUMBER() over(order by DIRTRF.TRF_DATE, DIRTRF.DG_DAY_WEEK_CODE, DIRTRF.TRF_HR, DIRTRF.DATA_TYP) as ROW_SEQ,
+                   DIRTRF.*
+            FROM
+                (SELECT
+
+                     TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') as TRF_DATE, -- 날짜
+                     CASE WHEN GROUPING(TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd')) = 1 THEN (CASE WHEN GROUPING(TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')) = 1 THEN '98' ELSE '99' END)
+                          ELSE TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd') END DG_DAY_WEEK_CODE,
+                     CASE WHEN GROUPING(TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd')) = 1 THEN (CASE WHEN GROUPING(TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')) = 1 THEN '합계' ELSE '소계'  END)
+                          ELSE (CASE TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd') WHEN '1' THEN '일요일' WHEN '2' THEN '월요일' WHEN '3' THEN '화요일' WHEN '4' THEN '수요일' WHEN '5' THEN '목요일' WHEN '6' THEN '금요일'WHEN '7' THEN '토요일' WHEN '-' THEN '' END) END as TRF_DAY, -- 요일명
+                     CASE WHEN TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd') IS NULL THEN '-' ELSE CD.CODESC_NM END as TRF_HR, -- 시간대
+                     '0' DATA_TYP, '대수' DATA_TYP_NM,
+
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE = '6' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_LIGHT_CAR,-- 상행 경차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE = '1' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_SMALLSIZE_CAR,-- 상행 소형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE = '2' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_FULLSIZED_CAR,-- 상행 대형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_SPECIAL_CAR,-- 상행 특별
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '0' THEN (CASE WHEN HAND_CODE <> 'VI' AND  HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as UP_SUM,--합계
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE = '6' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_LIGHT_CAR,-- 하행 경차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE = '1' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_SMALLSIZE_CAR,--하행 소형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE = '2' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_FULLSIZED_CAR,--하행 대형차
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_SPECIAL_CAR,--하행 특별
+                   TRIM(TO_CHAR(SUM(CASE WHEN A.DIR_DIV = '1' THEN (CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END) ELSE 0 END), '999,999,999,999')) as DOWN_SUM,--합계
+ 
+                   TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'   THEN A.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as TRF_TOTAL --합계
+                   
+                 FROM (SELECT T1.IC_CODE, T1.LANE_NO, T1.WORK_DATE, T1.HR, T1.TRF_CAR_TYPE, T1.HAND_CODE, T1.CAR_HAND_CNT, T2.DIR_DIV, T2.IC_DIV
+                       FROM PROC_HRTRF T1, BASE_LANEINFO T2
+                       WHERE T1.IC_CODE = T2.IC_CODE
+                         AND T1.LANE_NO = T2.LOGC_LANE) A, BASE_CODESC CD
+                 WHERE A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND A.IC_CODE = #{IC_CODE}
+                   AND CD.CODELC = '190'
+                   AND CD.CODESC = A.HR
+                 GROUP BY ROLLUP(TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') , TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd'), CD.CODELC, CD.CODESC_NM )
+                 HAVING (TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDDHH24MISS'), 'd') IS  NULL)
+                     OR (TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') IS  NULL)
+                     OR (CD.CODELC IS NOT NULL AND CD.CODESC_NM IS NOT NULL)
+                 ORDER BY TRF_DATE, DG_DAY_WEEK_CODE, TRF_HR, DATA_TYP) DIRTRF
+
+        ]]>
+    </select>
+
+    <!--시간별 교통량 조회 (전체/상하행 구분) -->
+    <select id="getTrafficHour" resultType="hashmap">
+    	/* Mapper ID: getTrafficHour*/
+    	
+    	 <choose>
+            <when test='TRAFFIC_HOUR_DIV == "ALL"'>
+             <![CDATA[
+            SELECT
+                NVL(CD.CODESC_NM, '합계') as                                  TRF_HR,   --근무시간
+
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+            FROM BASE_CODESC    CD,
+                 BASE_CODESC    CAR_CD,
+                 PROC_HRTRF TR,
+                 BASE_LANEINFO     LI
+            WHERE TR.IC_CODE = #{IC_CODE}
+              AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+              AND CD.CODELC = '190'
+              AND CD.CODESC >= #{START_SECOND}
+              AND CD.CODESC < #{END_SECOND} -- 요청한 조회시간 범위(start~end)만 조회 되도록
+
+              AND CD.CODESC = TR.HR
+
+              AND CAR_CD.CODELC = '171'
+              AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+              AND CAR_CD.CODESC_USE_YN = 'Y'
+
+              AND TR.IC_CODE = LI.IC_CODE
+              AND TR.LANE_NO = LI.LOGC_LANE
+
+            GROUP BY rollup(CD.CODELC, CD.CODESC_NM)
+            HAVING (CD.CODELC IS NOT NULL AND CD.CODESC_NM IS NOT NULL)
+                OR (CD.CODELC IS NULL AND CD.CODESC_NM IS NULL)
+    ]]>    
+            </when>
+            
+             <when test='TRAFFIC_HOUR_DIV == "UP_DOWN_DIV"'>
+              <![CDATA[
+            SELECT LI.DIR_NM as CHRO,
+                   LI.DIR_DIV FLAG,
+                   NVL(CD.CODESC_NM, LI.DIR_NM ||'합계')as TRF_HR,
+                   '0' DATA_TYP, '대수' DATA_TYP_NM,
+	 			TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+면제)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+
+            FROM BASE_CODESC    CD,
+                 BASE_CODESC    CAR_CD,
+                 PROC_HRTRF  TR,
+                 BASE_LANEINFO     LI
+
+            WHERE TR.IC_CODE = #{IC_CODE}
+              AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+              AND CD.CODELC = '190'
+              AND CD.CODESC >= #{START_SECOND}
+              AND #{END_SECOND} >= CD.CODESC
+              AND CD.CODESC = TR.HR
+              AND CAR_CD.CODELC = '171'
+              AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+              AND CAR_CD.CODESC_USE_YN = 'Y'
+              AND TR.IC_CODE = LI.IC_CODE
+              AND TR.LANE_NO = LI.LOGC_LANE
+            GROUP BY ROLLUP(CD.CODELC, CD.CODESC_NM), LI.DIR_NM, LI.DIR_DIV
+            HAVING (CD.CODELC IS NOT NULL AND CD.CODESC_NM IS NOT NULL)
+                OR (CD.CODELC IS NULL AND CD.CODESC_NM IS NULL)
+            UNION ALL
+            SELECT '-' DRT_DIV_NM,
+                   '99' FLAG,
+                   '총합계' TRFTIME, --근무시간
+                   '0' DATA_TYP, '대수' DATA_TYP_NM,
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+면제)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+
+            FROM BASE_CODESC    CD,
+                 BASE_CODESC    CAR_CD,
+                 PROC_HRTRF  TR,
+                 BASE_LANEINFO     LI
+            WHERE TR.IC_CODE = #{IC_CODE}
+              AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+              AND CD.CODELC = '190'
+              AND CD.CODESC >= #{START_SECOND}
+              AND #{END_SECOND} >= CD.CODESC
+              AND CD.CODESC = TR.HR
+              AND CAR_CD.CODELC = '171'
+              AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+              AND CAR_CD.CODESC_USE_YN = 'Y'
+              AND TR.IC_CODE = LI.IC_CODE
+              AND TR.LANE_NO = LI.LOGC_LANE
+            ORDER BY FLAG, TRF_HR, DATA_TYP
+             ]]>  
+            </when>
+         </choose>
+       
+    </select>
+
+<!--    일별/방향별교통량조회-->
+    <select id="getTrafficDailyDirection" resultType="hashmap">
+    	/* Mapper ID: getTrafficDailyDirection*/
+        <![CDATA[
+           SELECT ROW_NUMBER() over(order by DAYDIRTRF.TRF_DATE, DAYDIRTRF.UP_DWN_DIV,DAYDIRTRF.DATA_TYP) as ROW_SEQ,
+                   DAYDIRTRF.*
+            FROM
+
+                (SELECT CASE WHEN WORK_DATE IS NULL THEN '합계' ELSE TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') END as TRF_DATE, --일자
+                        TRIM(LI.DIR_DIV) UP_DWN_DIV,
+                        LI.DIR_NM  as chro,
+                        '0' DATA_TYP, '대수' DATA_TYP_NM,
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+면제)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+                 FROM PROC_HRTRF TR,
+                      BASE_CODESC CAR_CD,
+                      BASE_LANEINFO    LI
+                 WHERE TR.IC_CODE = #{IC_CODE}
+                   AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 GROUP BY rollup((TR.WORK_DATE, LI.DIR_DIV, LI.DIR_NM))
+                 HAVING (TR.WORK_DATE IS NOT NULL AND LI.DIR_DIV IS NOT NULL AND LI.DIR_NM IS NOT NULL)
+                     OR (TR.WORK_DATE IS NULL AND LI.DIR_DIV IS NOT NULL AND LI.DIR_NM IS NOT NULL)
+                 UNION ALL
+                 SELECT '소계' TRF_DATE,
+                     TRIM(LI.DIR_DIV) UP_DWN_DIV,
+                    LI.DIR_NM CHRO,
+                     '0' DATA_TYP, '대수' DATA_TYP_NM,
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+면제)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+                 FROM PROC_HRTRF TR,
+                     BASE_CODESC CAR_CD,
+                     BASE_LANEINFO    LI
+                 WHERE TR.IC_CODE = #{IC_CODE}
+                   AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+
+                 GROUP BY LI.DIR_DIV,LI.DIR_NM
+                 UNION ALL
+                 SELECT '합계' TRF_DATE,
+                     '' UP_DWN_DIV,
+                     '' CHRO,
+                     '0' DATA_TYP, '대수' DATA_TYP_NM,
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU + 위반)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+                 FROM PROC_HRTRF TR,
+                     BASE_CODESC CAR_CD,
+                     BASE_LANEINFO    LI
+                 WHERE TR.IC_CODE = #{IC_CODE}
+                   AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 -- GROUP BY LI.DIR_DIV,LI.DIR_NM
+                 UNION ALL
+                 SELECT
+                     '합계(%)' TRF_DATE,
+                     '' UP_DWN_DIV,
+                     '' CHRO,
+                     '0' DATA_TYP, '대수' DATA_TYP_NM,
+                TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as LIGHT_CAR,                                    --경차
+                TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as SMALLSIZE_CAR,                                --소형
+               TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as FULLSIZED_CAR,                                     --중형
+                TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as SPECIAL_CAR,                                   --대형
+               TO_CHAR(ROUND(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as CARTYPE_TOTAL,                                                                     --합계
+    
+
+    
+                TRIM(TO_CHAR(ROUND(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09'))  as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(ROUND(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09'))  as                                                             EL_CARD,   --후불전자카드
+               	TRIM(TO_CHAR(ROUND(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+위반)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+                     
+
+                 FROM PROC_HRTRF TR,
+                     BASE_CODESC CAR_CD,
+                     BASE_LANEINFO    LI
+                 WHERE TR.IC_CODE = #{IC_CODE}
+                   AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 ORDER BY TRF_DATE, UP_DWN_DIV,DATA_TYP) DAYDIRTRF
+        ]]>
+    </select>
+
+    <!-- 일별/수납구분별 교통량 조회 -->
+    <select id="getTrafficDailyPayDiv" resultType="hashmap">
+    	/* Mapper ID: getTrafficDailyPayDiv*/
+        <![CDATA[
+        SELECT ROW_NUMBER() over(order by DAYTRFPERIOD.TRF_DATE, DAYTRFPERIOD.DATA_TYP) as ROW_SEQ,
+                   DAYTRFPERIOD.*
+                FROM
+                    (SELECT CASE WHEN TR.WORK_DATE IS NULL THEN '합계' ELSE TO_CHAR(TO_DATE(TR.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') END as TRF_DATE,  --근무일자
+                            '0' DATA_TYP, '대수' DATA_TYP_NM,
+
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999')) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+위반)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+                    FROM PROC_HRTRF TR,
+                          BASE_CODESC CAR_CD,
+                          BASE_LANEINFO LI
+                     WHERE TR.IC_CODE = #{IC_CODE}
+                       AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                       AND TR.IC_CODE = LI.IC_CODE
+                       AND TR.LANE_NO = LI.LOGC_LANE
+                       AND CAR_CD.CODELC = '171'
+                       AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                       AND CAR_CD.CODESC_USE_YN = 'Y'
+                     GROUP BY ROLLUP(TR.WORK_DATE)
+                     ORDER BY TRF_DATE, DATA_TYP) DAYTRFPERIOD
+        ]]>
+    </select>
+
+<!--    차로별교통량조회-->
+    <select id="getTrafficLine" resultType="hashmap">
+    	/* Mapper ID: getTrafficLine*/
+        <![CDATA[
+        SELECT WORK_DATE,
+               '1' FLAG,
+               CASE WHEN GROUPING(LANE_NM) = 1 THEN SUBSTR(DIR_DIV,0,1) || '1' ELSE DIR_DIV END as DIR_DIV,
+               CASE WHEN GROUPING(LANE_NM) = 1 THEN DIR_NM || ' 소계' ELSE LANE_NM END as LANE_NM,
+               DATA_TYP,
+               DATA_TYP_NM,
+                TRIM(TO_CHAR(SUM(LIGHT_CAR)   , '999,999,999,999'))                   LIGHT_CAR,
+               TRIM(TO_CHAR(SUM(SMALLSIZE_CAR), '999,999,999,999'))              SMALLSIZE_CAR,
+               TRIM(TO_CHAR(SUM(FULLSIZED_CAR), '999,999,999,999'))                    FULLSIZED_CAR,
+               TRIM(TO_CHAR(SUM(SPECIAL_CAR), '999,999,999,999'))                    SPECIAL_CAR,
+               TRIM(TO_CHAR(SUM(CARTYPE_TOTAL), '999,999,999,999'))                  CARTYPE_TOTAL,
+               TRIM(TO_CHAR(SUM(EP_CARD), '999,999,999,999'))                    EP_CARD,
+               TRIM(TO_CHAR(SUM(EL_CARD), '999,999,999,999'))                         EL_CARD,
+              TRIM(TO_CHAR(SUM(EXMT), '999,999,999,999'))                         EXMT,
+              TRIM(TO_CHAR(SUM(vi), '999,999,999,999'))                        vi,
+              TRIM(TO_CHAR(SUM(PRE_REG), '999,999,999,999'))                        PRE_REG
+        FROM (
+                 SELECT '-'                            WORK_DATE,
+                        LI.DIR_DIV                     FLAG,
+                        LI.DIR_NM DIR_NM,
+                        CASE WHEN GROUPING(LI.NOTE) = 1 THEN LI.DIR_DIV || '1' ELSE LI.DIR_DIV || '0' END            DIR_DIV,
+                        CASE WHEN GROUPING(LI.NOTE) = 1 THEN LI.DIR_NM || ' 소계' ELSE LI.NOTE || PHGC_LANE END       LANE_NM,
+                        '0'                                                                                          DATA_TYP,
+                        '대수'                                                                                        DATA_TYP_NM,
+                SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) as LIGHT_CAR,                                    --경차
+                SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) as SMALLSIZE_CAR,                                --소형
+                SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) as FULLSIZED_CAR,                                     --중형
+                SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) as SPECIAL_CAR,                                   --대형
+                SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) as CARTYPE_TOTAL,                                                                     --합계
+
+                SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)) as                                                             EP_CARD,   --선불전자카드
+                SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)) as                                                             EL_CARD,   --후불전자카드
+                SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)) as                     exmt,    --면제(부산시 + 면제카드+전용OBU+면제)
+                SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC',car_hand_cnt, 0)) as                     vi,    --위반(미납,현금,부적격) 
+  				SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)) as                     PRE_REG    --사전등록 )
+
+                 FROM PROC_HRTRF TR,
+                      BASE_CODESC CAR_CD,
+                      BASE_LANEINFO LI
+                 WHERE TR.IC_CODE = #{IC_CODE}
+                   AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 GROUP BY LI.NOTE, LI.DIR_NM, LI.DIR_DIV, LI.PHGC_LANE
+                 HAVING NOT (LI.DIR_DIV > 1 AND GROUPING(LI.NOTE) = 1)
+             )
+        --GROUP BY ROLLUP(LANE_NM), DIR_DIV, DIR_NM
+        GROUP BY WORK_DATE, ROLLUP(LANE_NM), DIR_DIV, DIR_NM, DATA_TYP, DATA_TYP_NM --이부분으로 수정
+        UNION ALL
+        (SELECT '-'                                                                                       WORK_DATE,
+                '2'                                                                                       FLAG,
+                '30'                                                                                      DIR_DIV,
+                '총합계'                                                                                  as LANE_NM,
+                '0'                                                                                       DATA_TYP,
+                '대수'                                                                                      DATA_TYP_NM,
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as LIGHT_CAR,                                    --경차
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SMALLSIZE_CAR,                                --소형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as FULLSIZED_CAR,                                     --중형
+                TRIM(TO_CHAR(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as SPECIAL_CAR,                                   --대형
+                TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) as CARTYPE_TOTAL,                                                                     --합계
+
+    
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EP_CARD,   --선불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)), '999,999,999,999')) as                                                             EL_CARD,   --후불전자카드
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)), '999,999,999,999'))as                     exmt,    --면제(부산시 + 면제카드+전용OBU+면제)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC', car_hand_cnt, 0)), '999,999,999,999')) as                     vi,    --위반(미납,현금,사전등록)
+                TRIM(TO_CHAR(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)), '999,999,999,999')) as                     PRE_REG    --사전등록 )
+                
+
+               
+               
+         FROM PROC_HRTRF TR,
+              BASE_CODESC CAR_CD,
+              BASE_LANEINFO LI
+         WHERE TR.IC_CODE = #{IC_CODE}
+           AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+           AND TR.IC_CODE = LI.IC_CODE
+           AND TR.LANE_NO = LI.LOGC_LANE
+           AND CAR_CD.CODELC = '171'
+           AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+           AND CAR_CD.CODESC_USE_YN = 'Y'
+        )
+        UNION ALL
+        (SELECT '-'                                                                                       WORK_DATE,
+                '2'                                                                                       FLAG,
+                ''                                                                                        DIR_DIV,
+                '비율(%)'                                                                                   LANNM,
+                '0'                                                                                       DATA_TYP,
+                '비율'                                                                                      DATA_TYP_NM,
+              
+                TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE = '6' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as LIGHT_CAR,                                    --경차
+                TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE = '1' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as SMALLSIZE_CAR,                                --소형
+               TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE = '2' AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as FULLSIZED_CAR,                                     --중형
+                TO_CHAR(ROUND(SUM(CASE WHEN TRF_CAR_TYPE IN('3','4','5') AND CAR_CD.CODESC_USE_YN = 'Y' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as SPECIAL_CAR,                                   --대형
+               TO_CHAR(ROUND(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09') as CARTYPE_TOTAL,                                                                     --합계
+    
+                TO_CHAR(ROUND(SUM(DECODE(hand_code, 'HS', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09')  as                                                             EP_CARD,   --선불전자카드
+                TO_CHAR(ROUND(SUM(DECODE(hand_code, 'HH', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09')   as                                                             EL_CARD,   --후불전자카드
+                TO_CHAR(ROUND(SUM(DECODE(hand_code, 'HM', car_hand_cnt, 'HE',car_hand_cnt, 'VM', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09')  as                     exmt,    --면제(부산시 + 면제카드+전용OBU+위반)
+                TO_CHAR(ROUND(SUM(DECODE(hand_code, 'VU', car_hand_cnt, 'VC',car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09')  as                     vi,    --위반(미납,현금,부적격) 
+                TO_CHAR(ROUND(SUM(DECODE(hand_code, 'VP', car_hand_cnt, 0)) /  SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END) * 100, 2), 'FM990.09')  as                     PRE_REG    --위반(미납,현금,사전등록,부적격) 
+                
+                
+                
+         FROM PROC_HRTRF TR,
+              BASE_CODESC CAR_CD,
+              BASE_LANEINFO LI
+         WHERE TR.IC_CODE = #{IC_CODE}
+           AND TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+           AND TR.IC_CODE = LI.IC_CODE
+           AND TR.LANE_NO = LI.LOGC_LANE
+           AND CAR_CD.CODELC = '171'
+           AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+           AND CAR_CD.CODESC_USE_YN = 'Y'
+        )
+        --GROUP BY ROLLUP(LI.LANE_TYPE)
+        ORDER BY FLAG, DIR_DIV, LANE_NM, DATA_TYP
+        ]]>
+
+    </select>
+
+<!--    차로/시간별 교통량 조회-->
+    <select id="getTrafficLineHour" resultType="hashmap">
+    	/* Mapper ID: getTrafficLineHour*/
+        <choose>
+            <when test='WORK_STAT == "WORK_PERIOD"'>
+                <![CDATA[
+    SELECT
+        ROW_NUMBER() over (order by A.FLAG, A.DIR_DIV, A.LANE_NM, A.DATA_TYP) as ROW_NUMBER,
+        A.*
+    FROM
+    (
+        SELECT
+            FLAG,
+            CASE WHEN GROUPING(LANE_NM) = 1 THEN FLAG || '1' ELSE DIR_DIV END as DIR_DIV,
+            CASE WHEN GROUPING(LANE_NM) = 1 THEN DIR_NM || ' 소계' ELSE LANE_NM END as LANE_NM,
+            DATA_TYP, DATA_TYP_NM,
+            TRIM(TO_CHAR(SUM(TIME_00), '999,999,999,999')) TIME_00, TRIM(TO_CHAR(SUM(TIME_01), '999,999,999,999')) TIME_01, TRIM(TO_CHAR(SUM(TIME_02), '999,999,999,999')) TIME_02, TRIM(TO_CHAR(SUM(TIME_03), '999,999,999,999')) TIME_03, TRIM(TO_CHAR(SUM(TIME_04), '999,999,999,999')) TIME_04, TRIM(TO_CHAR(SUM(TIME_05), '999,999,999,999')) TIME_05, TRIM(TO_CHAR(SUM(TIME_06), '999,999,999,999')) TIME_06, TRIM(TO_CHAR(SUM(TIME_07), '999,999,999,999')) TIME_07,
+            TRIM(TO_CHAR(SUM(TIME_08), '999,999,999,999')) TIME_08, TRIM(TO_CHAR(SUM(TIME_09), '999,999,999,999')) TIME_09, TRIM(TO_CHAR(SUM(TIME_10), '999,999,999,999')) TIME_10, TRIM(TO_CHAR(SUM(TIME_11), '999,999,999,999')) TIME_11, TRIM(TO_CHAR(SUM(TIME_12), '999,999,999,999')) TIME_12, TRIM(TO_CHAR(SUM(TIME_13), '999,999,999,999')) TIME_13, TRIM(TO_CHAR(SUM(TIME_14), '999,999,999,999')) TIME_14, TRIM(TO_CHAR(SUM(TIME_15), '999,999,999,999')) TIME_15,
+            TRIM(TO_CHAR(SUM(TIME_16), '999,999,999,999')) TIME_16, TRIM(TO_CHAR(SUM(TIME_17), '999,999,999,999')) TIME_17, TRIM(TO_CHAR(SUM(TIME_18), '999,999,999,999')) TIME_18, TRIM(TO_CHAR(SUM(TIME_19), '999,999,999,999')) TIME_19, TRIM(TO_CHAR(SUM(TIME_20), '999,999,999,999')) TIME_20, TRIM(TO_CHAR(SUM(TIME_21), '999,999,999,999')) TIME_21, TRIM(TO_CHAR(SUM(TIME_22), '999,999,999,999')) TIME_22, TRIM(TO_CHAR(SUM(TIME_23), '999,999,999,999')) TIME_23,
+            TRIM(TO_CHAR(SUM(TIME_00 + TIME_01 + TIME_02 + TIME_03 + TIME_04 + TIME_05 + TIME_06 + TIME_07
+                + TIME_08 + TIME_09 + TIME_10 + TIME_11 + TIME_12 + TIME_13 + TIME_14 + TIME_15
+                + TIME_16 + TIME_17 + TIME_18 + TIME_19 + TIME_20 + TIME_21 + TIME_22 + TIME_23), '999,999,999,999')) TRF_SUM
+        FROM (
+                 SELECT
+                     LI.DIR_DIV                                                                               FLAG,
+                     LI.DIR_NM DIR_NM,
+                     CASE WHEN GROUPING(LI.NOTE) = 1 THEN LI.DIR_DIV || '1' ELSE LI.DIR_DIV || '0' END        DIR_DIV,
+                     CASE WHEN GROUPING(LI.NOTE) = 1 THEN LI.DIR_NM || ' 합계' ELSE LI.NOTE || PHGC_LANE END as LANE_NM,
+                     '0'                                                                                      DATA_TYP,
+                     '대수'                                                                                     DATA_TYP_NM,
+                     SUM(CASE WHEN TR.HR = '00' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_00,
+                     SUM(CASE WHEN TR.HR = '01' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_01,
+                     SUM(CASE WHEN TR.HR = '02' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_02,
+                     SUM(CASE WHEN TR.HR = '03' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_03,
+                     SUM(CASE WHEN TR.HR = '04' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_04,
+                     SUM(CASE WHEN TR.HR = '05' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_05,
+                     SUM(CASE WHEN TR.HR = '06' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_06,
+                     SUM(CASE WHEN TR.HR = '07' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_07,
+                     SUM(CASE WHEN TR.HR = '08' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_08,
+                     SUM(CASE WHEN TR.HR = '09' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_09,
+                     SUM(CASE WHEN TR.HR = '10' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_10,
+                     SUM(CASE WHEN TR.HR = '11' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_11,
+                     SUM(CASE WHEN TR.HR = '12' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_12,
+                     SUM(CASE WHEN TR.HR = '13' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_13,
+                     SUM(CASE WHEN TR.HR = '14' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_14,
+                     SUM(CASE WHEN TR.HR = '15' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_15,
+                     SUM(CASE WHEN TR.HR = '16' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_16,
+                     SUM(CASE WHEN TR.HR = '17' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_17,
+                     SUM(CASE WHEN TR.HR = '18' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_18,
+                     SUM(CASE WHEN TR.HR = '19' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_19,
+                     SUM(CASE WHEN TR.HR = '20' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_20,
+                     SUM(CASE WHEN TR.HR = '21' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_21,
+                     SUM(CASE WHEN TR.HR = '22' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_22,
+                     SUM(CASE WHEN TR.HR = '23' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)                                 as TIME_23,
+                     SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)               as TRF_SUM --합계
+                 FROM PROC_HRTRF TR,
+                      BASE_CODESC CAR_CD,
+                      BASE_LANEINFO LI
+                 WHERE TR.WORK_DATE BETWEEN #{START_DATE} and #{END_DATE}
+                   AND TR.IC_CODE = #{IC_CODE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 GROUP BY LI.NOTE, LI.DIR_DIV, LI.DIR_NM, LI.PHGC_LANE
+             )
+        GROUP BY ROLLUP(LANE_NM), DIR_DIV, FLAG, DIR_NM, DATA_TYP, DATA_TYP_NM --수정
+        UNION ALL
+        SELECT '9' FLAG,
+            '30' DIR_DIV,
+            '총합계' LANE_NM,
+            '0' DATA_TYP, '대수' DATA_TYP_NM,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '00' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_00,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '01' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_01,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '02' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_02,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '03' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_03,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '04' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_04,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '05' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_05,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '06' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_06,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '07' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_07,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '08' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_08,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '09' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_09,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '10' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_10,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '11' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_11,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '12' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_12,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '13' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_13,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '14' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_14,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '15' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_15,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '16' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_16,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '17' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_17,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '18' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_18,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '19' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_19,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '20' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_20,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '21' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_21,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '22' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_22,
+            TRIM(TO_CHAR(SUM(CASE WHEN TR.HR = '23' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_23,
+            TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999'))      CJONG_SUM                                          --합계
+        FROM PROC_HRTRF TR,
+            BASE_CODESC CAR_CD,
+            BASE_LANEINFO    LI
+        WHERE TR.WORK_DATE BETWEEN #{START_DATE} and #{END_DATE}
+          AND TR.IC_CODE = #{IC_CODE}
+          AND TR.IC_CODE = LI.IC_CODE
+          AND TR.LANE_NO = LI.LOGC_LANE
+          AND CAR_CD.CODELC = '171'
+          AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+          AND CAR_CD.CODESC_USE_YN = 'Y'
+        UNION ALL
+        SELECT '9' FLAG,
+            '40' DIR_DIV,
+            '비율(%)' LANE_NM,
+            '0' DATA_TYP, '대수' DATA_TYP_NM,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '00' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_00,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '01' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_01,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '02' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_02,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '03' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_03,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '04' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_04,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '05' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_05,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '06' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_06,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '07' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_07,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '08' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_08,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '09' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_09,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '10' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_10,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '11' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_11,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '12' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_12,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '13' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_13,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '14' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_14,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '15' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_15,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '16' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_16,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '17' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_17,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '18' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_18,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '19' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_19,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '20' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_20,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '21' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_21,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '22' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_22,
+            TO_CHAR(ROUND(SUM(CASE WHEN TR.HR = '23' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_23,
+            TO_CHAR(ROUND(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') CJONG_SUM                                          --합계
+
+        FROM PROC_HRTRF TR,
+            BASE_CODESC CAR_CD,
+            BASE_LANEINFO    LI
+        WHERE TR.WORK_DATE BETWEEN #{START_DATE} and #{END_DATE}
+          AND TR.IC_CODE = #{IC_CODE}
+          AND TR.IC_CODE = LI.IC_CODE
+          AND TR.LANE_NO = LI.LOGC_LANE
+          AND CAR_CD.CODELC = '171'
+          AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+          AND CAR_CD.CODESC_USE_YN = 'Y'
+
+        ORDER BY FLAG, DIR_DIV, LANE_NM, DATA_TYP) A
+
+        ]]>
+            </when>
+            <when test='WORK_STAT == "WORK_DAY"'>
+                <![CDATA[
+            SELECT ROW_NUMBER() over(order by LANEHRTRF.TRF_DATE, LANEHRTRF.FLAG, LANEHRTRF.DIR_DIV, LANEHRTRF.LANE_NM, LANEHRTRF.DATA_TYP) as ROW_NUMBER,
+                   LANEHRTRF.*
+            FROM
+                (SELECT
+                     TRF_DATE,
+                     FLAG,
+                     CASE WHEN GROUPING(LANE_NM) = 1 THEN FLAG || '1' ELSE DIR_DIV END as DIR_DIV,
+                     CASE WHEN GROUPING(LANE_NM) = 1 THEN DIR_NM || ' 소계' ELSE LANE_NM END as LANE_NM,
+                     DATA_TYP, DATA_TYP_NM,
+                     TRIM(TO_CHAR(SUM(TIME_00), '999,999,999,999')) TIME_00, TRIM(TO_CHAR(SUM(TIME_01), '999,999,999,999')) TIME_01, TRIM(TO_CHAR(SUM(TIME_02), '999,999,999,999')) TIME_02, TRIM(TO_CHAR(SUM(TIME_03), '999,999,999,999')) TIME_03, TRIM(TO_CHAR(SUM(TIME_04), '999,999,999,999')) TIME_04, TRIM(TO_CHAR(SUM(TIME_05), '999,999,999,999')) TIME_05, TRIM(TO_CHAR(SUM(TIME_06), '999,999,999,999')) TIME_06, TRIM(TO_CHAR(SUM(TIME_07), '999,999,999,999')) TIME_07,
+                     TRIM(TO_CHAR(SUM(TIME_08), '999,999,999,999')) TIME_08, TRIM(TO_CHAR(SUM(TIME_09), '999,999,999,999')) TIME_09, TRIM(TO_CHAR(SUM(TIME_10), '999,999,999,999')) TIME_10, TRIM(TO_CHAR(SUM(TIME_11), '999,999,999,999')) TIME_11, TRIM(TO_CHAR(SUM(TIME_12), '999,999,999,999')) TIME_12, TRIM(TO_CHAR(SUM(TIME_13), '999,999,999,999')) TIME_13, TRIM(TO_CHAR(SUM(TIME_14), '999,999,999,999')) TIME_14, TRIM(TO_CHAR(SUM(TIME_15), '999,999,999,999')) TIME_15,
+                     TRIM(TO_CHAR(SUM(TIME_16), '999,999,999,999')) TIME_16, TRIM(TO_CHAR(SUM(TIME_17), '999,999,999,999')) TIME_17, TRIM(TO_CHAR(SUM(TIME_18), '999,999,999,999')) TIME_18, TRIM(TO_CHAR(SUM(TIME_19), '999,999,999,999')) TIME_19, TRIM(TO_CHAR(SUM(TIME_20), '999,999,999,999')) TIME_20, TRIM(TO_CHAR(SUM(TIME_21), '999,999,999,999')) TIME_21, TRIM(TO_CHAR(SUM(TIME_22), '999,999,999,999')) TIME_22, TRIM(TO_CHAR(SUM(TIME_23), '999,999,999,999')) TIME_23,
+                     TRIM(TO_CHAR(SUM(TIME_00 + TIME_01 + TIME_02 + TIME_03 + TIME_04 + TIME_05 + TIME_06 + TIME_07
+                         + TIME_08 + TIME_09 + TIME_10 + TIME_11 + TIME_12 + TIME_13 + TIME_14 + TIME_15
+                         + TIME_16 + TIME_17 + TIME_18 + TIME_19 + TIME_20 + TIME_21 + TIME_22 + TIME_23), '999,999,999,999')) TRF_SUM
+                 FROM (
+                          SELECT TO_CHAR(TO_DATE(TR.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') as TRF_DATE,
+                                 LI.DIR_DIV FLAG,
+                                 LI.DIR_NM DIR_NM,
+                                 CASE WHEN GROUPING(LI.NOTE) = 1 THEN LI.DIR_DIV || '1' ELSE LI.DIR_DIV || '0' END DIR_DIV,
+                                 CASE WHEN GROUPING(LI.NOTE) = 1 THEN LI.DIR_NM||' 합계' ELSE LI.NOTE || PHGC_LANE END as LANE_NM,
+                                 '0' DATA_TYP, '대수' DATA_TYP_NM,
+                                 SUM(CASE WHEN TR.HR =  '00'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_00,
+                                 SUM(CASE WHEN TR.HR =  '01'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_01,
+                                 SUM(CASE WHEN TR.HR =  '02'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_02,
+                                 SUM(CASE WHEN TR.HR =  '03'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_03,
+                                 SUM(CASE WHEN TR.HR =  '04'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_04,
+                                 SUM(CASE WHEN TR.HR =  '05'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_05,
+                                 SUM(CASE WHEN TR.HR =  '06'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_06,
+                                 SUM(CASE WHEN TR.HR =  '07'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_07,
+                                 SUM(CASE WHEN TR.HR =  '08'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_08,
+                                 SUM(CASE WHEN TR.HR =  '09'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_09,
+                                 SUM(CASE WHEN TR.HR =  '10'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_10,
+                                 SUM(CASE WHEN TR.HR =  '11'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_11,
+                                 SUM(CASE WHEN TR.HR =  '12'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_12,
+                                 SUM(CASE WHEN TR.HR =  '13'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_13,
+                                 SUM(CASE WHEN TR.HR =  '14'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_14,
+                                 SUM(CASE WHEN TR.HR =  '15'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_15,
+                                 SUM(CASE WHEN TR.HR =  '16'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_16,
+                                 SUM(CASE WHEN TR.HR =  '17'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_17,
+                                 SUM(CASE WHEN TR.HR =  '18'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_18,
+                                 SUM(CASE WHEN TR.HR =  '19'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_19,
+                                 SUM(CASE WHEN TR.HR =  '20'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_20,
+                                 SUM(CASE WHEN TR.HR =  '21'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_21,
+                                 SUM(CASE WHEN TR.HR =  '22'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_22,
+                                 SUM(CASE WHEN TR.HR =  '23'  AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END) as TIME_23,
+                                 SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)      as  TRF_SUM   --합계
+                          FROM PROC_HRTRF TR,
+                               BASE_CODESC CAR_CD,
+                               BASE_LANEINFO    LI
+                          WHERE TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                            AND TR.IC_CODE = #{IC_CODE}
+                            AND TR.IC_CODE = LI.IC_CODE
+                            AND TR.LANE_NO = LI.LOGC_LANE
+                            AND CAR_CD.CODELC = '171'
+                            AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                            AND CAR_CD.CODESC_USE_YN = 'Y'
+                          GROUP BY TR.WORK_DATE, LI.NOTE, LI.DIR_DIV, LI.DIR_NM, LI.PHGC_LANE
+                      )
+                 GROUP BY ROLLUP(LANE_NM), TRF_DATE, DIR_DIV, FLAG, DIR_NM, DATA_TYP, DATA_TYP_NM
+                 UNION ALL
+                 SELECT TO_CHAR(TO_DATE(TR.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') as TRF_DATE,
+                     '9' FLAG,
+                     '30' DIR_DIV,
+                     '총합계' LANE_NM,
+                     '0' DATA_TYP, '대수' DATA_TYP_NM,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '00' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_00,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '01' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_01,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '02' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_02,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '03' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_03,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '04' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_04,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '05' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_05,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '06' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_06,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '07' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_07,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '08' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_08,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '09' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_09,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '10' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_10,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '11' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_11,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '12' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_12,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '13' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_13,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '14' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_14,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '15' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_15,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '16' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_16,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '17' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_17,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '18' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_18,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '19' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_19,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '20' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_20,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '21' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_21,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '22' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_22,
+                     TRIM(TO_CHAR(SUM(CASE WHEN TR.HR =  '23' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END), '999,999,999,999')) TIME_23,
+                     TRIM(TO_CHAR(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END), '999,999,999,999'))      CJONG_SUM                                          --합계
+                 FROM PROC_HRTRF TR,
+                     BASE_CODESC CAR_CD,
+                     BASE_LANEINFO    LI
+                 WHERE TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = #{IC_CODE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 GROUP BY TR.WORK_DATE
+                 UNION ALL
+                 SELECT TO_CHAR(TO_DATE(TR.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') as TRF_DATE,
+                     '9' FLAG,
+                     '40' DIR_DIV,
+                     '비율(%)' LANNM,
+                     '0' DATA_TYP, '대수' DATA_TYP_NM,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '00' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_00,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '01' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_01,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '02' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_02,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '03' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_03,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '04' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_04,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '05' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_05,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '06' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_06,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '07' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_07,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '08' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_08,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '09' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_09,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '10' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_10,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '11' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_11,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '12' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_12,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '13' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_13,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '14' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_14,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '15' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_15,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '16' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_16,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '17' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_17,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '18' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_18,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '19' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_19,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '20' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_20,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '21' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_21,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '22' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_22,
+                     TO_CHAR(ROUND(SUM(CASE WHEN TR.HR =  '23' AND HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') TIME_23,
+                     TO_CHAR(ROUND(SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN TR.CAR_HAND_CNT ELSE 0 END)/SUM(CASE WHEN HAND_CODE <> 'VI' AND HAND_CODE <> 'HL' AND HAND_CODE <> 'VL'  THEN CAR_HAND_CNT ELSE 0 END)*100, 2), 'FM990.09') CJONG_SUM                                          --합계
+                 FROM PROC_HRTRF TR,
+                     BASE_CODESC CAR_CD,
+                     BASE_LANEINFO    LI
+                 WHERE TR.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                   AND TR.IC_CODE = #{IC_CODE}
+                   AND TR.IC_CODE = LI.IC_CODE
+                   AND TR.LANE_NO = LI.LOGC_LANE
+                   AND CAR_CD.CODELC = '171'
+                   AND CAR_CD.CODESC = TR.TRF_CAR_TYPE
+                   AND CAR_CD.CODESC_USE_YN = 'Y'
+                 GROUP BY TR.WORK_DATE
+                 ORDER BY TRF_DATE, FLAG, DIR_DIV, LANE_NM, DATA_TYP) LANEHRTRF
+
+        ]]>
+            </when>
+        </choose>
+
+    </select>
+
+	<!-- 전월 대비 교통량 조회 -->
+	<select id="selectTrafficPreMonth" resultType="hashmap">
+    /* Mapper ID: selectTrafficPreMonth*/
+		SELECT WORK_MONTH 
+			, SUBSTR(WORK_MONTH, 1, 4) || '년 ' ||  SUBSTR(WORK_MONTH, 5, 2) || '월'  WORK_MONTH_DP
+			, DIR_DIV
+			, NVL((SELECT MAX(DIR_NM) FROM BASE_LANEINFO WHERE DIR_DIV = TB.DIR_DIV), '계') DIR_DIV_DP
+			, SUM(CAR1_CNT) AS CAR1_CNT, SUM(CAR2_CNT) AS CAR2_CNT, SUM(CAR3_CNT) AS CAR3_CNT, SUM(CAR4_CNT) AS CAR4_CNT, SUM(CAR_TOT_CNT) AS CAR_TOT_CNT
+			, SUM(PAY1_CNT) AS PAY1_CNT, SUM(PAY2_CNT) AS PAY2_CNT, SUM(PAY3_CNT) AS PAY3_CNT, SUM(PAY4_CNT) AS PAY4_CNT
+			, FC_CHG_FORMAT(SUM(CAR1_CNT), '4') AS CAR1_CNT_DP
+			, FC_CHG_FORMAT(SUM(CAR2_CNT), '4') AS CAR2_CNT_DP
+			, FC_CHG_FORMAT(SUM(CAR3_CNT), '4') AS CAR3_CNT_DP
+			, FC_CHG_FORMAT(SUM(CAR4_CNT), '4') AS CAR4_CNT_DP
+			, FC_CHG_FORMAT(SUM(CAR_TOT_CNT), '4') AS CAR_TOT_CNT_DP
+			, FC_CHG_FORMAT(SUM(PAY1_CNT), '4') AS PAY1_CNT_DP
+			, FC_CHG_FORMAT(SUM(PAY2_CNT), '4') AS PAY2_CNT_DP
+			, FC_CHG_FORMAT(SUM(PAY3_CNT), '4') AS PAY3_CNT_DP
+			, FC_CHG_FORMAT(SUM(PAY4_CNT), '4') AS PAY4_CNT_DP
+			, FC_CHG_FORMAT(SUM(PAY5_CNT), '4') AS PAY5_CNT_DP
+		FROM (
+			SELECT WORK_MONTH, DIR_DIV
+				, CAR1_CNT, CAR2_CNT, CAR3_CNT, CAR4_CNT, CAR_TOT_CNT
+				, 0 AS PAY1_CNT, 0 AS PAY2_CNT, 0 AS PAY3_CNT, 0 AS PAY4_CNT, 0 AS PAY5_CNT
+			FROM (
+				SELECT WORK_MONTH
+					, DIR_DIV
+					, NVL(TRF_CAR_TYPE, 'SUBTOT') AS TRF_CAR_TYPE
+					, SUM(CAR_HAND_CNT) CAR_CNT 
+				FROM (
+					SELECT SUBSTR(WORK_DATE, 1, 6) AS WORK_MONTH
+						, (SELECT DIR_DIV FROM BASE_LANEINFO WHERE IC_CODE = #{IC_CODE} AND LOGC_LANE = TRF.LANE_NO) AS DIR_DIV
+						, (SELECT CODESC_NOTE AS TRF_CAR_TYPE FROM BASE_CODESC WHERE CODELC = '171' AND CODESC = TRF.TRF_CAR_TYPE) AS TRF_CAR_TYPE
+						, CAR_HAND_CNT 
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+				  AND SUBSTR(WORK_DATE, 1, 6) BETWEEN #{START_MONTH} AND #{END_MONTH}
+					  AND HAND_CODE NOT IN ('VI', 'HL', 'VL')
+				)
+				GROUP BY WORK_MONTH, DIR_DIV, ROLLUP(TRF_CAR_TYPE)
+			) PIVOT (
+				SUM(CAR_CNT) AS CNT FOR TRF_CAR_TYPE IN ('1' AS CAR1, '2' AS CAR2, '3' AS CAR3, '4' AS CAR4, 'SUBTOT' AS CAR_TOT)
+			)
+			UNION ALL
+			SELECT WORK_MONTH, DIR_DIV
+				, 0 AS CAR1_CNT, 0 AS CAR2_CNT, 0 AS CAR3_CNT, 0 AS CAR4_CNT, 0 AS CAR_TOT_CNT
+				, PAY1_CNT, PAY2_CNT, PAY3_CNT, PAY4_CNT, PAY5_CNT
+			FROM (
+				SELECT SUBSTR(WORK_DATE, 1, 6) AS WORK_MONTH
+					, (SELECT DIR_DIV FROM BASE_LANEINFO WHERE IC_CODE = #{IC_CODE} AND LOGC_LANE = TRF.LANE_NO) AS DIR_DIV
+					, CASE WHEN HAND_CODE = 'HS' THEN '1'
+						   WHEN HAND_CODE = 'HH' THEN '2'
+						   WHEN HAND_CODE IN ('HM', 'HE') THEN '3'
+						   WHEN HAND_CODE IN ('VU', 'VC', 'VM') THEN '4'
+						   WHEN HAND_CODE IN ('VP') THEN '5'
+						   ELSE HAND_CODE
+					END AS PAY_TYPE
+					, CAR_HAND_CNT AS HAND_CNT
+				FROM PROC_HRTRF TRF
+				WHERE IC_CODE = #{IC_CODE}
+				  AND SUBSTR(WORK_DATE, 1, 6) BETWEEN #{START_MONTH} AND #{END_MONTH}
+				  AND HAND_CODE NOT IN ('VI', 'HL', 'VL')
+			) PIVOT (
+				SUM(HAND_CNT) AS CNT FOR PAY_TYPE IN ('1' AS PAY1, '2' AS PAY2, '3' AS PAY3, '4' AS PAY4, '5' AS PAY5)
+			)
+		) TB
+		GROUP BY WORK_MONTH, ROLLUP(DIR_DIV)
+		ORDER BY WORK_MONTH, DIR_DIV
+	</select>
+	
+	<!-- 월별 교통량 조회 -->
+	<select id="selectTrafficMonth" resultType="hashmap">
+    /* Mapper ID: selectTrafficMonth*/
+		SELECT NVL2(WORK_MONTH, SUBSTR(WORK_MONTH, 1, 4) || '-' || SUBSTR(WORK_MONTH, 5, 2), '합계') AS MONTH_DP
+			, FC_CHG_FORMAT(CAR1_CNT, '4') AS CAR1_CNT
+			, FC_CHG_FORMAT(CAR2_CNT, '4') AS CAR2_CNT
+			, FC_CHG_FORMAT(CAR3_CNT, '4') AS CAR3_CNT
+			, FC_CHG_FORMAT(CAR4_CNT, '4') AS CAR4_CNT
+			, FC_CHG_FORMAT(SUB_TOT_CNT, '4') AS SUB_TOT_CNT
+			, FC_CHG_FORMAT(DAILY_AVG, '4') AS DAILY_AVG
+		FROM(
+			SELECT SUBSTR(WORK_DATE, 1, 6) AS WORK_MONTH
+				, NVL(SUM(CAR1_CNT), 0) AS CAR1_CNT
+				, NVL(SUM(CAR2_CNT), 0) AS CAR2_CNT
+				, NVL(SUM(CAR3_CNT), 0) AS CAR3_CNT
+				, NVL(SUM(CAR4_CNT), 0) AS CAR4_CNT
+				, NVL(SUM(SUB_TOT_CNT), 0) AS SUB_TOT_CNT 
+				, NVL(ROUND(AVG(SUB_TOT_CNT)), 0) AS DAILY_AVG 
+			FROM (
+				SELECT IC_CODE, WORK_DATE, NVL(TRF_CAR_TYPE, 'SUB_TOT') AS TRF_CAR_TYPE
+					, SUM(CAR_CNT) AS CAR_CNT
+				FROM (
+					SELECT IC_CODE
+						, WORK_DATE
+						, (SELECT CODESC_NOTE FROM BASE_CODESC WHERE CODELC = '171' AND CODESC = TRF.TRF_CAR_TYPE) AS TRF_CAR_TYPE
+						, CAR_HAND_CNT AS CAR_CNT
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+					  AND SUBSTR(WORK_DATE, 1, 4) BETWEEN #{START_YEAR} AND #{END_YEAR}
+				) 
+				GROUP BY IC_CODE, WORK_DATE, ROLLUP(TRF_CAR_TYPE)
+			) PIVOT (
+				SUM(CAR_CNT) AS CNT FOR TRF_CAR_TYPE IN ('1' AS CAR1, '2' AS CAR2, '3' AS CAR3, '4' AS CAR4 , 'SUB_TOT' SUB_TOT)
+			)
+			GROUP BY ROLLUP(SUBSTR(WORK_DATE, 1, 6))
+		)
+	</select>
+	
+	<!-- 연별 교통량 조회 -->
+	<select id="selectTrafficYear" resultType="hashmap">
+    /* Mapper ID: selectTrafficYear*/
+		SELECT NVL(WORK_MONTH, '합계') AS MONTH_DP
+			, FC_CHG_FORMAT(CAR1_CNT, '4') AS CAR1_CNT
+			, FC_CHG_FORMAT(CAR2_CNT, '4') AS CAR2_CNT
+			, FC_CHG_FORMAT(CAR3_CNT, '4') AS CAR3_CNT
+			, FC_CHG_FORMAT(CAR4_CNT, '4') AS CAR4_CNT
+			, FC_CHG_FORMAT(SUB_TOT_CNT, '4') AS SUB_TOT_CNT
+			, FC_CHG_FORMAT(DAILY_AVG, '4') AS DAILY_AVG
+		FROM(
+			SELECT SUBSTR(WORK_DATE, 1, 4) AS WORK_MONTH
+				, NVL(SUM(CAR1_CNT), 0) AS CAR1_CNT
+				, NVL(SUM(CAR2_CNT), 0) AS CAR2_CNT
+				, NVL(SUM(CAR3_CNT), 0) AS CAR3_CNT
+				, NVL(SUM(CAR4_CNT), 0) AS CAR4_CNT
+				, NVL(SUM(SUB_TOT_CNT), 0) AS SUB_TOT_CNT 
+				, NVL(ROUND(AVG(SUB_TOT_CNT)), 0) AS DAILY_AVG 
+			FROM (
+				SELECT IC_CODE, WORK_DATE, NVL(TRF_CAR_TYPE, 'SUB_TOT') AS TRF_CAR_TYPE
+					, SUM(CAR_CNT) AS CAR_CNT
+				FROM (
+					SELECT IC_CODE
+						, WORK_DATE
+						, (SELECT CODESC_NOTE FROM BASE_CODESC WHERE CODELC = '171' AND CODESC = TRF.TRF_CAR_TYPE) AS TRF_CAR_TYPE
+						, CAR_HAND_CNT AS CAR_CNT
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+					  AND SUBSTR(WORK_DATE, 1, 4) BETWEEN #{START_YEAR} AND #{END_YEAR}
+				) 
+				GROUP BY IC_CODE, WORK_DATE, ROLLUP(TRF_CAR_TYPE)
+			) PIVOT (
+				SUM(CAR_CNT) AS CNT FOR TRF_CAR_TYPE IN ('1' AS CAR1, '2' AS CAR2, '3' AS CAR3, '4' AS CAR4 , 'SUB_TOT' SUB_TOT)
+			)
+			GROUP BY ROLLUP(SUBSTR(WORK_DATE, 1, 4))
+		)
+	</select>
+	
+	<!-- 요일별 교통량 조회 -->
+	<select id="selectTrafficDayOfWeek" resultType="hashmap">
+    /* Mapper ID: selectTrafficDayOfWeek*/
+		SELECT NVL2(WORK_DAY, FC_CHG_CODENM('192', WORK_DAY), '합계') WORK_DAY_DP
+			, (SELECT ARY_ORDR FROM BASE_CODESC WHERE CODELC = '192' AND CODESC = WORK_DAY) ARY_ORDR
+			, FC_CHG_FORMAT(SUM(CAR1_CNT), '4') AS CAR1_CNT
+			, FC_CHG_FORMAT(SUM(CAR2_CNT), '4') AS CAR2_CNT
+			, FC_CHG_FORMAT(SUM(CAR3_CNT), '4') AS CAR3_CNT
+			, FC_CHG_FORMAT(SUM(CAR4_CNT), '4') AS CAR4_CNT
+			, FC_CHG_FORMAT(SUM(CAR_TOT_CNT), '4') AS CAR_TOT_CNT
+			, FC_CHG_FORMAT(SUM(PAY1_CNT), '4') AS PAY1_CNT
+			, FC_CHG_FORMAT(SUM(PAY2_CNT), '4') AS PAY2_CNT
+			, FC_CHG_FORMAT(SUM(PAY3_CNT), '4') AS PAY3_CNT
+			, FC_CHG_FORMAT(SUM(PAY4_CNT), '4') AS PAY4_CNT
+			, FC_CHG_FORMAT(SUM(PAY5_CNT), '4') AS PAY5_CNT
+		FROM (
+			SELECT WORK_DAY
+				, CAR1_CNT, CAR2_CNT, CAR3_CNT, CAR4_CNT, CAR_TOT_CNT
+				, 0 AS PAY1_CNT, 0 AS PAY2_CNT, 0 AS PAY3_CNT, 0 AS PAY4_CNT, 0 AS PAY5_CNT
+			FROM (
+				SELECT WORK_DAY
+					, NVL(TRF_CAR_TYPE, 'SUBTOT') AS TRF_CAR_TYPE
+					, SUM(CAR_HAND_CNT) CAR_CNT 
+				FROM (
+					SELECT TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'DY') AS WORK_DAY
+						, (SELECT CODESC_NOTE AS TRF_CAR_TYPE FROM BASE_CODESC WHERE CODELC = '171' AND CODESC = TRF.TRF_CAR_TYPE) AS TRF_CAR_TYPE
+						, CAR_HAND_CNT 
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+				  AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+					  AND HAND_CODE NOT IN ('VI', 'HL', 'VL')
+				)
+				GROUP BY WORK_DAY, ROLLUP(TRF_CAR_TYPE)
+			) PIVOT (
+				SUM(CAR_CNT) AS CNT FOR TRF_CAR_TYPE IN ('1' AS CAR1, '2' AS CAR2, '3' AS CAR3, '4' AS CAR4, 'SUBTOT' AS CAR_TOT)
+			)
+			UNION ALL
+			SELECT WORK_DAY
+				, 0 AS CAR1_CNT, 0 AS CAR2_CNT, 0 AS CAR3_CNT, 0 AS CAR4_CNT, 0 AS CAR_TOT_CNT
+				, PAY1_CNT, PAY2_CNT, PAY3_CNT, PAY4_CNT, PAY5_CNT
+			FROM (
+				SELECT TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'DY') AS WORK_DAY
+					, CASE WHEN HAND_CODE = 'HS' THEN '1'
+						   WHEN HAND_CODE = 'HH' THEN '2'
+						   WHEN HAND_CODE IN ('HM', 'HE') THEN '3'
+						   WHEN HAND_CODE IN ('VU', 'VC', 'VM') THEN '4'
+						   WHEN HAND_CODE = 'VP' THEN '5'
+						   ELSE HAND_CODE
+					END AS PAY_TYPE
+					, CAR_HAND_CNT AS HAND_CNT
+				FROM PROC_HRTRF TRF
+				WHERE IC_CODE = #{IC_CODE}
+				  AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+				  AND HAND_CODE NOT IN ('VI', 'HL', 'VL')
+			) PIVOT (
+				SUM(HAND_CNT) AS CNT FOR PAY_TYPE IN ('1' AS PAY1, '2' AS PAY2, '3' AS PAY3, '4' AS PAY4, '5' AS PAY5)
+			)
+		) TB
+		GROUP BY ROLLUP(WORK_DAY)
+		ORDER BY ARY_ORDR
+	</select>
+	
+	<!-- 분기별 교통량 조회 -->
+	<select id="selectTrafficQuarter" resultType="hashmap">
+    /* Mapper ID: selectTrafficQuarter*/
+		SELECT NVL2(QUARTER, WORK_YEAR || '년', '합계' ) AS YEAR_DP
+			, NVL2(QUARTER, QUARTER || '분기', '-' ) AS QUARTER_DP
+			, FC_CHG_FORMAT(CAR1_CNT, '4') AS CAR1_CNT
+			, FC_CHG_FORMAT(CAR2_CNT, '4') AS CAR2_CNT
+			, FC_CHG_FORMAT(CAR3_CNT, '4') AS CAR3_CNT
+			, FC_CHG_FORMAT(CAR4_CNT, '4') AS CAR4_CNT
+			, FC_CHG_FORMAT(SUB_TOT_CNT, '4') AS SUB_TOT_CNT
+		FROM(
+			SELECT WORK_YEAR
+				, QUARTER
+				, NVL(SUM(CAR1_CNT), 0) AS CAR1_CNT
+				, NVL(SUM(CAR2_CNT), 0) AS CAR2_CNT
+				, NVL(SUM(CAR3_CNT), 0) AS CAR3_CNT
+				, NVL(SUM(CAR4_CNT), 0) AS CAR4_CNT
+				, NVL(SUM(SUB_TOT_CNT), 0) AS SUB_TOT_CNT 
+				, NVL(ROUND(AVG(SUB_TOT_CNT)), 0) AS DAILY_AVG 
+			FROM (
+				SELECT SUBSTR(WORK_DATE, 1, 4) AS WORK_YEAR, QUARTER, NVL(TRF_CAR_TYPE, 'SUB_TOT') AS TRF_CAR_TYPE
+					, SUM(CAR_CNT) AS CAR_CNT
+				FROM (
+					SELECT IC_CODE
+						, WORK_DATE
+						, TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'Q') AS QUARTER
+						, (SELECT CODESC_NOTE FROM BASE_CODESC WHERE CODELC = '171' AND CODESC = TRF.TRF_CAR_TYPE) AS TRF_CAR_TYPE
+						, CAR_HAND_CNT AS CAR_CNT
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+					  AND SUBSTR(WORK_DATE, 1, 4) = #{WORK_YEAR}
+				) 
+				GROUP BY SUBSTR(WORK_DATE, 1, 4), QUARTER, ROLLUP(TRF_CAR_TYPE)
+			) PIVOT (
+				SUM(CAR_CNT) AS CNT FOR TRF_CAR_TYPE IN ('1' AS CAR1, '2' AS CAR2, '3' AS CAR3, '4' AS CAR4 , 'SUB_TOT' SUB_TOT)
+			)
+			GROUP BY WORK_YEAR, ROLLUP(QUARTER)
+		)
+		ORDER BY QUARTER
+	</select>
+	
+	<!-- 년단위 요일 교통량 조회 -->
+	<select id="selectTrafficYearDayOfWeek" resultType="hashmap">
+    /* Mapper ID: selectTrafficYearDayOfWeek*/
+		SELECT MONTH_DP
+			, FC_CHG_FORMAT(DAY0_CNT, '4') AS DAY0_CNT
+			, FC_CHG_FORMAT(DAY1_CNT, '4') AS DAY1_CNT
+			, FC_CHG_FORMAT(DAY2_CNT, '4') AS DAY2_CNT
+			, FC_CHG_FORMAT(DAY3_CNT, '4') AS DAY3_CNT
+			, FC_CHG_FORMAT(DAY4_CNT, '4') AS DAY4_CNT
+			, FC_CHG_FORMAT(DAY5_CNT, '4') AS DAY5_CNT
+			, FC_CHG_FORMAT(DAY6_CNT, '4') AS DAY6_CNT
+			, FC_CHG_FORMAT(SUB_TOT_CNT, '4') AS SUB_TOT_CNT
+		FROM (
+			SELECT NVL2(WORK_MONTH, TO_CHAR(TO_DATE(WORK_MONTH, 'YYYYMM'), 'YYYY-MM'), '합계') AS MONTH_DP
+				, NVL(SUM(DAY0_CNT), 0) AS DAY0_CNT
+				, NVL(SUM(DAY1_CNT), 0) AS DAY1_CNT
+				, NVL(SUM(DAY2_CNT), 0) AS DAY2_CNT
+				, NVL(SUM(DAY3_CNT), 0) AS DAY3_CNT
+				, NVL(SUM(DAY4_CNT), 0) AS DAY4_CNT
+				, NVL(SUM(DAY5_CNT), 0) AS DAY5_CNT
+				, NVL(SUM(DAY6_CNT), 0) AS DAY6_CNT
+				, NVL(SUM(SUB_TOT_CNT), 0) AS SUB_TOT_CNT 
+			FROM (
+				SELECT WORK_MONTH, NVL(WORK_DAY, 'SUB_TOT') AS WORK_DAY
+					, SUM(CNT) AS CNT
+				FROM (
+					SELECT IC_CODE
+						, SUBSTR(WORK_DATE, 1, 6) AS WORK_MONTH
+						, FC_CHG_CODENM('192', TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'DY')) AS WORK_DAY
+						, CAR_HAND_CNT AS CNT
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+					  AND SUBSTR(WORK_DATE, 1, 4) BETWEEN #{START_YEAR} AND #{END_YEAR}
+				) 
+				GROUP BY WORK_MONTH, ROLLUP(WORK_DAY)
+			) PIVOT (
+				SUM(CNT) AS CNT 
+				FOR WORK_DAY IN ('일요일' AS DAY0, '월요일' AS DAY1, '화요일' AS DAY2, '수요일' AS DAY3, 
+								 '목요일' AS DAY4, '금요일' AS DAY5, '토요일' AS DAY6, 'SUB_TOT' AS SUB_TOT)
+			)
+			GROUP BY ROLLUP(WORK_MONTH)
+			UNION ALL						
+			SELECT '일평균'
+				, ROUND(NVL(AVG(DAY0_CNT), 0))
+				, ROUND(NVL(AVG(DAY1_CNT), 0))
+				, ROUND(NVL(AVG(DAY2_CNT), 0))
+				, ROUND(NVL(AVG(DAY3_CNT), 0))
+				, ROUND(NVL(AVG(DAY4_CNT), 0))
+				, ROUND(NVL(AVG(DAY5_CNT), 0))
+				, ROUND(NVL(AVG(DAY6_CNT), 0))
+				, ROUND((SUM(DAY0_CNT)
+					   + SUM(DAY1_CNT)
+					   + SUM(DAY2_CNT)
+					   + SUM(DAY3_CNT)
+					   + SUM(DAY4_CNT)
+					   + SUM(DAY5_CNT)
+					   + SUM(DAY6_CNT)) / count(*)
+				  )
+			FROM (
+				SELECT WORK_DATE
+					, FC_CHG_CODENM('192', TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'DY')) AS WORK_DAY
+					, SUM(CNT) AS CNT
+				FROM (
+					SELECT WORK_DATE
+						, CAR_HAND_CNT AS CNT
+					FROM PROC_HRTRF TRF
+					WHERE IC_CODE = #{IC_CODE}
+					  AND SUBSTR(WORK_DATE, 1, 4) BETWEEN #{START_YEAR} AND #{END_YEAR}
+					  ) 
+				GROUP BY WORK_DATE
+			) PIVOT (
+				SUM(CNT) AS CNT 
+				FOR WORK_DAY IN ('일요일' AS DAY0, '월요일' AS DAY1, '화요일' AS DAY2, '수요일' AS DAY3, 
+								 '목요일' AS DAY4, '금요일' AS DAY5, '토요일' AS DAY6)
+			)
+		)
+	</select>
+	
+	<!-- 시간별 공휴일 교통량 집계 -->
+	<select id="selectTrafficHourHoliday" resultType="hashmap">
+    /* Mapper ID: selectTrafficHourHoliday*/
+		SELECT HR_DP
+			 , FC_CHG_FORMAT(DIV1_CNT, '4') AS DIV1_CNT
+			 , FC_CHG_FORMAT(DIV1_AVG, '4') AS DIV1_AVG
+			 , FC_CHG_FORMAT(DIV2_CNT, '4') AS DIV2_CNT
+			 , FC_CHG_FORMAT(DIV2_AVG, '4') AS DIV2_AVG
+			 , FC_CHG_FORMAT(SUB_TOT_CNT, '4') AS SUB_TOT_CNT
+			 , FC_CHG_FORMAT(SUB_TOT_AVG, '4') AS SUB_TOT_AVG
+		FROM (
+			SELECT NVL2(HR, FC_CHG_CODENM('190', HR), '합계') AS HR_DP
+				, DIV1_CNT
+				, DECODE(DIV1_DAY_CNT, 0, 0, ROUND(DIV1_CNT / DIV1_DAY_CNT)) AS DIV1_AVG
+				, DIV2_CNT
+				, DECODE(DIV2_DAY_CNT, 0, 0, ROUND(DIV2_CNT / DIV2_DAY_CNT)) AS DIV2_AVG
+				, DIV1_CNT + DIV2_CNT AS SUB_TOT_CNT
+				, ROUND((DIV1_CNT + DIV2_CNT) / (DIV1_DAY_CNT + DIV2_DAY_CNT)) AS SUB_TOT_AVG
+			FROM (
+				SELECT HR
+					, NVL(SUM(DIV1_CNT), 0) AS DIV1_CNT
+					, NVL(SUM(DIV1_DAY_CNT), 0) AS DIV1_DAY_CNT
+					, NVL(SUM(DIV2_CNT), 0) AS DIV2_CNT
+					, NVL(SUM(DIV2_DAY_CNT), 0) AS DIV2_DAY_CNT
+				FROM (
+					SELECT HR, NVL(WORK_DAY, 'SUB_TOT') AS WORK_DAY
+						, SUM(CNT) DAILY_CNT
+						, COUNT(CNT) DAY_CNT
+					FROM (
+						SELECT WORK_DATE, HR
+							, DECODE(FC_CHG_CODENM('192', TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'DY')), '일요일', '공휴일', '토요일', '공휴일', '평일') AS WORK_DAY			
+							, SUM(CAR_HAND_CNT) AS CNT
+						FROM PROC_HRTRF TRF
+						WHERE IC_CODE = #{IC_CODE}
+						  AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+						GROUP BY WORK_DATE, HR
+					) 
+					GROUP BY HR, WORK_DAY
+				) PIVOT (
+					SUM(DAILY_CNT) AS CNT, SUM(DAY_CNT) AS DAY_CNT
+					FOR WORK_DAY IN ('평일' AS DIV1, '공휴일' AS DIV2)
+				) 
+				GROUP BY ROLLUP(HR)
+			) ORDER BY HR
+		)
+	</select>
+	
+	<!-- 일간 하이패스 이용현황 -->
+	<select id="selectDailyHipassUsageStatus" resultType="hashmap">
+    /* Mapper ID: selectDailyHipassUsageStatus*/
+		SELECT HR, FC_CHG_CODENM('190', HR) AS HR_DP
+			, NVL(IND_HS_CNT, 0) AS IN_HS_CNT
+			, NVL(IND_HH_CNT, 0) AS IN_HH_CNT
+			, NVL(IND_VP_CNT, 0) AS IN_VP_CNT
+			, NVL(IND_VC_CNT, 0) AS IN_VC_CNT
+			, NVL(IND_EXM_CNT, 0) AS IN_EXM_CNT
+			, NVL(IND_VU_CNT, 0) AS IN_VU_CNT
+			, NVL(OT_HS_CNT, 0) AS OT_HS_CNT
+			, NVL(OT_HH_CNT, 0) AS OT_HH_CNT
+			, NVL(OT_VP_CNT, 0) AS OT_VP_CNT
+			, NVL(OT_VC_CNT, 0) AS OT_VC_CNT
+			, NVL(OT_EXM_CNT, 0) AS OT_EXM_CNT
+			, NVL(OT_VU_CNT, 0) AS OT_VU_CNT
+			, NVL(IND_HS_CNT, 0) + NVL(IND_HH_CNT, 0) + NVL(IND_VP_CNT, 0) + NVL(IND_VC_CNT, 0) + NVL(IND_EXM_CNT, 0) + NVL(IND_VU_CNT, 0)
+			+ NVL(OT_HS_CNT, 0) + NVL(OT_HH_CNT, 0) + NVL(OT_VP_CNT, 0) + NVL(OT_VC_CNT, 0) + NVL(OT_EXM_CNT, 0) + NVL(OT_VU_CNT, 0) AS SUM_CNT
+		FROM (
+			SELECT * FROM (
+				SELECT HR
+					, CASE WHEN HAND_CODE IN ('HM', 'HE', 'VM') THEN 'EXM' ELSE HAND_CODE END AS HAND_CODE
+					, (SELECT DIR_DIV FROM BASE_LANEINFO WHERE IC_CODE = #{IC_CODE} AND LOGC_LANE = TRF.LANE_NO) AS DIR_DIV
+					, CAR_HAND_CNT
+				FROM PROC_HRTRF TRF
+				WHERE 1 = 1
+				  AND IC_CODE = #{IC_CODE}
+				  AND WORK_DATE = #{WORK_DATE}
+				  AND HAND_CODE NOT IN ('VI', 'HL', 'VL')
+			) PIVOT (
+				SUM(CAR_HAND_CNT) AS CNT FOR HAND_CODE IN ('HS' AS HS, 'HH' AS HH, 'VP' AS VP, 'VC' AS VC, 'EXM' AS EXM, 'VU' AS VU)
+			)
+			UNION
+			SELECT CODESC, '0', 0, 0, 0, 0, 0, 0 FROM BASE_CODESC WHERE CODELC = '190'
+		) PIVOT (
+			  SUM(HS_CNT) AS HS_CNT
+			, SUM(HH_CNT) AS HH_CNT
+			, SUM(VP_CNT) AS VP_CNT
+			, SUM(VC_CNT) AS VC_CNT
+			, SUM(EXM_CNT) AS EXM_CNT
+			, SUM(VU_CNT) AS VU_CNT
+			FOR DIR_DIV IN ('0' AS IND, '1' AS OT)
+		)
+		ORDER BY HR
+	</select>
+</mapper>

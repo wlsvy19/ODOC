@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Front-End/Vue샘플프로젝트/berry-free-vue-admin-template" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Front-End/Vue샘플프로젝트/mantis-free-vuetify-vuejs-admin-template" vcs="Git" />
   </component>
 </project>

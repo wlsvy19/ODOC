@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gdtcs.card.mapper.CardMapper">
+    <!-- 카드사용내역조회 - 전자카드 -->
+    <select id="getCardUseList" resultType="hashmap">
+		/* Mapper ID: getCardUseList*/
+       SELECT 
+       		FC_CHG_ICNM(M.IC_CODE) IC_CODE_NM, -- 영업소 명
+	         ROW_NUMBER() over(order by M.IC_CODE, M.WORK_DATE, M.WORK_NO, M.HAND_SNO ) ROW_NUMBER, --  순번
+	        TO_CHAR(TO_DATE(m.WORK_DATE,'YYYYMMDD'),'YYYY-MM-DD') as WORK_DATE ,     --근무일자
+	        M.WORK_NO as WORK_NO,                                                          --근무번호
+	        M.HAND_SNO as HAND_SNO,                                                         --일련번호
+	        TO_CHAR(TO_DATE(W.HAND_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') as HAND_DT ,  --처리시간
+	        SUBSTR(M.CARD_NO,1,4)||'-'||SUBSTR(M.CARD_NO,5,4)||'-'||SUBSTR(M.CARD_NO,9,4)||'-'||SUBSTR(M.CARD_NO,13,4) as CARD_NO, --카드번호
+	        FC_CHG_CODENM('171' ,W2.HAND_CAR_TYPE)                     as CAR_TYPE ,                      --차종
+	        FC_CHG_CODENM('057', M.VLTN_CODE) AS VLTN_CODE,                                        -- 위반코드
+	        W.AXLE_CODE as AXLE_CODE,                                                       --축수코드
+	        TRIM(TO_CHAR(DECODE(M.ORIGIN_PASS_FARE, '', '', M.ORIGIN_PASS_FARE), '999,999,999')) as ORIGIN_PASS_FARE, --원통행요금(w1 제거)
+	        TRIM(TO_CHAR(W.PASS_FARE, '999,999,999')) as PASS_FARE,                                     --통행요금
+	        W.PASS_FARE  as IPASS_FARE,                                     --통행요금
+	        TRIM(TO_CHAR(W.WTHD_BEF_FARE, '999,999,999')) as WTHD_BEF_FARE ,          --출금전카드잔액
+	        TRIM(TO_CHAR(W.WTHD_FARE, '999,999,999')) as WTHD_FARE ,              --출금액
+	        W.WTHD_FARE as IWTHD_FARE ,              --출금액
+	        TRIM(TO_CHAR(DECODE(W.LPAY_CRCT_YN, 'Y', W.CRCT_PAY_FARE, 0), '999,999,999')) as CRCT_PAY_FARE,            -- 후불보정금액
+	        DECODE(W.LPAY_CRCT_YN, 'Y', W.CRCT_PAY_FARE, 0) as ICRCT_PAY_FARE,            -- 후불보정금액
+	        DECODE(W.LPAY_CRCT_YN, 'Y', W.WTHD_FARE, 0) as ICRCT_BEFORE_FARE,            -- 후불보정전출금액
+	        (W.WTHD_BEF_FARE - W.WTHD_FARE) as PAY_AFTER_FARE,   --수납후카드잔액
+	        TO_NUMBER(SUBSTR(M.PAY_DC_RATE,1,3))||'%' as PAY_DC_RATE,                               --할인율
+	        FC_CHG_CODENM('070',  W.ECARD_PAY_DIV)                    as PAY_DIV ,                      --수납구분
+            FC_CHG_CODENM('071', W.ECARD_TYPE)                    as CARD_DIV ,                      --카드종류
+            FC_CHG_CODENM('316', E.CARD_CO_CODE)            as CARD_CO_DIV, --카드사 구분 --> 이쪽 수정
+	        DECODE(W.WORKER_NO,'HPSS',W2.HAND_CAR_NO, '') as CAR_NO,              -- 차량번호(w3제거)              
+            FC_CHG_CODENM('500', W.PAY_HAND_DIV) as PAY_HAND_DIV,                   --지불처리구분
+	        W.DC_CARD_NO as CARD_DC_NO,                                                       --할인카드번호
+	        W.PSAM_ID as PSAM_ID,                                                          --PSAM ID
+	        M.EM_CO_ID as EMCO_ID,                                                     --전자화폐 발행기관
+	        M.TRAN_SNO as TRAN_SNO,                                                         --거래 일련번호
+	        M.SUM_TRAD_FARE as TRAN_TOT_FARE,                                                         --거래총액
+	        M.ECARD_CAR_NO as ECARD_CAR_NO, --전자카드차량번호
+	        M.OBU_CAR_NO as OBU_CAR_NO --단말기차량번호
+        
+        FROM  PRIM_ETCHAND m,
+	        PRIM_ECARDHAND  w,
+	        PRIM_HANDCARNO W2,
+	         BASE_ECARDBIN E
+
+        WHERE M.IC_CODE = #{IC_CODE}
+    		AND M.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+	        AND M.IC_CODE = W.IC_CODE(+)
+	        AND M.WORK_NO = W.WORK_NO(+)
+	        AND M.WORK_DATE = W.WORK_DATE(+)
+	        AND M.HAND_SNO = W.HAND_SNO(+)
+	
+	        AND M.IC_CODE = W2.IC_CODE(+)
+	        AND M.WORK_NO = W2.WORK_NO(+)
+	        AND M.WORK_DATE = W2.WORK_DATE(+)
+	        AND M.HAND_SNO = W2.HAND_SNO(+)
+            
+            AND SUBSTR(m.CARD_NO, 1, 6) = E.BIN_CODE(+)
+            
+            AND M.CARD_NO LIKE '%'|| #{CARD_NO}|| '%'
+            
+            <if test='WORK_NO != null and WORK_NO != ""'>
+            	AND M.WORK_NO LIKE '%'|| #{WORK_NO} ||'%'
+        	</if>
+       		
+        <choose>
+            <when test='PAY_HAND_DIV == "" or PAY_HAND_DIV == null'>
+            </when>
+            <when test='PAY_HAND_DIV == "00"'>
+                AND m.PAY_HAND_DIV = #{PAY_HAND_DIV}
+            </when>
+            <otherwise>
+                AND m.PAY_HAND_DIV != '00'
+            </otherwise>
+        </choose>
+  
+        	          
+             <if test='ECARD_CAR_NO != null and ECARD_CAR_NO != ""'>
+            	AND M.ECARD_CAR_NO LIKE '%'|| #{ECARD_CAR_NO} ||'%'
+        	</if>
+        	
+        	<if test='OBU_CAR_NO != null and OBU_CAR_NO != ""'>
+            	AND M.OBU_CAR_NO LIKE '%'|| #{OBU_CAR_NO} ||'%'
+        	</if>
+    	
+        	
+  		 	<if test="CAR_TYPE != null and !CAR_TYPE.equals('')">
+        		AND  W2.HAND_CAR_TYPE IN (
+                    SELECT 
+                        CODESC
+                    FROM BASE_CODESC
+                    WHERE CODELC = 171 
+                   	 	AND CODESC_NM = #{CAR_TYPE}
+                    	AND CODESC_USE_YN = 'Y')
+        	</if>
+        	<if test='HAND_CAR_NO != null and HAND_CAR_NO != ""'>
+        	 AND (W2.HAND_CAR_NO LIKE '%'||#{HAND_CAR_NO}||'%')
+        	 </if>
+        	 
+       		 <if test='VLTN_CODE != null and VLTN_CODE != ""'>      	 
+        		AND M.VLTN_CODE = DECODE(#{VLTN_CODE}, '', M.VLTN_CODE,   #{VLTN_CODE})
+            </if>
+            
+             <if test='CARD_TYPE != null and CARD_TYPE != ""'>
+            	AND W.ECARD_TYPE = DECODE(#{CARD_TYPE}, '',  W.ECARD_TYPE,   #{CARD_TYPE})
+            </if>
+            
+            <if test='WTHD_FARE == 1'>
+            	AND W.WTHD_FARE = 0
+       		 </if>
+       		 
+        	 <if test='CARD_CO_CODE != null and CARD_CO_CODE != ""'>
+            	AND E.CARD_CO_CODE = DECODE(#{CARD_CO_CODE}, '',  E.CARD_CO_CODE,   #{CARD_CO_CODE})
+       		 </if>
+        	
+
+ 			
+         ORDER BY M.IC_CODE, M.WORK_DATE, M.WORK_NO, M.HAND_SNO
+    </select>
+   
+<!--    교통카드 B/L 조회 - 사용X-->
+    <select id="getTcardBL" resultType="hashmap">
+		/* Mapper ID: getTcardBL*/
+        /*SELECT
+        ROW_NUMBER() over(order by CARD_NO ) ROW_NUMBER,
+        CARD_NO,
+        USE_DIV
+        FROM
+        (
+        select SUBSTR(CARD_NO,1,4)||'-'||SUBSTR(CARD_NO,5,4)||'-'||SUBSTR(CARD_NO,9,4)||'-'||SUBSTR(CARD_NO,13,4) CARD_NO,
+        DECODE(USE_DIV, '0', '사용불가',
+        '1', '사용가능', '', '-', USE_DIV) USE_DIV
+        from BASE_TCARDBL
+        where 1=1
+        AND CARD_NO LIKE REPLACE(DECODE(#{CARD_NO}, '', '%'||CARD_NO||'%', '%'||#{CARD_NO}||'%'),'-','')
+
+        UNION ALL
+        SELECT
+        SUBSTR(CARD_NO,1,4)||'-'||SUBSTR(CARD_NO,5,4)||'-'||SUBSTR(CARD_NO,9,4)||'-'||SUBSTR(CARD_NO,13,4) CARD_NO,
+        DECODE(USE_DIV, '00', '삭제',
+        '01', '하자', '', '-', USE_DIV) USE_DIV
+        FROM BASE_TCARDBLCHG
+        where 1=1
+        AND CARD_NO LIKE REPLACE(DECODE(#{CARD_NO}, '', '%'||CARD_NO||'%', '%'||#{CARD_NO}||'%'),'-','')
+
+        )
+        GROUP BY CARD_NO, USE_DIV
+        */
+    </select>
+
+<!--    전자카드 B/L 조회-->
+    <select id="getEcardBL" resultType="hashmap">
+    /* Mapper ID: getEcardBL*/
+    SELECT
+    ROW_NUMBER() over(order by ECARD_NO ) ROW_NUMBER,   --순번
+    ECARD_NO,
+    BL_RES
+    FROM
+    (
+    SELECT
+    SUBSTR(ECARD_NO,1,4)||'-'||SUBSTR(ECARD_NO,5,4)||'-'||SUBSTR(ECARD_NO,9,4)||'-'||SUBSTR(ECARD_NO,13,4) ECARD_NO, --BL카드번호
+    DECODE(BL_RES, '000', '분실',
+    '001', '하자',
+    BL_RES) BL_RES                    --BL(무효)사유
+    FROM BASE_ECARDBL
+    where 1=1
+
+    <if test='ECARD_NO != null and ECARD_NO != ""'>
+        AND ECARD_NO LIKE '%' || #{ECARD_NO} || '%'
+    </if>
+
+    <if test='BL_RES != null and BL_RES != ""'>
+        AND BL_RES = #{BL_RES}
+    </if>
+     <if test='BL_RES == null or BL_RES == "" and ECARD_NO == null or ECARD_NO == ""'>
+    	AND ROWNUM <![CDATA[ <= ]]> 500
+    </if>
+    UNION ALL
+    SELECT
+    SUBSTR(ECARD_NO,1,4)||'-'||SUBSTR(ECARD_NO,5,4)||'-'||SUBSTR(ECARD_NO,9,4)||'-'||SUBSTR(ECARD_NO,13,4) ECARD_NO, --BL카드번호
+    DECODE(BL_RES, '000', '분실',
+    '001', '하자',
+    BL_RES) BL_RES                    --BL(무효)사유
+    FROM BASE_ECARDBLCHG
+    where 1=1
+
+    <if test='ECARD_NO != null and ECARD_NO != ""'>
+        AND ECARD_NO LIKE '%' || #{ECARD_NO} || '%'
+    </if>
+
+    <if test='BL_RES != null and BL_RES != ""'>
+        AND BL_RES = #{BL_RES}
+    </if>
+	<if test='BL_RES == null or BL_RES == "" and ECARD_NO == null or ECARD_NO == ""'>
+    	AND ROWNUM <![CDATA[ <= ]]> 500
+    </if>
+
+    )
+    GROUP BY
+    ecard_no,
+    bl_res
+    </select>
+
+    <!--  전자카드 B/L 이력조회 -->
+    <select id="getEcardBLHist" resultType="hashmap">
+        /* Mapper ID: getEcardBLHist*/
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY ECARD_DIV, ECARD_NO) ROW_SEQ
+        ,	IC_CODE	    --영업소ID
+        ,	DECODE(E`,'01','선불','02','후불') AS ECARD_DIV	    --전자카드구분
+        ,	REGEXP_REPLACE(ECARD_NO,'(.{4})(.{4})(.{4})(.{4})','\1-\2-\3-\4') AS ECARD_NO	    --전자카드번호
+        ,	DECODE(BL_INST_DIV,'0','등록','1','해제') AS BL_INST_DIV	--BL등록구분(0:등록,1:해제)
+        ,	TO_CHAR(TO_DATE(SUBSTR(BL_INST_DT,0,14),'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS BL_INST_DT		--BL등록일시
+        ,	TO_CHAR(TO_DATE(MAKE_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS MAKE_DT	    --생성일시
+        ,	TO_CHAR(TO_DATE(TRNRCP_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS TRNRCP_DT		--전문송수신일시
+        FROM CALC_ECARDBLHIST
+        WHERE IC_CODE = DECODE (#{IC_CODE}, '', IC_CODE, #{IC_CODE})
+        AND CARD_CO_CODE = DECODE( #{CARD_CO_CODE}, '', CARD_CO_CODE, #{CARD_CO_CODE})
+        AND ECARD_NO LIKE DECODE( #{ECARD_NO}, '', ECARD_NO, '%'||#{ECARD_NO}||'%')
+        ORDER BY ECARD_DIV, ECARD_NO
+    </select>
+
+    <!-- 경차 P/L조회 - 목록 -->
+    <select id="getLightCarPL" resultType="hashmap">
+        /* Mapper ID: getLightCarPL*/
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY LCAR_NO) ROW_SEQ,
+        LCAR_NO,     --차량번호
+        DECODE(DIV_CODE,'00','등록',DIV_CODE) DIV_CODE,   --구분코드(00:등록)
+        DECODE(HAND_DIV,'1','등록',HAND_DIV) HAND_DIV,     --처리구분(1:등록)
+        HAND_DIV IHAND_DIV,
+        DIV_CODE IDIV_CODE
+        FROM BASE_LCARPL
+        WHERE LCAR_NO LIKE '%'||#{LCAR_NO}||'%'
+        <if test='LCAR_NO == null or LCAR_NO == ""'>
+    	AND ROWNUM <![CDATA[ <= ]]> 1000
+    	</if>
+        ORDER BY LCAR_NO
+    </select>
+    
+     <!-- 경차 P/L조회 - 추가 -->
+    <update id="updateLightCarPL" parameterType="hashMap">
+        /* Mapper ID: updateLightCarPL*/
+        INSERT 
+	INTO BASE_LCARPL
+        ( 
+        LCAR_NO,
+        DIV_CODE,
+        HAND_DIV
+        )
+        VALUES
+            (#{LCAR_NO},
+            '00',
+            '1')
+    </update>
+    
+     <!-- 경차 P/L조회 - 삭제 -->
+    <delete id="deleteLightCarPL">
+        /* Mapper ID: deleteLightCarPL*/
+        
+        DELETE 
+	FROM 
+		BASE_LCARPL
+  	WHERE 
+		LCAR_NO = #{LCAR_NO}
+		AND DIV_CODE = #{DIV_CODE}
+		AND HAND_DIV = #{HAND_DIV}
+
+    </delete>
+
+    <!--통합복지카드 P/L 조회-->
+    <select id="getIntewelfCardPL" resultType="hashmap">
+    	/* Mapper ID: getIntewelfCardPL*/
+        SELECT
+        ROW_NUMBER() over(ORDER BY DIV, XCARD_NO) ROW_NUMBER,
+        DIV,
+        XCARD_NO,
+        INST_CAR_NO,
+        DIV_CODE,
+        DIV_CODE_NM
+        FROM
+        (
+        SELECT
+        '변경분' AS DIV,
+        CASE WHEN LENGTH(XCARD_NO) BETWEEN 1 AND 10
+        THEN SUBSTR(XCARD_NO,1,5) || '-' || SUBSTR(XCARD_NO,6,5)
+        ELSE SUBSTR(XCARD_NO,1,4) || '-' || SUBSTR(XCARD_NO,5,4) || '-' || SUBSTR(XCARD_NO,9,4) || '-' || SUBSTR(XCARD_NO,13,4)
+        END XCARD_NO, --감면카드번호
+        INST_CAR_NO, --등록차량번호
+        DIV_CODE,
+        DECODE(DIV_CODE, '00', '추가',
+        '01', '삭제',
+        '02', '변경', DIV_CODE) DIV_CODE_NM                    --구분코드
+        FROM BASE_WCARDPLCHG
+        where 1=1
+
+        <if test='XCARD_NO != null and XCARD_NO != ""'>
+            AND XCARD_NO LIKE '%' || #{XCARD_NO} || '%'
+        </if>
+        <if test='INST_CAR_NO != null and INST_CAR_NO != ""'>
+            AND INST_CAR_NO LIKE '%' || #{INST_CAR_NO} || '%'
+        </if>
+        <if test='XCARD_NO == null or XCARD_NO == "" and INST_CAR_NO == null or INST_CAR_NO == ""'>
+    		AND ROWNUM <![CDATA[ <= ]]> 500
+   		 </if>
+        --AND XCARD_NO LIKE REPLACE(DECODE('{0}', '', '%', '%'||'{0}'||'%'),'-','')
+        --AND INST_CAR_NO LIKE DECODE('{1}','','%','%'||'{1}'||'%')
+
+        UNION ALL
+        SELECT
+        '마스터' AS DIV,
+        CASE WHEN LENGTH(XCARD_NO) BETWEEN 1 AND 10
+        THEN SUBSTR(XCARD_NO,1,5) || '-' || SUBSTR(XCARD_NO,6,5)
+        ELSE SUBSTR(XCARD_NO,1,4) || '-' || SUBSTR(XCARD_NO,5,4) || '-' || SUBSTR(XCARD_NO,9,4) || '-' || SUBSTR(XCARD_NO,13,4)
+        END XCARD_NO,
+        INST_CAR_NO, --차량번호
+        '-' DIV_CODE,                    --구분코드
+        '-' DIV_CODE_NM
+        FROM BASE_WCARDPL
+        where 1=1
+
+        <if test='XCARD_NO != null and XCARD_NO != ""'>
+            AND XCARD_NO LIKE '%' || #{XCARD_NO} || '%'
+        </if>
+        <if test='INST_CAR_NO != null and INST_CAR_NO != ""'>
+            AND INST_CAR_NO LIKE '%' || #{INST_CAR_NO} || '%'
+        </if>
+        <if test='XCARD_NO == null or XCARD_NO == "" and INST_CAR_NO == null or INST_CAR_NO == ""'>
+    		AND ROWNUM <![CDATA[ <= ]]> 500
+   		 </if>
+        --AND XCARD_NO LIKE REPLACE(DECODE('{0}', '', '%', '%'||'{0}'||'%'),'-','')
+        --AND INST_CAR_NO LIKE DECODE('{1}','','%','%'||'{1}'||'%')
+        )
+
+        ORDER BY DIV, XCARD_NO
+    </select>
+    
+     <!-- 통합복지카드 P/L조회 - 추가 -->
+    <update id="updateIntewelfCardPL" parameterType="hashMap">
+        /* Mapper ID: updateIntewelfCardPL*/
+        
+        <if test='DIV == "ADD"'>
+           INSERT 
+	INTO BASE_WCARDPL
+        ( 
+        INST_CAR_NO,
+        XCARD_NO
+        )
+        VALUES
+            (
+            #{INST_CAR_NO},
+            #{XCARD_NO}
+            )
+        </if>
+     <if test='DIV == "UPDATE"'>
+         UPDATE BASE_WCARDPL SET INST_CAR_NO = #{INST_CAR_NO} WHERE XCARD_NO = #{XCARD_NO}
+     	</if>
+     	
+     	
+        
+    </update>
+    
+     <!-- 통합복지카드 P/L조회 - 삭제 -->
+    <delete id="deleteIntewelfCardPL">
+        /* Mapper ID: deleteIntewelfCardPL*/
+        
+        DELETE 
+	FROM 
+		BASE_WCARDPL
+  	WHERE 
+		INST_CAR_NO = #{INST_CAR_NO}
+		AND XCARD_NO = #{XCARD_NO}
+
+    </delete>
+    
+     <!-- 통합복지카드 P/L조회 - 변경분 삭제 -->
+    <delete id="deleteIntewelfCardPLCHG">
+        /* Mapper ID: deleteIntewelfCardPL*/
+        
+        DELETE 
+	FROM 
+		BASE_WCARDPLCHG
+  	WHERE 
+		INST_CAR_NO = #{INST_CAR_NO}
+		AND XCARD_NO = #{XCARD_NO}
+
+    </delete>
+
+    <!-- 교통카드 BIN정보 조회 -->
+    <select id="getTcardBIN" resultType="hashmap">
+    	/* Mapper ID: getTcardBIN*/
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY BIN_CODE) ROW_SEQ, --순번
+        FC_CHG_CODENM('316', SUBSTR(CARD_CO_CODE,5,3)) CARD_CO_CODE_NM, --카드사
+        CARD_CO_CODE,
+        BIN_CODE, --BIN 코드
+        TO_CHAR(TO_DATE(APPLY_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') APPLY_DT --적용일시
+        FROM BASE_TCARDBIN
+        WHERE BIN_CODE LIKE REPLACE(DECODE( #{BIN_CODE}, '', '%', '%'||#{BIN_CODE}||'%'),'-','')
+        AND SUBSTR (CARD_CO_CODE, 5, 3) = DECODE( #{CARD_CO_CODE}, '', SUBSTR (CARD_CO_CODE, 5, 3), #{CARD_CO_CODE})
+        ORDER BY BIN_CODE
+    </select>
+
+    <!-- 전자카드 BIN정보관리 - 목록 -->
+    <select id="getEcardBINManage" resultType="hashmap">
+    	/* Mapper ID: getEcardBINManage*/
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY CARD_CO_CODE, BIN_CODE) ROW_SEQ,
+        CARD_CO_CODE,                                       --카드사코드
+        FC_CHG_CODENM('316', CARD_CO_CODE) CARD_CO_NM,      --카드사명
+        BIN_CODE,                                           --BIN코드
+        DECODE(NEW_OLD_DIV, 1, '신', '구') NEW_OLD_DIV,      --BIN타입(1:신, 0:구)
+        DECODE(USE_DIV, 1, '사용', '불가') USE_DIV,           --사용유무(1:사용, 0:불가)
+        USE_DIV IUSE_DIV,
+        NEW_OLD_DIV INEW_OLD_DIV,
+        CARD_NOTE                                           --카드설명
+        FROM BASE_ECARDBIN
+        WHERE CARD_CO_CODE = DECODE( #{CARD_CO_CODE}, '', CARD_CO_CODE, #{CARD_CO_CODE})
+        AND NEW_OLD_DIV = DECODE( #{NEW_OLD_DIV}, '', NEW_OLD_DIV, #{NEW_OLD_DIV})
+        AND USE_DIV = DECODE( #{USE_DIV}, '', USE_DIV, #{USE_DIV})
+        AND BIN_CODE LIKE DECODE( #{BIN_CODE}, '', BIN_CODE, '%'||#{BIN_CODE}||'%')
+        ORDER BY CARD_CO_CODE, BIN_CODE
+    </select>
+    
+    <!-- 전자카드 BIN정보관리 - 추가 -->
+    <update id="updateEcardBINManage" parameterType="hashMap">
+    /* Mapper ID: updateEcardBINManage */
+	<if test='DIV == "ADD"'>
+           INSERT 
+	INTO BASE_ECARDBIN
+        ( 
+        CARD_NOTE,
+        USE_DIV,
+        NEW_OLD_DIV,
+        CARD_CO_CODE,
+        BIN_CODE
+        )
+        VALUES
+            (
+            FC_CHG_CODENM('316', #{CARD_CO_CODE}),
+            #{USE_DIV},
+            #{NEW_OLD_DIV},
+            #{CARD_CO_CODE},
+            #{BIN_CODE}
+            )
+        </if>
+     <if test='DIV == "UPDATE"'>
+         UPDATE BASE_ECARDBIN 
+         SET 
+            USE_DIV = #{USE_DIV},
+            NEW_OLD_DIV = #{NEW_OLD_DIV} 
+         WHERE 
+            CARD_CO_CODE = #{CARD_CO_CODE}
+            AND BIN_CODE = #{BIN_CODE}
+     	</if>
+	</update>
+	
+	
+<!-- 전자카드 BIN정보관리 - Bin파일 추가 -->
+    <insert  id="updateBinFile" parameterType="hashMap">
+    /* Mapper ID: updateBinFile */
+    <foreach collection="params" item="vo" index="idx" separator=" " open="INSERT ALL" close="SELECT 1 FROM DUAL">
+	INTO BASE_ECARDBIN
+        ( 
+        CARD_NOTE,
+        USE_DIV,
+        NEW_OLD_DIV,
+        CARD_CO_CODE,
+        BIN_CODE
+        )
+        VALUES
+         (
+            FC_CHG_CODENM('316', #{vo.CARD_CO_CODE}),
+            #{vo.USE_DIV},
+            #{vo.NEW_OLD_DIV},
+            #{vo.CARD_CO_CODE},
+            #{vo.BIN_CODE}
+            )
+        </foreach>
+	</insert>
+              
+              
+              
+    <!-- 전자카드 BIN정보관리 - 삭제 -->
+    <delete id="deleteEcardBINManage">
+    /* Mapper ID: deleteEcardBINManage */
+	  DELETE 
+	FROM 
+		BASE_ECARDBIN
+  	WHERE 
+		USE_DIV = #{USE_DIV}
+		AND NEW_OLD_DIV = #{NEW_OLD_DIV}
+		AND CARD_CO_CODE = #{CARD_CO_CODE}
+		AND BIN_CODE = #{BIN_CODE}
+	</delete>
+	
+	
+          <!--카드사별 지불내역 조회  -->
+    <select id="getCardCoDivPayList" resultType="hashmap">
+    	/* Mapper ID: getCardCoDivPayList*/
+    	
+SELECT
+    CASE GROUPING(FC_CHG_ICNM(ECH.IC_CODE)) WHEN 1 THEN '합계' ELSE FC_CHG_ICNM(ECH.IC_CODE) END  AS IC_NM, --요금소명
+    NVL(FC_CHG_CODENM('316', E.CARD_CO_CODE), '카드사정보없음') CARD_CO, --카드사
+    TRIM(TO_CHAR(COUNT(*), '999,999,999')) CNT, --건수
+    TRIM(TO_CHAR(SUM(EH.PAY_FARE), '999,999,999')) CNT_FARE, --수납금액
+    TRIM(TO_CHAR(COUNT(CN.WTHD_FARE), '999,999,999')) ABNOR_CNT, --하이패스 비정상지불 건수
+    TRIM(TO_CHAR(NVL(SUM(CN.WTHD_FARE),0), '999,999,999')) ABNOR_FARE--하이패스 비정상지불 수납금액
+FROM
+    PRIM_ETCHAND   EH,
+    PRIM_ECARDHAND ECH,
+    BASE_ECARDBIN    E,
+    (
+        SELECT
+            EH.IC_CODE ,
+            EH.WORK_DATE,
+            EH.WORK_NO ,
+            EH.HAND_SNO,
+            FC_CHG_ICNM(EH.IC_CODE) HIPASS_IC_CODE,
+            NVL(FC_CHG_CODENM('316', E.CARD_CO_CODE), '카드사정보없음') HIPASS_NOPAY_CARD_CO,
+            WTHD_FARE
+        FROM
+            PRIM_ETCHAND   EH,
+            PRIM_ECARDHAND ECH,
+            BASE_ECARDBIN    E
+        WHERE
+                ECH.PAY_HAND_DIV = 02
+            AND SUBSTR(ECH.CARD_NO, 1, 6) = E.BIN_CODE(+)
+            AND EH.IC_CODE = ECH.IC_CODE (+)
+            
+    AND EH.WORK_DATE = ECH.WORK_DATE (+)
+    AND EH.WORK_NO = ECH.WORK_NO (+)
+    AND EH.HAND_SNO = ECH.HAND_SNO (+)
+          
+    )   CN
+WHERE
+        EH.IC_CODE = #{IC_CODE}
+    AND EH.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+    AND EH.IC_CODE = ECH.IC_CODE (+)
+    AND EH.WORK_DATE = ECH.WORK_DATE (+)
+    AND EH.WORK_NO = ECH.WORK_NO (+)
+    AND EH.HAND_SNO = ECH.HAND_SNO (+)
+    AND SUBSTR(ECH.CARD_NO, 1, 6) = E.BIN_CODE(+)
+    AND ECH.IC_CODE = CN.IC_CODE (+)
+    AND EH.WORK_DATE = CN.WORK_DATE (+)
+    AND EH.WORK_NO = CN.WORK_NO (+)
+    AND EH.HAND_SNO = CN.HAND_SNO (+)
+    <if test="CARD_CO_CODE != null and !CARD_CO_CODE.equals('')">
+            AND E.CARD_CO_CODE = #{CARD_CO_CODE}
+      </if>
+
+    GROUP BY  ROLLUP(FC_CHG_ICNM(ECH.IC_CODE)), NVL(FC_CHG_CODENM('316', E.CARD_CO_CODE), '카드사정보없음')
+    ORDER BY IC_NM ASC, CARD_CO ASC
+
+
+    
+    </select>
+    
+       <!--호환 후불 전자카드 카드사별 이용내역  -->
+    <select id="getCptLpayEcardCardCoDiv" resultType="hashmap">
+    	/* Mapper ID: getCptLpayEcardCardCoDiv*/
+SELECT
+   EH.WORK_DATE WORK_DATE,
+--   FC_CHG_ICNMINFO(EH.IC_CODE, SUBSTR(EH.WORK_NO, 1, 2)),
+        FC_CHG_ICNM(ECH.IC_CODE) IC_NM,
+    NVL(FC_CHG_CODENM('316', E.CARD_CO_CODE), '카드사정보없음') CARD_CO,
+   count(*) CNT,
+    SUM(CASE LPAY_CRCT_YN WHEN 'Y' THEN ECH.CRCT_PAY_FARE ELSE ECH.WTHD_FARE END) CNT_FARE,
+    ech.ECARD_TYPE CARD_TYPE,
+     FC_CHG_CODENM('071', ech.ECARD_TYPE) CARD_TYPE_NM
+FROM
+    PRIM_ETCHAND   EH,
+    PRIM_ECARDHAND ECH,
+    BASE_ECARDBIN    E
+  
+WHERE
+        EH.IC_CODE = #{IC_CODE}
+    AND EH.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+        <if test="CARD_CO_CODE != null and !CARD_CO_CODE.equals('')">
+             AND E.CARD_CO_CODE = #{CARD_CO_CODE}
+      </if>
+
+    AND SUBSTR(ECH.CARD_NO, 1, 6) = E.BIN_CODE(+)
+    AND EH.IC_CODE = ECH.IC_CODE (+)
+    AND EH.WORK_DATE = ECH.WORK_DATE (+)
+    AND EH.WORK_NO = ECH.WORK_NO (+)
+    AND EH.HAND_SNO = ECH.HAND_SNO (+)
+--    and ECARD_TYPE = 00
+
+group by FC_CHG_ICNM(ECH.IC_CODE), FC_CHG_CODENM('316', E.CARD_CO_CODE), EH.WORK_DATE, ech.ECARD_TYPE
+
+order by work_Date, FC_CHG_CODENM('316', E.CARD_CO_CODE), CARD_TYPE
+    </select>
+    
+      <!--면제 PL 조회 - 부산시  -->
+    <select id="getExemPLBusan" resultType="hashmap">
+    	/* Mapper ID: getExemPLBusan*/
+	SELECT 
+		ROW_NUMBER() OVER (ORDER BY a.BASE_DT, a.EXP_DT) ROW_NUMBER,
+		a.CAR_NO,
+		gdtcs.FC_CHG_CODENM('292',a.EXEMPT_STATUS) EXEM_STATUS,
+		FC_CHG_FORMAT(a.BASE_DT, '1') BASE_DT,
+		FC_CHG_FORMAT(TO_CHAR(a.EXP_DT, 'YYYYMMDD'),'1') EXP_DT,
+		FC_CHG_FORMAT(b.REQUEST_DATE, '1') REQUEST_DATE,
+		b.ADDRESS
+	FROM ga_exem.V_EXEMPT_STATUS_ALL a, PRIM_EXEMPT_ADDR b
+	WHERE 1 = 1
+		AND a.CAR_NO = b.CAR_NO(+)
+		<if test='CAR_NO != null and CAR_NO != ""'>
+		   AND a.CAR_NO LIKE '%' || #{CAR_NO} || '%'
+		</if>
+		<if test='EXEM_STATUS != null and EXEM_STATUS != ""'>
+		   AND a.EXEMPT_STATUS = #{EXEM_STATUS}
+		</if>
+		<if test='(CAR_NO == null or CAR_NO == "") and (EXEM_STATUS == null or EXEM_STATUS == "")'>
+    		AND SEQ <![CDATA[ <= ]]> 1000
+   		 </if>
+   		AND a.EXEMPT_YN ='Y'
+   	ORDER BY ROW_NUMBER
+    </select>
+    
+   <update id="updateExemPLADDR" parameterType="String">
+    /* Mapper ID: updateExemPLADDR */
+    MERGE INTO PRIM_EXEMPT_ADDR
+	USING DUAL
+	ON (CAR_NO = #{CAR_NO})
+	WHEN MATCHED THEN
+	    UPDATE SET ADDRESS = #{ADDRESS}, REQUEST_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+	WHEN NOT MATCHED THEN
+	    INSERT (CAR_NO, ADDRESS, REQUEST_DATE)
+	    VALUES (#{CAR_NO}, #{ADDRESS}, TO_CHAR(SYSDATE, 'YYYYMMDD'))
+	</update>
+    
+    
+</mapper>

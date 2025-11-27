@@ -1,8 +1,11 @@
 package data;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+/**
+ * 2개의 텍스트 파일에서 숫자를 읽어 중복되는게 있는지 확인
+ */
 
 public class FileCarNumberComparison {
     public static void main(String[] args) {
@@ -11,9 +14,9 @@ public class FileCarNumberComparison {
         String fileA = directory + "A.txt";
         String fileB = directory + "B.txt";
 
-        // 파일 존재 여부 먼저 확인
+        // 파일 존재 여부 확인
         if (!checkFilesExist(fileA, fileB)) {
-            return; // 파일이 없으면 프로그램 종료
+            return; // 파일이 없으면 종료
         }
 
         // 파일 데이터 읽기
@@ -25,16 +28,44 @@ public class FileCarNumberComparison {
             return;
         }
 
-        // A.txt에만 있는 데이터
+        // A.txt 내부 중복 데이터
+        List<String> duplicatesInA = findInternalDuplicates(dataA);
+
+        // B.txt 내부 중복 데이터
+        List<String> duplicatesInB = findInternalDuplicates(dataB);
+
+        // 파일 간 데이터 비교
         List<String> onlyInA = new ArrayList<>(dataA);
         onlyInA.removeAll(dataB);
 
-        // B.txt에만 있는 데이터
         List<String> onlyInB = new ArrayList<>(dataB);
         onlyInB.removeAll(dataA);
 
+        List<String> duplicatesBetweenFiles = findDuplicates(dataA, dataB);
+
         // 결과 출력
-        System.out.println("A.txt에만 있는 데이터:");
+        System.out.println("A.txt 내부에서 중복된 데이터:");
+        if (duplicatesInA.isEmpty()) {
+            System.out.println("중복 없음");
+        } else {
+            duplicatesInA.forEach(System.out::println);
+        }
+
+        System.out.println("\nB.txt 내부에서 중복된 데이터:");
+        if (duplicatesInB.isEmpty()) {
+            System.out.println("중복 없음");
+        } else {
+            duplicatesInB.forEach(System.out::println);
+        }
+
+        //System.out.println("\nA.txt와 B.txt 사이의 중복 데이터:");
+        if (duplicatesBetweenFiles.isEmpty()) {
+            System.out.println("없음");
+        } else {
+            duplicatesBetweenFiles.forEach(System.out::println);
+        }
+
+        System.out.println("\nA.txt에만 있는 데이터:");
         if (onlyInA.isEmpty()) {
             System.out.println("없음");
         } else {
@@ -48,17 +79,19 @@ public class FileCarNumberComparison {
             onlyInB.forEach(System.out::println);
         }
 
-        // 총 데이터 개수 출력 (중복 포함)
+        // 총 데이터 개수 출력
         System.out.println("\nA.txt 데이터 총 개수: " + dataA.size());
         System.out.println("B.txt 데이터 총 개수: " + dataB.size());
 
-        // A.txt에만 있는 데이터 개수 출력
         System.out.println("A.txt에만 있는 데이터 개수: " + onlyInA.size());
-
-        // B.txt에만 있는 데이터 개수 출력
         System.out.println("B.txt에만 있는 데이터 개수: " + onlyInB.size());
+        System.out.println("A.txt 내부 중복된 데이터 개수: " + duplicatesInA.size());
+        System.out.println("B.txt 내부 중복된 데이터 개수: " + duplicatesInB.size());
     }
 
+    /**
+     * 파일의 존재 여부 확인
+     */
     private static boolean checkFilesExist(String... filenames) {
         boolean allFilesExist = true;
         for (String filename : filenames) {
@@ -78,32 +111,50 @@ public class FileCarNumberComparison {
         return allFilesExist;
     }
 
+    /**
+     * 지정된 텍스트 파일에서 데이터 읽기
+     */
     private static List<String> readDataFromFile(String filename) {
         List<String> data = new ArrayList<>();
-        int lineNumber = 0;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                lineNumber++;
-                line = line.trim();
+                line = line.trim(); // 공백 제거
                 if (!line.isEmpty()) {
-                    data.add(line); // 데이터를 그대로 추가
+                    data.add(line); // 데이터 추가
                 }
             }
             return data;
 
-        } catch (FileNotFoundException e) {
-            System.out.println("에러: " + filename + " 파일을 찾을 수 없습니다.");
-            System.out.println("전체 경로: " + new File(filename).getAbsolutePath());
-            return null;
-        } catch (IOException e) {
-            System.out.println("에러: " + filename + " 파일을 읽는 중 오류가 발생했습니다: " + e.getMessage());
-            return null;
         } catch (Exception e) {
-            System.out.println("예상치 못한 에러가 발생했습니다: " + e.getMessage());
+            System.out.println("파일을 읽는 중 오류가 발생했습니다: " + e.getMessage());
             return null;
         }
     }
-}
 
+    /**
+     * 하나의 데이터 목록에서 중복 데이터를 찾음 (내부 중복)
+     */
+    private static List<String> findInternalDuplicates(List<String> data) {
+        Set<String> unique = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
+
+        for (String item : data) {
+            if (!unique.add(item)) { // 이미 존재한다면 중복으로 추가
+                duplicates.add(item);
+            }
+        }
+        return new ArrayList<>(duplicates);
+    }
+
+    /**
+     * 두 데이터 목록 사이에서 중복 데이터를 찾음 (교집합)
+     */
+    private static List<String> findDuplicates(List<String> dataA, List<String> dataB) {
+        Set<String> setA = new HashSet<>(dataA);
+        Set<String> setB = new HashSet<>(dataB);
+
+        setA.retainAll(setB); // 두 세트의 교집합 구하기
+        return new ArrayList<>(setA);
+    }
+}

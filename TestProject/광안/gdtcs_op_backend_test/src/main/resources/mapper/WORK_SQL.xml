@@ -1,0 +1,932 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gdtcs.work.mapper.WorkMapper">
+
+    <select id="selectWorkStat" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkStat 근무상태 조회 */
+        SELECT
+        -- 순번
+        ROW_NUMBER() OVER (ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO) AS ROW_NUMBER,
+        
+        -- 근무일자
+        TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') AS WORK_DATE,
+
+        -- 근무번호
+        A.WORK_NO,
+
+        -- 차로명
+        C.LANE_NM || ':' || C.NOTE AS NOTE,
+
+        -- 게시근무자
+        A.WORKER_NO,
+
+        '[' || NVL(A.WORKER_NO, '00000') || ']' || FC_CHG_WORKERNM(A.IC_CODE, A.WORKER_NO) AS WORKER_INFO,
+
+        -- 근무상태
+        CASE
+            WHEN A.WORK_FIN_STAT = '1' THEN '근무중'
+            WHEN A.WORK_FIN_STAT = '3' THEN '근무종료'
+            WHEN A.WORK_FIN_STAT = '5' THEN '마감'
+            WHEN A.WORK_FIN_STAT = '7' THEN '마감수정'
+            ELSE A.WORK_FIN_STAT
+        END AS WORK_FIN_STAT,
+
+        -- 근무개시시각
+        TO_CHAR(TO_DATE(A.START_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS START_DT,
+
+        -- 근무종료시각
+        TO_CHAR(TO_DATE(A.END_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS END_DT,
+
+        -- 근무구분
+        CASE
+            WHEN A.WORK_DIV = '0' THEN '일반근무'
+            WHEN A.WORK_DIV = '1' THEN '유지보수'
+            ELSE A.WORK_DIV
+        END AS WORK_DIV,
+
+        -- 운영구분
+        CASE
+            WHEN A.WORK_OPER_DIV = '0' THEN '유인근무'
+            WHEN A.WORK_OPER_DIV = '1' THEN '무인근무'
+            ELSE A.WORK_OPER_DIV
+        END AS WORK_OPER_DIV,
+
+        -- 종료구분
+        CASE
+            WHEN A.END_DIV = '0' THEN '미종료'
+            WHEN A.END_DIV = '1' THEN '정상종료'
+            WHEN A.END_DIV = '2' THEN '강제종료'
+            ELSE A.END_DIV
+        END AS END_DIV,
+
+        CASE 
+            WHEN A.WORKER_NO = 'HPSS' THEN
+                CASE 
+                    WHEN A.END_DT IS NULL THEN ''
+                    ELSE '[' || 'HPSS' || ']' || FC_CHG_WORKERNM(A.IC_CODE, A.WORK_END_WORKER_NO) || ' 근무종료'
+                END
+            ELSE
+                CASE 
+                    WHEN A.END_DT IS NULL THEN ''
+                    ELSE '[' || A.WORK_END_WORKER_NO || ']' || FC_CHG_WORKERNM(A.IC_CODE, A.WORK_END_WORKER_NO) || ' 근무종료'
+                END
+        END AS END_WRKR_NO_NM
+
+        FROM
+        (
+            SELECT * FROM PRIM_WORKSTAT
+            WHERE 1 = 1
+            AND IC_CODE = #{IC_CODE}
+            AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+            AND LANE_DIV LIKE DECODE('', '', LANE_DIV, '1', '1%', '2', '2%')
+            -- AND WORKER_NO = 'HPSS'
+        ) A
+        LEFT JOIN (
+            SELECT
+                IC_CODE,
+                WORK_DATE,
+                WORK_NO,
+                'O' AS FLAG
+            FROM PRIM_WORKSTAT
+            WHERE 1 = 1
+            AND IC_CODE = #{IC_CODE}
+            AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+            AND LANE_DIV LIKE DECODE('', '', LANE_DIV, '1', '1%', '2', '2%')
+            AND END_DIV = '0'
+            AND SUBSTR(WORK_NO, 1, 2) || START_DT NOT IN (
+                SELECT SUBSTR(WORK_NO, 1, 2) || MAX(START_DT)
+                FROM PRIM_WORKSTAT
+                WHERE 1 = 1
+                AND IC_CODE = #{IC_CODE}
+                AND WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+                AND LANE_DIV LIKE DECODE('', '', LANE_DIV, '1', '1%', '2', '2%')
+                GROUP BY IC_CODE, SUBSTR(WORK_NO, 1, 2)
+            )
+        ) B ON A.IC_CODE = B.IC_CODE
+        AND A.WORK_DATE = B.WORK_DATE
+        AND A.WORK_NO = B.WORK_NO
+        LEFT JOIN BASE_LANEINFO C
+            ON A.IC_CODE = C.IC_CODE
+        WHERE 1 = 1
+        AND SUBSTR(A.WORK_NO, 1, 2) = C.LOGC_LANE
+        ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO
+    </select>
+
+    <select id="selectWorkFin" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkFin 근무마감 조회*/
+        SELECT 
+            -- 순번
+            ROW_NUMBER() OVER (ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO) AS ROW_NUMBER,
+
+            -- 근무번호
+            A.WORK_NO AS WORK_NO,
+
+            -- 차로명
+            B.LANE_NM || ':' || B.NOTE AS NOTE,
+
+            -- 근무상태
+            CASE
+                WHEN A.WORK_FIN_STAT = '1' THEN '근무중'
+                WHEN A.WORK_FIN_STAT = '3' THEN '근무종료'
+                WHEN A.WORK_FIN_STAT = '5' THEN '마감'
+                WHEN A.WORK_FIN_STAT = '7' THEN '마감수정'
+                ELSE A.WORK_FIN_STAT
+            END AS WORK_FIN_STAT,
+
+            -- 근무구분
+            CASE
+                WHEN A.WORK_DIV = '0' THEN '일반근무'
+                WHEN A.WORK_DIV = '1' THEN '유지보수'
+                ELSE A.WORK_DIV
+            END AS WORK_DIV,
+
+            -- 운영구분
+            CASE
+                WHEN A.WORK_OPER_DIV = '0' THEN '무인근무'
+                WHEN A.WORK_OPER_DIV = '1' THEN '무인근무'
+                ELSE A.WORK_OPER_DIV
+            END AS WORK_OPER_DIV,
+
+            -- 종료구분
+            CASE
+                WHEN A.END_DIV = '0' THEN '미종료'
+                WHEN A.END_DIV = '1' THEN '정상종료'
+                WHEN A.END_DIV = '2' THEN '강제종료'
+                ELSE A.END_DIV
+            END AS END_DIV,
+
+            -- 게시근무자
+            '['||A.WORKER_NO||']'|| FC_CHG_WORKERNM(A.IC_CODE, A.WORKER_NO) AS WORKER_INFO,
+
+            -- 근무일자
+            TO_CHAR(TO_DATE(A.WORK_DATE,'YYYYMMDD'),'YYYY-MM-DD') AS WORK_DATE,
+
+            -- 차로구분 
+            A.LANE_DIV,
+
+            -- 차로구분명
+            CASE
+                WHEN A.LANE_DIV = '0' THEN 'TCS'
+                WHEN A.LANE_DIV = '1' THEN 'ETC'
+                ELSE ''
+            END AS LANE_DIV_NM,
+
+            ROW_NUMBER() OVER (PARTITION BY SUBSTR(A.WORK_NO,0,2), A.WORK_DATE ORDER BY A.START_DT, ROWNUM ASC) SDATE_SEQ,
+
+            -- 근무개시시간
+            TO_CHAR(TO_DATE(A.START_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') SDATE,
+
+            -- 근무종료시간
+            TO_CHAR(TO_DATE(A.END_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') EDATE
+
+        FROM PRIM_WORKSTAT A
+        LEFT JOIN BASE_LANEINFO B 
+            ON A.IC_CODE = B.IC_CODE 
+            AND SUBSTR(A.WORK_NO, 1, 2) = B.LOGC_LANE
+        WHERE 1 = 1
+        AND A.IC_CODE = #{IC_CODE}
+        AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+        ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO
+	</select>
+
+    <resultMap id="resultWorkFinForce" type="hashMap"/>
+    <select id="updateWorkFinForce" statementType="CALLABLE" parameterType="hashMap">
+    /* Mapper ID: updateWorkFinForce 강제근무종료 프로시저 호출 */
+    {
+        CALL SP_WORK_END_ETC(
+            #{IC_CODE, mode=IN, jdbcType=VARCHAR},
+            #{WORK_DATE, mode=IN, jdbcType=VARCHAR},
+            #{WORK_NO, mode=IN, jdbcType=VARCHAR},
+            #{END_STAT, mode=IN, jdbcType=VARCHAR},
+            #{output, mode=OUT, jdbcType=CURSOR, javaType=ResultSet, resultMap=resultWorkFinForce}
+        )
+    }
+    </select>
+
+    <update id="updateWorkFinForceTCS" parameterType="hashMap">
+    /* Mapper ID: updateWorkFinForceTCS TCS 강제근무종료 업데이트*/
+        UPDATE PRIM_WORKSTAT
+        SET WORK_FIN_STAT = '3'
+        WHERE 1 = 1
+        AND IC_CODE = #{IC_CODE}
+        AND WORK_NO = #{WORK_NO}
+        AND WORK_DATE = #{WORK_DATE}
+    </update>
+
+    <select id="selectPassPrim" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectPassPrim 통행원시 조회*/
+        SELECT
+            -- 순번
+            ROW_NUMBER() OVER (ORDER BY TRNRCP_SNO, HAND_DT) AS ROW_NUMBER,
+
+            -- 순번
+            -- TRIM(CASE WHEN A.RNUM2 IS NULL THEN TO_CHAR(ROWNUM) ELSE NULL END) AS RNUM11,
+            CASE 
+                WHEN A.RNUM2 IS NULL
+                THEN ROWNUM ELSE NULL
+            END AS RNUM11,
+
+            -- 순번
+            --TRIM(CASE WHEN A.RNUM1 IS NULL THEN TO_CHAR(ROWNUM) ELSE NULL END) AS RNUM22,
+            CASE 
+                WHEN A.RNUM1 IS NULL 
+                THEN ROWNUM ELSE NULL 
+            END AS RNUM22,
+
+            A.TRNRCP_SNO AS TRNRCP_SNO,
+            A.IC_CODE AS IC_CODE,
+            A.HAND_DT AS HAND_DT,
+            A.RNUM1 AS RNUM1,
+            A.RNUM2 AS RNUM2,
+
+            -- 종류
+            A.S_TYPE AS S_TYPE,
+
+            -- 시간
+            A.SMALLTIME1 AS SMALLTIME1,
+
+            -- 내용
+            A.COMMENT1 AS COMMENT1,
+
+            -- 종류
+            A.C_TYPE AS C_TYPE,
+
+            -- 시간
+            A.SMALLTIME2 AS SMALLTIME2,
+
+            -- 내용
+            A.COMMENT2 AS COMMENT2
+        FROM
+        (
+            -- 조회조건이(차량번호, 카드번호, 처리일련번호) 없을 때 [감지-처리-감지] 3개가 한 쌍으로 표출
+            <if test='CAR_NO == "" and CARD_NO == "" and HAND_SNO == ""'>
+                SELECT
+                    TRNRCP_SNO AS TRNRCP_SNO,
+
+                    ROWNUM AS RNUM1,
+
+                    IC_CODE AS IC_CODE,
+
+                    WORK_DATE AS WORK_DATE,
+
+                    WORK_NO AS WORK_NO,
+
+                    DTCT_DT AS HAND_DT,
+
+                    TO_CHAR (TO_DATE (DTCT_DT, 'YYYYMMDDHH24MISS'), 'HH24:MI:SS' ) AS SMALLTIME1,
+
+                    '감지' AS S_TYPE,
+
+                    '축:'|| AXLE_CODE|| '  '||
+                    CASE
+                        WHEN ADV_RVS_DIV = '1' THEN '후진'
+                        ELSE '전진'
+                    END || '  '||
+                    CASE
+                        WHEN G1_DIV = '0' THEN '감지1'
+                        ELSE '감지2'
+                    END AS COMMENT1,
+
+                    NULL AS RNUM2,
+
+                    '' AS C_TYPE,
+
+                    NULL AS SMALLTIME2,
+
+                    NULL AS COMMENT2
+
+                FROM PRIM_ETCDTCT
+                WHERE 1 = 1
+                AND IC_CODE = #{IC_CODE}
+                AND WORK_DATE = #{WORK_DATE}
+                AND WORK_NO = #{WORK_NO}
+
+                UNION ALL
+             </if>
+
+                -- 위반이 아닌 데이터
+                -- 조회조건이(차량번호, 카드번호, 처리일련번호) 있을 때 특정컬럼들은 NULL 처리하여 안나오도록 표출
+                SELECT
+                    A.TRNRCP_SNO AS TRNRCP_SNO,
+
+                    -- 순번 NULL 처리
+                    NULL AS RNUM1,
+
+                    A.IC_CODE AS IC_CODE,
+                    A.WORK_DATE AS WORK_DATE,
+                    A.WORK_NO AS WORK_NO,
+                    A.HAND_DT AS HAND_DT,
+
+                    -- 시간1 NULL 처리
+                    NULL AS SMALLTIME1,
+
+                    -- 종류 NULL 처리
+                    NULL AS S_TYPE,
+
+                    -- 내용1 NULL 처리
+                    NULL AS COMMENT1,
+
+                    -- 순번2
+                    ROWNUM AS RNUM2,
+
+                    -- 종류2는 '처리' 고정
+                    '처리' AS C_TYPE,
+
+                    -- 시간2는 표출
+                    TO_CHAR (TO_DATE (A.HAND_DT, 'YYYYMMDDHH24MISS'), 'HH24:MI:SS' ) AS SMALLTIME2,
+
+                    '감지차종:'||A.DTCT_CAR_TYPE
+                        || '  OBU차종:'||A.OBU_CAR_TYPE
+                        || '  차종:'||A.HAND_CAR_TYPE
+                        || '  처리일련번호:'||A.HAND_SNO
+                        || '  영업소ID:'|| A.IC_CODE
+                        || '  수납금액:'|| A.PAY_FARE
+                        || '  전자카드종류:'|| FC_CHG_CODENM('071',A.ECARD_TYPE)
+                        || '  카드번호:'||  SUBSTR(A.CARD_NO, 1, 4)||'-'||SUBSTR(A.CARD_NO, 5, 4)||'-'||SUBSTR(A.CARD_NO, 9, 4)||'-'||SUBSTR(A.CARD_NO, 13, 4)
+                        || '  차량번호:'|| B.HAND_CAR_NO AS COMMENT2
+
+                FROM  PRIM_ETCHAND A, PRIM_HANDCARNO B
+                WHERE 1 = 1
+                AND A.IC_CODE = B.IC_CODE(+)
+                AND A.WORK_DATE = B.WORK_DATE(+)
+                AND A.WORK_NO = B.WORK_NO(+)
+                AND A.HAND_SNO = B.HAND_SNO(+)
+                AND A.HIPASS_HAND_SNO = B.HIPASS_HAND_SNO(+)
+                AND A.IC_CODE = #{IC_CODE}
+                AND A.WORK_DATE = #{WORK_DATE}
+                AND A.WORK_NO = #{WORK_NO}
+                AND A.VLTN_CODE = '00'
+
+            <if test='CAR_NO != null and CAR_NO != "" '>
+                AND B.HAND_CAR_NO LIKE
+                CASE
+                    WHEN #{CAR_NO} = '' THEN '%'||B.HAND_CAR_NO||'%'
+                    ELSE '%'|| #{CAR_NO} ||'%'
+                END
+            </if>
+            <if test='CARD_NO != null and CARD_NO != "" '>
+                AND A.CARD_NO LIKE
+                CASE
+                    WHEN #{CARD_NO} = '' THEN '%'||A.CARD_NO||'%'
+                    ELSE '%'|| #{CARD_NO} ||'%'
+                END
+            </if>
+            <if test='HAND_SNO != null and HAND_SNO != ""'>
+                AND A.HAND_SNO = #{HAND_SNO}
+            </if>
+
+            UNION ALL
+
+            -- 위반 데이터
+            -- 조회조건이(차량번호, 카드번호, 처리일련번호) 있을 때 특정컬럼들은 NULL 처리하여 안나오도록 표출
+            SELECT
+                A.TRNRCP_SNO AS TRNRCP_SNO,
+
+                -- 순번 NULL 처리
+                NULL AS RNUM1,
+                A.IC_CODE AS IC_CODE,
+                A.WORK_DATE AS WORK_DATE,
+                A.WORK_NO AS WORK_NO,
+                A.HAND_DT AS HAND_DT,
+
+                -- 시간1 NULL 처리
+                NULL AS SMALLTIME1,
+
+                -- 종류 NULL 처리
+                NULL AS S_TYPE,
+
+                -- 내용1 NULL 처리
+                NULL AS COMMENT1,
+
+                ROWNUM AS RNUM2,
+
+                -- 종류2는 '위반' 고정
+                '위반' AS C_TYPE,
+
+                -- 시간2는 표출
+                TO_CHAR (TO_DATE (A.HAND_DT, 'YYYYMMDDHH24MISS'), 'HH24:MI:SS' ) AS SMALLTIME2,
+
+                '위반코드:'|| A.VLTN_CODE || ' ' || FC_CHG_CODENM ('057', A.VLTN_CODE) || '  '
+                    || '  감지차종:'||A.DTCT_CAR_TYPE
+                    || '  OBU차종:'||A.OBU_CAR_TYPE
+                    || '  차종:'||A.HAND_CAR_TYPE
+                    || '  처리일련번호:'||A.HAND_SNO
+                    || '  영업소ID:'|| A.IC_CODE
+                    || '  수납금액:'|| A.PAY_FARE
+                    || '  전자카드종류:'|| FC_CHG_CODENM('071',A.ECARD_TYPE)
+                    || '  카드번호:'|| SUBSTR(A.CARD_NO, 1, 4)||'-'||SUBSTR(A.CARD_NO, 5, 4)||'-'||SUBSTR(A.CARD_NO, 9, 4)||'-'||SUBSTR(A.CARD_NO, 13, 4)
+                    || '  차량번호:'|| B.HAND_CAR_NO AS COMMENT2
+
+            FROM PRIM_ETCHAND A, PRIM_HANDCARNO B
+            WHERE 1 = 1
+            AND A.IC_CODE = B.IC_CODE(+)
+            AND A.WORK_DATE = B.WORK_DATE(+)
+            AND A.WORK_NO = B.WORK_NO(+)
+            AND A.HAND_SNO = B.HAND_SNO(+)
+            AND A.HIPASS_HAND_SNO = B.HIPASS_HAND_SNO(+)
+            AND A.IC_CODE = #{IC_CODE}
+            AND A.WORK_DATE = #{WORK_DATE}
+            AND A.WORK_NO = #{WORK_NO}
+            AND A.VLTN_CODE <![CDATA[ <> ]]> '00'
+
+            <if test='CAR_NO != null and CAR_NO != "" '>
+                AND B.HAND_CAR_NO LIKE
+                CASE
+                    WHEN #{CAR_NO} = '' THEN '%'||B.HAND_CAR_NO||'%'
+                    ELSE '%'|| #{CAR_NO} ||'%'
+                END
+            </if>
+            <if test='CARD_NO != null and CARD_NO != "" '>
+                AND A.CARD_NO LIKE
+                CASE
+                    WHEN #{CARD_NO} = '' THEN '%'||A.CARD_NO||'%'
+                    ELSE '%'|| #{CARD_NO} ||'%'
+                END
+            </if>
+            <if test='HAND_SNO != null and HAND_SNO != ""'>
+                AND A.HAND_SNO = #{HAND_SNO}
+            </if>
+
+            ORDER BY TRNRCP_SNO, HAND_DT
+        ) A
+        WHERE 1 = 1
+        AND HAND_DT BETWEEN #{START_WORK_DATE} AND #{END_WORK_DATE}
+        ORDER BY TRNRCP_SNO, HAND_DT
+    </select>
+
+	<select id="selectPassPrimDtl" parameterType="hashMap" resultType="hashMap">
+	/* Mapper ID: selectPassPrimDtl 통행원시 상세 조회*/
+        SELECT
+            --순번
+            ROW_NUMBER() OVER (ORDER BY TO_NUMBER(TRIM(SERIAL_NO))) AS ROW_NUMBER,
+
+            --전송연번
+            TRIM(HAND_SNO) AS HAND_SNO,
+
+            --처리번호
+            CASE
+                WHEN TRIM(SERIAL_NO) = '0' THEN ''
+                ELSE TRIM(SERIAL_NO)
+            END AS SERIAL_NO,
+
+            --자료종별
+            NM AS NM,
+
+            --내용
+            COMMENTS AS COMMENTS,
+
+            -- 1: 근무개시, 2: 근무중감지, 3: 처리데이터, 4: 근무종료
+            FLAG AS FLAG,
+
+            IC_CODE AS IC_CODE,
+            WORK_DATE AS WORK_DATE,
+            WORK_NO AS WORK_NO,
+            DT AS DT,
+            VLTN_CODE AS VLTN_CODE
+        FROM VW_ETCPRIMDTL
+        WHERE 1 = 1
+        AND IC_CODE = #{IC_CODE}
+        AND WORK_DATE = #{WORK_DATE}
+        AND WORK_NO = #{WORK_NO}
+        AND DT BETWEEN #{START_WORK_DATE} AND #{END_WORK_DATE}
+	</select>
+
+    <select id="selectWorkNm" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkNm 근무번호 선택 */
+        SELECT
+            '[' || A.IC_CODE || '] ' || A.WORK_NO || ':' || B.NOTE AS WORK_NM,
+            A.WORK_NO AS WORK_NO
+        FROM PRIM_WORKSTAT A, BASE_LANEINFO B
+        WHERE 1 = 1
+        AND A.IC_CODE = #{IC_CODE}
+        AND A.WORK_DATE = #{WORK_DATE}
+        -- AND A.LANE_DIV LIKE '%1' -- 하이패스 차로번호 조건 확인 필요!!!, 조회 위해 %2 -> %1로 임시 변경
+        AND SUBSTR(A.WORK_NO, 1, 2) = B.LOGC_LANE
+        AND A.IC_CODE = B.IC_CODE
+        ORDER BY A.IC_CODE, A.WORK_NO
+    </select>
+
+    <select id="selectWorkDocWorkNm" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkDocWorkNm 근무확인서 전용 근무번호 선택(근무종료 데이터만 나옴) */
+        SELECT
+            '[' || A.IC_CODE || '] ' || A.WORK_NO || ':' || B.NOTE AS WORK_NM,
+            A.WORK_NO AS WORK_NO
+        FROM PRIM_WORKSTAT A, BASE_LANEINFO B
+        WHERE 1 = 1
+            AND A.WORK_FIN_STAT = '3'
+            AND A.IC_CODE = #{IC_CODE}
+            AND A.WORK_DATE = #{WORK_DATE}
+            -- AND A.LANE_DIV LIKE '%1' -- 하이패스 차로번호 조건 확인 필요!!!, 조회 위해 %2 -> %1로 임시 변경
+            AND SUBSTR(A.WORK_NO, 1, 2) = B.LOGC_LANE
+            AND A.IC_CODE = B.IC_CODE
+        ORDER BY A.IC_CODE, A.WORK_NO
+    </select>
+
+	<select id="selectPassPrimDate" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectPassPrimDate 통행원시(상세) 조회시간 선택 */
+        SELECT
+               TO_CHAR(TO_DATE(START_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') AS WORK_DATE_S,
+               TO_CHAR(TO_DATE(DECODE(END_DT,'',SUBSTR(START_DT,1,8)||'235959',END_DT), 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS WORK_DATE_E,
+               WORK_FIN_STAT AS WORK_FIN_STAT
+        FROM PRIM_WORKSTAT
+        WHERE 1 = 1
+            AND IC_CODE = #{IC_CODE}
+            AND WORK_DATE = #{WORK_DATE}
+            AND WORK_NO = #{WORK_NO}
+	</select>
+    
+    <select id="selectWorkDocInfo" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkDocInfo 근무확인서 정보 */
+        SELECT
+            -- 영업소 코드
+            CASE
+                WHEN A.IC_CODE = '094' 
+                THEN '광안대교'
+                ELSE NVL(A.IC_CODE, '0')
+            END AS IC_CODE,
+
+            -- 근무번호
+            A.WORK_NO AS WORK_NO,
+
+            -- 차로번호
+            B.LANE_NM || ':' || B.NOTE AS LANE_NM,
+
+            -- 근무시간
+            TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') AS WORK_DATE,
+
+            TO_CHAR(TO_DATE(A.START_DT, 'YYYYMMDDHH24MISS'), 'HH24:MI') || ' ~ ' || TO_CHAR(TO_DATE(A.END_DT, 'YYYYMMDDHH24MISS'), 'HH24:MI') AS WORK_TIME
+        FROM PRIM_WORKSTAT A, BASE_LANEINFO B
+        WHERE 1 = 1
+        AND A.IC_CODE = B.IC_CODE
+        AND A.WORK_DATE = #{WORK_DATE}
+        AND A.WORK_NO = #{WORK_NO}
+        AND A.IC_CODE = #{IC_CODE} 
+        AND SUBSTR(A.WORK_NO, 1, 2) = B.LOGC_LANE
+        ORDER BY A.IC_CODE, A.WORK_NO
+    </select>
+
+    <select id="selectWorkDoc" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkDoc 근무확인서 좌측 */
+        SELECT
+            -- 처리대수
+            NVL(HAND_CNT, 0) AS HAND_CNT,
+            -- 전진대수 
+            NVL(ADV_CNT, 0) AS ADV_CNT,
+            -- 후진대수
+            NVL(RVS_CNT, 0) AS RVS_CNT,
+
+            -- 선불전자 건수
+            NVL(PRE_CNT, 0) AS PRE_CNT,
+            -- 선불전자 금액
+            NVL(PRE_AMT, 0) AS PRE_AMT,
+            -- 후불전자 건수
+            NVL(POS_CNT, 0) AS POS_CNT,
+            -- 후불전자 금액
+            NVL(POS_AMT, 0) AS POS_AMT,
+            -- 선불 + 후불 건수
+            NVL((PRE_CNT + POS_CNT), 0) AS TOTAL_CNT,
+            -- 선불 + 후불 금액 
+            NVL((PRE_AMT + POS_AMT), 0) AS TOTAL_AMT,
+
+            -- OBU 미부착 
+            NVL(VLTN_01_CNT, 0) AS VLTN_01_CNT,
+            -- Many OBU
+            NVL(VLTN_02_CNT, 0) AS VLTN_02_CNT,
+            -- OBU 기본 정보이상
+            NVL(VLTN_10_CNT, 0) AS VLTN_10_CNT,
+            -- OBU 전원이상
+            NVL(VLTN_11_CNT, 0) AS VLTN_11_CNT,
+            -- OBU 입구이상
+            NVL(VLTN_12_CNT, 0) AS VLTN_12_CNT,
+            -- OBU B/L
+            NVL(VLTN_13_CNT, 0) AS VLTN_13_CNT,
+            -- OBU 유효기간 초과
+            NVL(VLTN_14_CNT, 0) AS VLTN_14_CNT,
+            -- OOU 인증이상
+            NVL(VLTN_15_CNT, 0) AS VLTN_15_CNT,
+            -- OBU 통신이상
+            NVL(VLTN_16_CNT, 0) AS VLTN_16_CNT,
+            -- 전자카드 미삽입
+            NVL(VLTN_30_CNT, 0) AS VLTN_30_CNT,
+            -- 전자카드 오삽입
+            NVL(VLTN_31_CNT, 0) AS VLTN_31_CNT,
+            -- 진입정보 미수신
+            NVL(VLTN_32_CNT, 0) AS VLTN_32_CNT,
+            -- 전자카드 초기화 이상
+            NVL(VLTN_33_CNT, 0) AS VLTN_33_CNT,
+            -- 전자카드 종류이상
+            NVL(VLTN_34_CNT, 0) AS VLTN_34_CNT,
+            -- 전자카드 잔액 없음
+            NVL(VLTN_35_CNT, 0) AS VLTN_35_CNT,
+            -- 전자카드 잔액 부족
+            NVL(VLTN_36_CNT, 0) AS VLTN_36_CNT,
+            -- 전자카드 B/L
+            NVL(VLTN_37_CNT, 0) AS VLTN_37_CNT,
+            -- 전자카드 유효기간 초과
+            NVL(VLTN_38_CNT, 0) AS VLTN_38_CNT,
+            -- 전자카드 S1 인증이상
+            NVL(VLTN_39_CNT, 0) AS VLTN_39_CNT,
+            -- 전자카드 S2 인증실패
+            NVL(VLTN_40_CNT, 0) AS VLTN_40_CNT,
+            -- 전자카드 S3 인증이상
+            NVL(VLTN_41_CNT, 0) AS VLTN_41_CNT,
+            -- 전자카드 S3 인증 후 에러
+            NVL(VLTN_42_CNT, 0) AS VLTN_42_CNT,
+            -- 전자카드 S3 미수신
+            NVL(VLTN_43_CNT, 0) AS VLTN_43_CNT,
+            -- U턴(적격, 영업소회차)
+            NVL(VLTN_50_CNT, 0) AS VLTN_50_CNT,
+            -- 불법(부적격, 유턴)
+            NVL(VLTN_51_CNT, 0) AS VLTN_51_CNT,
+            -- VDS1 이상(감지)
+            NVL(VLTN_60_CNT, 0) AS VLTN_60_CNT,
+            -- 차종 불일치
+            NVL(VLTN_61_CNT, 0) AS VLTN_61_CNT,
+            -- VDS2 이상(감지)
+            NVL(VLTN_70_CNT, 0) AS VLTN_70_CNT,
+            -- 시간초과
+            NVL(VLTN_71_CNT, 0) AS VLTN_71_CNT,
+            -- 영상문의 없음
+            NVL(VLTN_80_CNT, 0) AS VLTN_80_CNT,
+            -- 기타 오류
+            NVL(VLTN_81_CNT, 0) AS VLTN_81_CNT,
+            -- OCR 불일치
+            NVL(VLTN_99_CNT, 0) AS VLTN_99_CNT,
+
+            -- 위반처리 코드별 건수
+            NVL((
+                VLTN_01_CNT + VLTN_02_CNT + VLTN_10_CNT + VLTN_11_CNT + VLTN_12_CNT +
+                VLTN_13_CNT + VLTN_14_CNT + VLTN_15_CNT + VLTN_16_CNT + VLTN_30_CNT +
+                VLTN_31_CNT + VLTN_32_CNT + VLTN_33_CNT + VLTN_34_CNT + VLTN_35_CNT +
+                VLTN_36_CNT + VLTN_37_CNT + VLTN_38_CNT + VLTN_39_CNT + VLTN_40_CNT +
+                VLTN_41_CNT + VLTN_42_CNT + VLTN_43_CNT + VLTN_50_CNT + VLTN_51_CNT +
+                VLTN_60_CNT + VLTN_61_CNT + VLTN_70_CNT + VLTN_71_CNT + VLTN_80_CNT +
+                VLTN_81_CNT + VLTN_99_CNT
+            ), 0) AS TOTAL_VLTN_CNT
+        FROM PRIM_ETCWORKEND
+        WHERE 1 = 1
+        <if test='IC_CODE != null and IC_CODE != ""'>
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        <if test='WORK_DATE != null and WORK_DATE != ""'>
+            AND WORK_DATE = #{WORK_DATE}
+        </if>
+        <if test='WORK_NO != null and WORK_NO != ""'>
+            AND WORK_NO = #{WORK_NO}
+        </if>
+    </select>
+
+    <select id="selectWorkDocCar" parameterType="hashMap" resultType="hashMap">
+    /* Mapper ID: selectWorkDocCar 근무확인서 우측 */
+        SELECT
+            -- 선불 경형차 대수
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN CNT6 ELSE 0 END), 0) AS PRE_COMPACT_CAR_CNT,
+            -- 선불 소형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN CNT1 ELSE 0 END), 0) AS PRE_SMALL_CAR_CNT,
+            -- 선불 중형차 대수
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN CNT2 ELSE 0 END), 0) AS PRE_MEDIUM_CAR_CNT,
+            -- 선불 대형차 대수
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS PRE_LARGE_CAR_CNT,
+            -- 선불 대수 합계
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS PRE_TOTAL_CAR_CNT,
+
+            -- 후불 경형차 대수
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN CNT6 ELSE 0 END), 0) AS POS_COMPACT_CAR_CNT,
+            -- 후불 소형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN CNT1 ELSE 0 END), 0) AS POS_SMALL_CAR_CNT,
+            -- 후불 중형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN CNT2 ELSE 0 END), 0) AS POS_MEDIUM_CAR_CNT,
+            -- 후불 대형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS POS_LARGE_CAR_CNT, 
+            -- 후불 대수 합계
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS POS_TOTAL_CAR_CNT, 
+
+            -- 면제 경형차 대수
+            NVL(SUM(CASE WHEN PAY_TYPE = '2' THEN CNT6 ELSE 0 END), 0) AS EXE_COMPACT_CAR_CNT,
+            -- 면제 소형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '2' THEN CNT1 ELSE 0 END), 0) AS EXE_SMALL_CAR_CNT,
+            -- 면제 중형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '2' THEN CNT2 ELSE 0 END), 0) AS EXE_MEDIUM_CAR_CNT,
+            -- 면제 대형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '2' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS EXE_LARGE_CAR_CNT,
+            -- 면제 대수 합계 
+            NVL(SUM(CASE WHEN PAY_TYPE = '2' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS EXE_TOTAL_CAR_CNT,
+
+            -- 위반(미납) 경형차 대수
+            NVL(SUM(CASE WHEN PAY_TYPE = '3' AND DC_DIV != '6' THEN CNT6 ELSE 0 END), 0) AS VIO_COMPACT_CAR_CNT,
+            -- 위반(미납) 소형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '3' AND DC_DIV != '6' THEN CNT1 ELSE 0 END), 0) AS VIO_SMALL_CAR_CNT,
+            -- 위반(미납) 중형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '3' AND DC_DIV != '6' THEN CNT2 ELSE 0 END), 0) AS VIO_MEDIUM_CAR_CNT,
+            -- 위반(미납) 대형차 대수 
+            NVL(SUM(CASE WHEN PAY_TYPE = '3' AND DC_DIV != '6' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS VIO_LARGE_CAR_CNT,
+            -- 위반(미납) 대수 합계 
+            NVL(SUM(CASE WHEN PAY_TYPE = '3' AND DC_DIV != '6' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS VIO_TOTAL_CAR_CNT,
+
+            -- 경형차 합계 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT6 ELSE 0 END), 0) AS COMPACT_CAR_TOTAL_CNT,
+            -- 소형차 합계 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT1 ELSE 0 END), 0) AS SMALL_CAR_TOTAL_CNT,
+            -- 중형차 합계 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT2 ELSE 0 END), 0) AS MEDIUM_CAR_TOTAL_CNT,
+            -- 대형차 합계 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS LARGE_CAR_TOTAL_CNT,
+            -- 총 합계 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS TOTAL_CAR_CNT,
+
+            -- 선불 경형차 금액
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN FARE6 ELSE 0 END), 0) AS PRE_COMPACT_CAR_AMT,
+            -- 선불 소형차 금액 
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN FARE1 ELSE 0 END), 0) AS PRE_SMALL_CAR_AMT,
+            -- 선불 중형차 금액 
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN FARE2 ELSE 0 END), 0) AS PRE_MEDIUM_CAR_AMT,
+            -- 선불 대형차 금액 
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS PRE_LARGE_CAR_AMT,
+            -- 선불 대수 금액 
+            NVL(SUM(CASE WHEN PAY_TYPE = '0' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS PRE_TOTAL_CAR_AMT,
+
+            -- 후불 경형차 금액
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN FARE6 ELSE 0 END), 0) AS POS_COMPACT_CAR_AMT,
+            -- 후불 소형차 금액
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN FARE1 ELSE 0 END), 0) AS POS_SMALL_CAR_AMT,
+            -- 후불 중형차 금액 
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN FARE2 ELSE 0 END), 0) AS POS_MEDIUM_CAR_AMT,
+            -- 후불 대형차 금액
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS POS_LARGE_CAR_AMT,
+            -- 후불 대수 금액
+            NVL(SUM(CASE WHEN PAY_TYPE = '1' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS POS_TOTAL_CAR_AMT,
+
+            -- 경형차 합계 금액(선불 + 후불)
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1') THEN FARE6 ELSE 0 END), 0) AS COMPACT_CAR_TOTAL_AMT,
+            -- 소형차 합계 금액(선불 + 후불)
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1') THEN FARE1 ELSE 0 END), 0) AS SMALL_CAR_TOTAL_AMT,
+            -- 중형차 합계 금액(선불 + 후불)
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1') THEN FARE2 ELSE 0 END), 0) AS MEDIUM_CAR_TOTAL_AMT,
+            -- 대형차 합계 금액(선불 + 후불)
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1') THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS LARGE_CAR_TOTAL_AMT,
+            -- 총 합계 금액(선불 + 후불)
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1') THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS TOTAL_CAR_AMT,
+
+            -- 경형차 감지 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT6 ELSE 0 END), 0) AS COMPACT_CAR_DTCT_CNT,
+            -- 소형차 감지대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT1 ELSE 0 END), 0) AS SMALL_CAR_DTCT_CNT,
+            -- 중형차 감지 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT2 ELSE 0 END), 0) AS MEDIUM_CAR_DTCT_CNT,
+            -- 대형차 감지 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS LARGE_CAR_DTCT_CNT,
+            -- 총 감지 대수
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') AND DC_DIV != '6' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS TOTAL_CAR_DTCT_CNT, -- PAY_TYPE: 지불구분(0:선불,1:후불,2:면제, 3:위반(미납))
+
+            -- 경형차 처리오차
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT6 ELSE 0 END), 0) - NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT6 ELSE 0 END), 0) AS COMPACT_CAR_MINUS_CNT,
+            -- 소형차 처리오차
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT1 ELSE 0 END), 0) - NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT1 ELSE 0 END), 0) AS SMALL_CAR_MINUS_CNT,
+            -- 중형차 처리오차
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT2 ELSE 0 END), 0) - NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT2 ELSE 0 END), 0) AS MEDIUM_CAR_MINUS_CNT,
+            -- 대형차 처리오차
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) - NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS LARGE_CAR_MINUS_CNT,
+            -- 총 처리오차
+            NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) - NVL(SUM(CASE WHEN PAY_TYPE IN ('0', '1', '2', '3') THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS TOTAL_CAR_MINUS_CNT,
+
+            -- 전용단말기 할인 경형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN CNT6 ELSE 0 END), 0) AS DC_COMPACT_CAR_CNT,
+            -- 전용단말기 할인 소형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN CNT1 ELSE 0 END), 0) AS DC_SMALL_CAR_CNT,
+            -- 전용단말기 할인 중형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN CNT2 ELSE 0 END), 0) AS DC_MEDIUM_CAR_CNT,
+            -- 전용단말기 할인 대형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS DC_LARGE_CAR_CNT,
+            -- 전용단말기 할인 합계 대수
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS DC_TOTAL_CAR_CNT,
+            -- 전용단말기 할인 경형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN FARE6 ELSE 0 END), 0) AS DC_COMPACT_CAR_AMT,
+            -- 전용단말기 할인 소형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN FARE1 ELSE 0 END), 0) AS DC_SMALL_CAR_AMT,
+            -- 전용단말기 할인 중형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN FARE2 ELSE 0 END), 0) AS DC_MEDIUM_CAR_AMT,
+            -- 전용단말기 할인 대형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS DC_LARGE_CAR_AMT,
+            -- 전용단말기 할인 합계 금액
+            NVL(SUM(CASE WHEN DC_DIV = '1' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS DC_TOTAL_CAR_AMT,
+
+            -- 출퇴근 할인 경형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN CNT6 ELSE 0 END), 0) AS COM_COMPACT_CAR_CNT,
+            -- 출퇴근 할인 소형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN CNT1 ELSE 0 END), 0) AS COM_SMALL_CAR_CNT,
+            -- 출퇴근 할인 중형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN CNT2 ELSE 0 END), 0) AS COM_MEDIUM_CAR_CNT,
+            -- 출퇴근 할인 대형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS COM_LARGE_CAR_CNT, 
+            -- 출퇴근 할인 합계 대수
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS COM_TOTAL_CAR_CNT,
+            -- 출퇴근 할인 경형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN FARE6 ELSE 0 END), 0) AS COM_COMPACT_CAR_AMT,
+            -- 출퇴근 할인 소형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN FARE1 ELSE 0 END), 0) AS COM_SMALL_CAR_AMT,
+            -- 출퇴근 할인 중형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN FARE2 ELSE 0 END), 0) AS COM_MEDIUM_CAR_AMT,
+            -- 출퇴근 할인 대형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS COM_LARGE_CAR_AMT,
+            -- 출퇴근 할인 합계 금액
+            NVL(SUM(CASE WHEN DC_DIV = '2' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS COM_TOTAL_CAR_AMT,
+
+            -- 화물차심야 할인 경형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN CNT6 ELSE 0 END), 0) AS FRE_COMPACT_CAR_CNT,
+            -- 화물차심야 할인 소형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN CNT1 ELSE 0 END), 0) AS FRE_SMALL_CAR_CNT,
+            -- 화물차심야 할인 중형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN CNT2 ELSE 0 END), 0) AS FRE_MEDIUM_CAR_CNT,
+            -- 화물차심야 할인 대형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS FRE_LARGE_CAR_CNT,
+            -- 화물차심야 할인 합계 대수
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS FRE_TOTAL_CAR_CNT,
+            -- 화물차심야 할인 경형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN FARE6 ELSE 0 END), 0) AS FRE_COMPACT_CAR_AMT,
+            -- 화물차심야 할인 소형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN FARE1 ELSE 0 END), 0) AS FRE_SMALL_CAR_AMT,
+            -- 화물차심야 할인 중형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN FARE2 ELSE 0 END), 0) AS FRE_MEDIUM_CAR_AMT,
+            -- 화물차심야 할인 대형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS FRE_LARGE_CAR_AMT,
+            -- 화물차심야 할인 합계 금액
+            NVL(SUM(CASE WHEN DC_DIV = '3' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS FRE_TOTAL_CAR_AMT,
+
+            -- 할증시간 할인 경형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN CNT6 ELSE 0 END), 0) AS SUR_COMPACT_CAR_CNT,
+            -- 할증시간 할인 소형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN CNT1 ELSE 0 END), 0) AS SUR_SMALL_CAR_CNT,
+            -- 할증시간 할인 중형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN CNT2 ELSE 0 END), 0) AS SUR_MEDIUM_CAR_CNT,
+            -- 할증시간 할인 대형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS SUR_LARGE_CAR_CNT,
+            -- 할증시간 할인 합계 대수
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS SUR_TOTAL_CAR_CNT,
+            -- 할증시간 할인 경형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN FARE6 ELSE 0 END), 0) AS SUR_COMPACT_CAR_AMT,
+            -- 할증시간 할인 소형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN FARE1 ELSE 0 END), 0) AS SUR_SMALL_CAR_AMT,
+            -- 할증시간 할인 중형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN FARE2 ELSE 0 END), 0) AS SUR_MEDIUM_CAR_AMT,
+            -- 할증시간 할인 대형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS SUR_LARGE_CAR_AMT,
+            -- 할증시간 할인 합계 금액
+            NVL(SUM(CASE WHEN DC_DIV = '4' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS SUR_TOTAL_CAR_AMT,
+
+            -- 부분납 경형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN CNT6 ELSE 0 END), 0) AS PPAY_COMPACT_CAR_CNT,
+            -- 부분납 소형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN CNT1 ELSE 0 END), 0) AS PPAY_SMALL_CAR_CNT,
+            -- 부분납 중형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN CNT2 ELSE 0 END), 0) AS PPAY_MEDIUM_CAR_CNT,
+            -- 부분납 대형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS PPAY_LARGE_CAR_CNT,
+            -- 부분납 합계 대수
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS PPAY_TOTAL_CAR_CNT,
+
+            -- 완납 경형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN CNT6 ELSE 0 END), 0) AS FPAY_COMPACT_CAR_CNT,
+            -- 완납 소형차 대수 
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN CNT1 ELSE 0 END), 0) AS FPAY_SMALL_CAR_CNT,
+            -- 완납 중형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN CNT2 ELSE 0 END), 0) AS FPAY_MEDIUM_CAR_CNT,
+            -- 완납 대형차 대수
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN CNT3 + CNT4 + CNT5 ELSE 0 END), 0) AS FPAY_LARGE_CAR_CNT,
+            -- 완납 합계 대수
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN CNT1 + CNT2 + CNT3 + CNT4 + CNT5 + CNT6 ELSE 0 END), 0) AS FPAY_TOTAL_CAR_CNT,
+
+            -- 부분납 경형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN FARE6 ELSE 0 END), 0) AS PPAY_COMPACT_CAR_AMT,
+            -- 부분납 소형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN FARE1 ELSE 0 END), 0) AS PPAY_SMALL_CAR_AMT,
+            -- 부분납 중형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN FARE2 ELSE 0 END), 0) AS PPAY_MEDIUM_CAR_AMT,
+            -- 부분납 대형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS PPAY_LARGE_CAR_AMT,
+            -- 부분납 합계 금액
+            NVL(SUM(CASE WHEN DC_DIV = '5' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS PPAY_TOTAL_CAR_AMT,
+
+            -- 완납 경형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN FARE6 ELSE 0 END), 0) AS FPAY_COMPACT_CAR_AMT,
+            -- 완납 소형차 금액 
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN FARE1 ELSE 0 END), 0) AS FPAY_SMALL_CAR_AMT,
+            -- 완납 중형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN FARE2 ELSE 0 END), 0) AS FPAY_MEDIUM_CAR_AMT,
+            -- 완납 대형차 금액
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN FARE3 + FARE4 + FARE5 ELSE 0 END), 0) AS FPAY_LARGE_CAR_AMT,
+            -- 완납 합계 금액
+            NVL(SUM(CASE WHEN DC_DIV = '6' THEN FARE1 + FARE2 + FARE3 + FARE4 + FARE5 + FARE6 ELSE 0 END), 0) AS FPAY_TOTAL_CAR_AMT
+
+        FROM PRIM_ETCWORKENDCAR
+        WHERE 1 = 1
+        <if test='IC_CODE != null and IC_CODE != ""'>
+            AND IC_CODE = #{IC_CODE}
+        </if>
+        <if test='WORK_DATE != null and WORK_DATE != ""'>
+            AND WORK_DATE = #{WORK_DATE}
+        </if>
+        <if test='WORK_NO != null and WORK_NO != ""'>
+            AND WORK_NO = #{WORK_NO}
+        </if>
+    </select>
+</mapper>

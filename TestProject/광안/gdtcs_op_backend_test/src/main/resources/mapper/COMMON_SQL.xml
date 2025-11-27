@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.common.mapper.CommonMapper">
+
+    <select id="getImagePath" resultType="map">
+    /* Mapper ID: getImagePath 리포트 결재 이미지 */
+        SELECT
+            PI.PRG_CODE,
+            PI.RPT_APP_CODE,
+            RP.IMG_PTH
+        FROM BASE_PROGINFO PI, BASE_REPORTIMG RP
+        WHERE 1 = 1
+        AND PI.RPT_APP_CODE = RP.RPT_APP_CODE(+)
+        AND PI.PRG_CODE = #{PRG_CODE}
+    </select>
+
+	<select id="selectFare" resultType="hashMap">
+    SELECT 
+        *
+    FROM
+        BASE_REVNO A, BASE_FAREINFO B, BASE_EXMT_FAREINFO C, BASE_DIFFTOLLINFO D, BASE_HRDCRATE E
+    WHERE 1 = 1
+    AND A.IC_CODE = #{IC_CODE}
+    AND A.IC_CODE = B.IC_CODE AND B.IC_CODE = C.IC_CODE AND C.IC_CODE = D.IC_CODE AND D.IC_CODE = E.IC_CODE 
+    AND E.DATE_DIV = '0' AND E.LANE_DIV = '1'
+	</select>
+	
+	<select id="selectRevNo" resultType="hashMap">
+	SELECT 
+		IC_CODE
+		,BASE_MDFY_DT
+		,BASE_APPLY_DT
+		,BASE_REV_NO
+		,WORKER_MDFY_DT
+		,WORKER_APPLY_DT
+		,WORKER_REV_NO
+		,FARE_MDFY_DT
+		,FARE_APPLY_DT
+		,FARE_REV_NO
+		,BL_DC_MDFY_DT
+		,BL_DC_APPLY_DT
+		,BL_DC_REV_NO
+		,HLDAY_MDFY_DT
+		,HLDAY_APPLY_DT
+		,HLDAY_REV_NO
+		,CMT_MDFY_DT
+		,CMT_APPLY_DT
+		,CMT_REV_NO
+		,BL_ECARD_MDFY_DT
+		,BL_ECARD_APPLY_DT
+		,BL_ECARD_REV_NO
+		,CONT_DC_MDFY_DT
+		,CONT_DC_APPLY_DT
+		,CONT_DC_REV_NO
+		,BL_TCARD_MDFY_DT
+		,BL_TCARD_APPLY_DT
+		,BL_TCARD_REV_NO
+		,HR_DC_MDFY_DT
+		,HR_DC_APPLY_DT
+		,HR_DC_REV_NO
+		,BL_OBU_MDFY_DT
+		,BL_OBU_APPLY_DT
+		,BL_OBU_REV_NO
+		,HLDAYEXMT_MDFY_DT
+		,HLDAYEXMT_APPLY_DT
+		,HLDAYEXMT_REV_NO
+		,IC_DIV
+		,PL_ECARD_MDFY_DT
+		,PL_ECARD_APPLY_DT
+		,PL_ECARD_REV_NO
+		,PL_ECO_MDFY_DT
+		,PL_ECO_APPLY_DT
+		,PL_ECO_REV_NO
+		,DIFF_TOLL_MDFY_DT
+		,DIFF_TOLL_APPLY_DT
+		,DIFF_TOLL_REV_NO
+	FROM BASE_REVNO 
+	WHERE IC_CODE = #{IC_CODE}
+	</select>
+
+    <resultMap id="reportImageMap" type="hashMap">
+        <result column="IMG_DATA" property="IMG_DATA" jdbcType="BLOB" typeHandler="org.apache.ibatis.type.ByteArrayTypeHandler"/>
+    </resultMap>
+
+
+	<select id="selectLogoImage" resultMap="reportImageMap">
+        SELECT
+            IMG_DATA 
+        FROM BASE_REPORTIMG
+        WHERE 1 = 1
+        AND IC_CODE = '094'
+        AND RPT_APP_CODE = '7'
+	</select>
+</mapper>

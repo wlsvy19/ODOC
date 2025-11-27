@@ -1,0 +1,2160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gdtcs.office.mapper.OfficeMapper">
+
+	<!-- (공통)심사처리- PRIM_HANDCARNO 처리차량번호, 비고(위반심사 제외) 업데이트 -->	
+	<update id="updateTablePrimHandcarno" statementType="CALLABLE" parameterType="hashMap">
+	/* Mapper ID: updateTablePrimHandcarno */
+		DECLARE
+			v_UPDATE_CNT INTEGER := 0;
+		BEGIN
+		<foreach collection="data" item="item">
+		UPDATE PRIM_HANDCARNO
+		<choose>
+		<when test="requestNote != null and requestNote != ''">SET NOTE = #{requestNote}, ADMIN_ID = #{adminId}</when>
+		<otherwise>SET HAND_CAR_NO = #{item.NEW_CAR_NO}, NOTE = #{item.EXM_NOTE}, ADMIN_ID = #{adminId}</otherwise>
+		</choose>
+		WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO};
+		v_UPDATE_CNT := v_UPDATE_CNT + 1;
+		</foreach>
+			#{updateRows, jdbcType=INTEGER, mode=OUT} := v_UPDATE_CNT;
+		END;
+	</update>
+	
+	<!-- (공통)일마감 체크 -->
+	<select id="selectTableProcDayfininfo" resultType="Integer">
+	/* Mapper ID: selectTableProcDayfininfo */
+		SELECT COUNT(*) AS FIN_INFO FROM PROC_DAYFININFO 
+		WHERE IC_CODE = #{item.IC_CODE}
+		  AND WORK_DATE = #{item.WORK_DATE}
+	</select>
+	
+	<!-- 위반심사 목록 조회 -->
+	<select id="selectViolationList" resultType="hashMap">
+	/* Mapper ID: selectViolationList */
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO, A.OCC_DT DESC) AS ROW_NUMBER
+			,A.IC_CODE
+			,FC_CHG_ICNM(A.IC_CODE) AS IC_CODE_DP
+			,A.WORK_DATE
+			,FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+			,A.WORK_NO
+			,A.HAND_SNO
+			,A.OCC_DT
+			,FC_CHG_FORMAT(A.OCC_DT, '11') AS OCC_DT_DP
+			,A.VLTN_CODE
+			,FC_CHG_CODEDP('057', A.VLTN_CODE) AS VLTN_CODE_DP
+			,B.OBU_CAR_TYPE
+			,FC_CHG_CODEDP('171', B.OBU_CAR_TYPE) AS OBU_CAR_TYPE_DP
+			,B.MAIN_PAY_DIV
+			,FC_CHG_CODEDP('056', B.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+			,A.ECARD_PAY_DIV
+			,FC_CHG_CODEDP('070', A.ECARD_PAY_DIV) AS ECARD_PAY_DIV_DP
+			,B.ORIGIN_PASS_FARE
+			,FC_CHG_FORMAT(B.ORIGIN_PASS_FARE, '4') AS ORIGIN_PASS_FARE_DP
+			,B.PASS_FARE
+			,FC_CHG_FORMAT(B.PASS_FARE, '4') AS PASS_FARE_DP
+			,C.WTHD_FARE
+			,FC_CHG_FORMAT(C.WTHD_FARE, '4') AS WTHD_FARE_DP
+			,A.ECARD_TYPE
+			,FC_CHG_CODEDP('071',A.ECARD_TYPE) AS ECARD_TYPE_DP
+			,A.CARD_NO
+			,FC_CHG_FORMAT(A.CARD_NO, '3') AS CARD_NO_DP
+			,A.ECARD_ATT
+			,FC_CHG_CODEDP('290', UPPER(A.ECARD_ATT)) AS ECARD_ATT_DP
+			,A.OBU_ATT
+			,FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) AS OBU_ATT_DP
+			,B.CRTF_STAT
+			,FC_CHG_CODEDP('282', B.CRTF_STAT) AS CRTF_STAT_DP
+			,B.BS_EXM_TYPE
+			,FC_CHG_CODEDP('293', B.BS_EXM_TYPE) AS BS_EXM_TYPE_DP
+			,B.BS_EXM_TYPE_DTL
+			,FC_CHG_CODEDP('292', B.BS_EXM_TYPE_DTL) AS BS_EXM_TYPE_DTL_DP
+			,B.BS_EXM_TYPE_DIV
+			,FC_CHG_CODEDP('294', B.BS_EXM_TYPE_DIV) AS BS_EXM_TYPE_DIV_DP
+			,E.EXMPTN_TYPE
+			
+			,CASE WHEN E.EXMPTN_TYPE IS NOT NULL THEN 'Y'
+				  WHEN E.EXMPTN_TYPE IS NULL THEN 'N'
+				  ELSE '-' END AS BFHD_REG_YN --사전등록여부
+			,A.VLTN_HAND_DIV
+			,FC_CHG_CODEDP('800', A.VLTN_HAND_DIV) AS VLTN_HAND_DIV_DP
+			,A.HAND_DT
+			,FC_CHG_FORMAT(A.HAND_DT, '11') AS HAND_DT_DP
+			,A.HAND_TYPE
+			,FC_CHG_CODEDP('304', A.HAND_TYPE) AS HAND_TYPE_DP
+			,A.VLTN_PAY_TYPE
+			,FC_CHG_CODEDP('132', A.VLTN_PAY_TYPE) AS VLTN_PAY_TYPE_DP
+			,A.EXMT_DTL_TYPE 
+			,FC_CHG_CODEDP('805', A.EXMT_DTL_TYPE) AS EXMT_DTL_TYPE_DP --처리면제상세
+			,B.HAND_CAR_TYPE AS ORIGIN_CAR_TYPE
+			,D.HAND_CAR_TYPE
+			,FC_CHG_CODEDP('171', D.HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+			,D.HAND_CAR_NO
+			,A.HAND_ECARD_NO
+			,FC_CHG_FORMAT(A.HAND_ECARD_NO, '3') AS HAND_ECARD_NO_DP
+			
+			,A.CPD_DIV
+			,FC_CHG_CODEDP('049', A.CPD_DIV) AS CPD_DIV_DP
+			,A.CPD_FARE
+			,FC_CHG_FORMAT(A.CPD_FARE, '4') AS CPD_FARE_DP
+			,CASE WHEN A.VLTN_HAND_DIV = 0 THEN B.DIFF_DIV
+			WHEN A.VLTN_HAND_DIV = 1 THEN A.DIFF_DIV 
+			END AS DIFF_DIV --심사전 : 원시DIFF_DIV 심사후 : 위반DIFF_DIV
+			,CASE WHEN A.VLTN_HAND_DIV = 0 THEN FC_CHG_CODEDP('049', B.DIFF_DIV)
+			WHEN A.VLTN_HAND_DIV = 1 THEN FC_CHG_CODEDP('049', A.DIFF_DIV) 
+			END AS DIFF_DIV_DP
+			,A.DIFF_FARE
+			,FC_CHG_FORMAT(A.DIFF_FARE, '4') AS DIFF_FARE_DP
+			
+			,B.CPD_FARE AS ORIGIN_CPD_FARE
+			,B.DIFF_FARE AS ORIGIN_DIFF_FARE
+			,B.DIFF_DIV AS ORIGIN_DIFF_DIV
+			,FC_CHG_CODEDP('049', B.DIFF_DIV) AS ORIGIN_DIFF_DIV_DP
+			
+			,A.OFC_EXPT_PAY_FARE
+			,FC_CHG_FORMAT(A.OFC_EXPT_PAY_FARE, '4') AS OFC_EXPT_PAY_FARE_DP
+			,A.SUM_OFC_PAY_FARE
+			,FC_CHG_FORMAT(A.SUM_OFC_PAY_FARE, '4') AS SUM_OFC_PAY_FARE_DP
+			,A.PAY_BEF_BALC
+			,FC_CHG_FORMAT(A.PAY_BEF_BALC, '4') AS PAY_BEF_BALC_DP
+			,C.LPAY_CRCT_YN
+			,C.CRCT_PAY_FARE
+			,FC_CHG_FORMAT(C.CRCT_PAY_FARE, '4') AS CRCT_PAY_FARE_DP
+			,B.ECARD_STAT
+			,FC_CHG_CODEDP('291', B.ECARD_STAT) AS ECARD_STAT_DP
+			,A.ECARD_CAR_NO
+			,B.OBU_STAT
+			,FC_CHG_CODEDP('282', B.OBU_STAT) AS OBU_STAT_DP
+			,B.OBU_TYPE
+			,FC_CHG_CODEDP('283', B.OBU_TYPE) AS OBU_TYPE_DP
+			,B.OBU_NO
+			,CASE WHEN B.OBU_NO = '0000000000000000' THEN '' ELSE FC_CHG_FORMAT(B.OBU_NO, '3') END AS OBU_NO_DP
+			,A.OBU_CAR_NO
+			,A.WORK_DIV
+			,FC_CHG_CODEDP('803', B.WORK_DIV) AS WORK_DIV_DP
+			
+
+			,A.TRNRCP_RSLT
+			,A.PRE_TRNRCP_DT
+			
+			
+			,A.BEIC_IC_CODE
+			,A.BEIC_HAND_DT
+			,CASE WHEN A.BEIC_HAND_DT = '00000000000000' THEN '0000-00-00 00:00:00'
+            	ELSE FC_CHG_FORMAT(A.BEIC_HAND_DT, '11') 
+            	END       AS BEIC_HAND_DT_DP
+			,A.BEIC_WORK_NO
+			,A.BEIC_HAND_SNO
+			,A.BEIC_HAND_TYPE
+			,FC_CHG_CODEDP('304', A.BEIC_HAND_TYPE) AS BEIC_HAND_TYPE_DP
+			,A.BEIC_CAR_TYPE
+			,FC_CHG_CODEDP('171', A.BEIC_CAR_TYPE) AS BEIC_CAR_TYPE_DP
+			
+			,A.ADMIN_ID
+			,FC_CHG_WORKERNM(A.IC_CODE, A.ADMIN_ID) AS ADMIN_NM
+			,A.CUST_NM
+			,A.CUST_ZIP_CODE
+			,A.CUST_TEL
+			,A.CUST_ADDR
+			,A.NOTE	
+			
+			,A.OFC_PASS_FARE
+			,FC_CHG_FORMAT(A.OFC_PASS_FARE, '4') AS OFC_PASS_FARE_DP
+			
+			,F.LOC_CO_DIV --위치조회기관구분 0:도로공사 1:광안대교
+            ,FC_CHG_CODEDP('806', F.LOC_CO_DIV) AS LOC_CO_DIV_DP
+            
+            ,B.LOC_SCAN_YN --위치조회 대상 분류 여부 Y만 일괄처리 가능
+			
+			
+		FROM 
+			PRIM_ETCVLTN A
+			,PRIM_ETCHAND B
+			,PRIM_ECARDHAND C
+	        ,PRIM_HANDCARNO D
+	        ,MQNIC.V_BFHD_REG_VHCL E
+	        --,V_BFHD_REG_VHCL E
+	        ,PROC_LOC_EXMTHAND F
+
+		WHERE 
+			A.IC_CODE = B.IC_CODE(+)
+	        AND A.WORK_DATE = B.WORK_DATE(+)
+	        AND A.WORK_NO = B.WORK_NO(+)
+	        AND A.HAND_SNO = B.HAND_SNO(+)
+	        AND A.IC_CODE = C.IC_CODE(+)
+	        AND A.WORK_DATE = C.WORK_DATE(+)
+	        AND A.WORK_NO = C.WORK_NO(+)
+	        AND A.HAND_SNO = C.HAND_SNO(+)
+	        AND A.IC_CODE = D.IC_CODE(+)
+	        AND A.WORK_DATE = D.WORK_DATE(+)
+	        AND A.WORK_NO = D.WORK_NO(+)
+	        AND A.HAND_SNO = D.HAND_SNO(+)
+	        AND D.HAND_CAR_NO = E.VHCL_NO(+)
+	        AND A.IC_CODE = F.IC_CODE(+)
+	        AND A.WORK_DATE = F.WORK_DATE(+)
+	        AND A.WORK_NO = F.WORK_NO(+)
+	        AND A.HAND_SNO = F.HAND_SNO(+)
+	        
+	        AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+	        AND A.IC_CODE = #{IC_CODE}
+	        AND ((B.IMG_TYPE != 0 AND B.IMG_TYPE_DTL != 0) OR (B.IMG_TYPE = 1 AND B.IMG_TYPE_DTL = 0))
+
+	        <if test='WORK_NO != null and WORK_NO != "" '>
+	        	AND A.WORK_NO = #{WORK_NO}
+	        </if>
+	        <if test='HAND_SNO != null and HAND_SNO != "" '>
+	        	AND A.HAND_SNO = #{HAND_SNO}
+	        </if>
+	        <if test='HAND_CAR_NO != null and HAND_CAR_NO != "" '>
+	        	AND D.HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'
+	        </if>
+	        <if test='HAND_TYPE != null and HAND_TYPE != "" '>
+	        	AND A.HAND_TYPE = #{HAND_TYPE}
+	        </if>
+	        <if test='VLTN_PAY_TYPE != null and VLTN_PAY_TYPE != "" '>
+	        	AND A.VLTN_PAY_TYPE = #{VLTN_PAY_TYPE}
+	        </if>
+	        <if test='HAND_CAR_TYPE != null and HAND_CAR_TYPE != "" '>
+	        	AND D.HAND_CAR_TYPE = #{HAND_CAR_TYPE}
+	        </if>
+	        <if test='VLTN_HAND_DIV != null and VLTN_HAND_DIV != "" '>
+	        	AND A.VLTN_HAND_DIV = #{VLTN_HAND_DIV}
+	        </if>
+	        <if test='VLTN_CODE != null and VLTN_CODE != "" '>
+	        	AND A.VLTN_CODE = #{VLTN_CODE}
+	        </if>
+	        <if test='BS_EXM_TYPE_DTL != null and BS_EXM_TYPE_DTL != "" '>
+	        	AND B.BS_EXM_TYPE_DTL = #{BS_EXM_TYPE_DTL}
+	        </if>
+	        <if test='LOC_CO_DIV != null and LOC_CO_DIV != "" '>
+	        	AND F.LOC_CO_DIV = #{LOC_CO_DIV}
+	        </if>
+	        <if test='EXMT_DTL_TYPE != null and EXMT_DTL_TYPE != "" '>
+	        	AND A.EXMT_DTL_TYPE = #{EXMT_DTL_TYPE}
+	        </if>
+	        <if test='BFHD_REG_YN == "Y" '>
+	        	 AND E.EXMPTN_TYPE IS NOT NULL
+	        </if>
+	        <if test='BFHD_REG_YN == "N" '>
+	        	 AND E.EXMPTN_TYPE IS NULL
+	        </if>
+
+
+	        
+		ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO
+
+	</select>
+	
+	<!-- 위반심사이력 목록 조회 -->
+	<select id="selectViolationHistList" resultType="hashMap">
+	/* Mapper ID: selectViolationHistList */
+		SELECT 
+			ROW_NUMBER() OVER (ORDER BY IC_CODE, WORK_DATE, WORK_NO, HAND_SNO, MDFY_SNO) AS ROW_NUMBER
+			,IC_CODE
+			,WORK_DATE
+			,WORK_NO
+			,HAND_SNO
+			
+			,MDFY_SNO
+			,HAND_DT
+			,FC_CHG_FORMAT(HAND_DT, '11') AS HAND_DT_DP
+			,HAND_TYPE
+			,FC_CHG_CODEDP('304', HAND_TYPE) AS HAND_TYPE_DP
+			,VLTN_PAY_TYPE
+			,FC_CHG_CODEDP('132', VLTN_PAY_TYPE) AS VLTN_PAY_TYPE_DP
+			,OFC_EXPT_PAY_FARE
+			,FC_CHG_FORMAT(OFC_EXPT_PAY_FARE, '4') AS OFC_EXPT_PAY_FARE_DP
+			,SUM_OFC_PAY_FARE
+			,FC_CHG_FORMAT(SUM_OFC_PAY_FARE, '4') AS SUM_OFC_PAY_FARE_DP
+			,CPD_DIV
+			,FC_CHG_CODEDP('049', CPD_DIV) AS CPD_DIV_DP
+			,DIFF_DIV
+			,FC_CHG_CODEDP('049', DIFF_DIV) AS DIFF_DIV_DP
+			,HAND_ECARD_NO
+			,FC_CHG_FORMAT(HAND_ECARD_NO, '3') AS HAND_ECARD_NO_DP
+			,FC_CHG_FORMAT(WORK_DATE, '1') AS WORK_DATE_DP
+			,NOTE
+			,ADMIN_ID
+			,FC_CHG_WORKERNM(IC_CODE, ADMIN_ID) AS ADMIN_NM
+			,ELCARD_PAY_DIV
+			,ELCARD_EXMT_DIV
+			,HAND_CAR_TYPE
+			,FC_CHG_CODEDP('171', HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+			,HAND_CAR_NO
+			,CAR_DIV
+			,FC_CHG_CODEDP('131', CAR_DIV) AS CAR_DIV_DP
+			,OFC_EXPT_PAY_FARE
+			,AGR_DATE
+			,CUST_NM
+			,CUST_ZIP_CODE
+			,CUST_TEL
+			,CUST_ADDR
+			,APP_NO
+			,NOTE
+
+			
+		FROM PROC_ETCVLTNHIST
+		WHERE IC_CODE = #{IC_CODE}
+			AND WORK_DATE = #{WORK_DATE}
+			AND WORK_NO = #{WORK_NO}
+			AND HAND_SNO = #{HAND_SNO}
+	</select>
+	
+	<!-- 위반심사 일마감 처리 여부 확인  -->
+	<select id="checkDayFin" resultType="hashMap">
+	/* Mapper ID: checkDayFin */
+	SELECT COUNT(*) CNT  
+    FROM PROC_DAYFININFO  
+    WHERE 
+      <foreach collection="list" item="item" separator=" OR ">
+        (IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE})
+      </foreach>
+	</select>
+
+	<!-- 위반심사 경차PL목록 확인  -->
+    <select id="selectLcarPl" resultType="hashMap">
+    /* Mapper ID: selectLcarPl */
+    SELECT LCAR_NO
+    FROM BASE_LCARPL
+    WHERE 
+      <foreach collection="list" item="item" separator=" OR ">
+        TRIM(LCAR_NO) = TRIM(#{item.HAND_CAR_NO})
+      </foreach>
+	</select>
+	
+	<!-- 위반심사처리  -->
+	<resultMap id="resultViolationAudit" type="hashMap"/>
+    <update id="updateViolationAudit" statementType="CALLABLE" parameterType="Map">
+	/* Mapper ID: updateVlolationAudit */
+	{
+		CALL SP_AUDIT_VIOLATION(
+			#{IC_CODE, mode=IN, jdbcType=VARCHAR}, 
+			#{WORK_DATE, mode=IN, jdbcType=VARCHAR},
+			#{WORK_NO, mode=IN, jdbcType=VARCHAR},
+			#{HAND_SNO, mode=IN, jdbcType=NUMERIC},
+			#{HAND_DT, mode=IN, jdbcType=VARCHAR},
+			
+			#{HAND_CAR_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{HAND_CAR_NO, mode=IN, jdbcType=VARCHAR},
+			#{HAND_ECARD_NO, mode=IN, jdbcType=VARCHAR},
+			#{CUST_NM, mode=IN, jdbcType=VARCHAR},
+			#{CUST_TEL, mode=IN, jdbcType=VARCHAR},
+			#{CUST_ADDR, mode=IN, jdbcType=VARCHAR},
+			#{CUST_ZIP_CODE, mode=IN, jdbcType=VARCHAR},
+			#{NOTE, mode=IN, jdbcType=VARCHAR},
+			#{ADMIN_ID, mode=IN, jdbcType=VARCHAR},
+			
+			#{HAND_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{VLTN_PAY_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{EXMT_DTL_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{OFC_PASS_FARE, mode=IN, jdbcType=NUMERIC},
+			#{CPD_DIV, mode=IN, jdbcType=VARCHAR},
+			#{CPD_FARE, mode=IN, jdbcType=NUMERIC},
+			#{DIFF_DIV, mode=IN, jdbcType=VARCHAR},
+			#{DIFF_FARE, mode=IN, jdbcType=NUMERIC},
+			#{OFC_EXPT_PAY_FARE, mode=IN, jdbcType=NUMERIC},
+			#{SUM_OFC_PAY_FARE, mode=IN, jdbcType=NUMERIC},
+			#{LPAY_CRCT_YN, mode=IN, jdbcType=VARCHAR},
+			#{CRCT_PAY_FARE, mode=IN, jdbcType=NUMERIC},
+			
+			#{WTHD_FARE, mode=IN, jdbcType=NUMERIC},
+			
+		
+			#{output, mode=OUT, jdbcType=CURSOR, javaType=ResultSet, resultMap=resultViolationAudit}
+		)
+	}
+	</update>
+	
+	<!-- 위반심사 전자카드BL확인  -->
+    <select id="selectEcardBl" resultType="hashMap">
+	/* Mapper ID: selectEcardBl */
+	SELECT MGT_SNO, ECARD_NO, BL_RES, CODE
+	FROM (
+	    SELECT MGT_SNO, ECARD_NO, BL_RES, '-' AS CODE,
+	           ROW_NUMBER() OVER (PARTITION BY ECARD_NO ORDER BY MGT_SNO DESC) AS RN
+	    FROM BASE_ECARDBL
+	    WHERE 
+	    <foreach collection="list" item="item" separator=" OR ">
+			ECARD_NO = #{item.CARD_NO}
+		</foreach>
+	)
+	WHERE RN = 1
+	
+	UNION ALL
+	
+	SELECT MGT_SNO, ECARD_NO, BL_RES, CODE
+	FROM (
+	    SELECT MGT_SNO, ECARD_NO, BL_RES, CODE,
+	           ROW_NUMBER() OVER (PARTITION BY ECARD_NO ORDER BY MGT_SNO DESC) AS RN
+	    FROM BASE_ECARDBLCHG
+	    WHERE 
+	    <foreach collection="list" item="item" separator=" OR ">
+			ECARD_NO = #{item.CARD_NO}
+		</foreach>
+	)
+	WHERE RN = 1
+	</select>
+	
+	<!-- 위반심사 면제마스터PL확인  -->
+    <select id="selectExemptPl" resultType="hashMap">
+	/* Mapper ID: selectExemptPl */
+	SELECT EXEMPT_YN, EXEMPT_STATUS, 
+	       GDTCS.FC_CHG_CODEDP('292', EXEMPT_STATUS) AS EXEMPT_STATUS_DP, 
+	       TO_CHAR(EXP_DT, 'YYYYMMDDHH24MISS') AS EXP_DT,
+	       CAR_NO AS HAND_CAR_NO,
+	       RN
+	FROM (
+	    SELECT EXEMPT_YN, EXEMPT_STATUS, 
+	           GDTCS.FC_CHG_CODEDP('292', EXEMPT_STATUS) AS EXEMPT_STATUS_DP, 
+	           TO_DATE(NVL(TO_CHAR(EXP_DT, 'YYYYMMDD'),'29991231') || '235959', 'YYYYMMDDHH24MISS') AS EXP_DT,
+	           CAR_NO,
+	           ROW_NUMBER() OVER (
+	               PARTITION BY CAR_NO 
+	               ORDER BY 
+	                   CASE 
+	                       WHEN EXEMPT_YN = 'Y' THEN 1 -- Y 우선 정렬
+	                       ELSE 2 
+	                   END, 
+	                   EXP_DT DESC                        -- 최신 EXP_DT 우선
+	           ) AS RN
+	    FROM 
+	    	GA_EXEM.V_EXEMPT_STATUS_ALL
+	    	--V_EXEMPT_STATUS_ALL
+	    WHERE 
+	        <foreach collection="list" item="item" separator="OR">
+	           CAR_NO = #{item.HAND_CAR_NO}
+	        </foreach>
+	    
+	) T
+	ORDER BY RN
+
+	</select>
+	
+	<!-- 위반심사 고객정보조회  -->
+    <select id="selectMemberInfo" resultType="hashMap">
+	/* Mapper ID: selectMemberInfo */
+	SELECT VHCL_NO , MBR_NM , MBR_ID , EXMPTN_TYPE, GDTCS.FC_CHG_CODEDP('292', EXMPTN_TYPE) AS EXMPTN_TYPE_DP
+	
+	FROM MQNIC.V_REG_VHCL
+	
+	WHERE MBR_ID = (
+		SELECT MBR_ID 
+		FROM MQNIC.V_REG_VHCL
+		WHERE 
+			<foreach collection="list" item="item" separator="OR">
+	           VHCL_NO = #{item.HAND_CAR_NO}
+	        </foreach>
+	)
+
+	</select>
+	
+	<!-- 위반심사/차량처리내역조회 - 위치정보조회(단 건) -->
+	<select id="selectLocationSearchResultDetail" resultType="Map">
+	/* Mapper ID: selectLocationSearchResultDetail */
+		SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO 	--PK
+			, A.LOC_CO_DIV
+			, FC_CHG_CODENM('806', A.LOC_CO_DIV) AS LOC_CO_DIV_DP
+			, FC_CHG_FORMAT(A.LC_HAND_DATE || A.LC_HAND_TIME, '11') AS LC_HAND_DT_DP
+			, FC_CHG_CODENM('140', A.LC_INFO_RSLT) || '(' || FC_CHG_CODENM('144', B.RSLT_NOTE) || ')' AS LC_INFO_RSLT_DP
+			, FC_CHG_CODENM('144', B.RSLT_NOTE) AS LC_RSLT_NOTE_NM
+			, FC_CHG_CODENM('140', A.LC_INFO_RSLT) AS LC_INFO_RSLT_NM
+			, (
+				SELECT DECODE(ARS_CRTF_TYPE, '01', '성공', '02', '패스', '03', '실패', ARS_CRTF_TYPE)
+				FROM PROC_LOC_LOCSEARCH
+				WHERE IC_CODE = #{IC_CODE} AND WORK_DATE = #{WORK_DATE} AND WORK_NO = #{WORK_NO} AND HAND_SNO = #{HAND_SNO}
+			)  AS ARS_CRTF_TYPE_DP
+			, B.RSLT_NOTE
+			, FC_CHG_CODENM('144', B.RSLT_NOTE) AS RSLT_NOTE_DP
+			<if test='LOC_CO_DIV == 0'>
+			, FC_CHG_FORMAT(A.WCARD_NO, '3') WCARD_NO_DP
+			, DECODE(A.ECARD_NO , A.WCARD_NO, '일치', '불일치') AS MATCH_CARD_NO
+			, FC_CHG_FORMAT((SELECT MAX(I.OBU_NO) KEEP(DENSE_RANK FIRST ORDER BY I.MDFY_SNO DESC) FROM BASE_LOC_INSTCUST I WHERE I.WCARD_NO = A.WCARD_NO), 3) DC_OBU_NO_DP
+			, DECODE(A.OBU_NO, (SELECT MAX(I.OBU_NO) KEEP(DENSE_RANK FIRST ORDER BY I.MDFY_SNO DESC) FROM BASE_LOC_INSTCUST I WHERE I.WCARD_NO = A.WCARD_NO), '일치', '불일치') AS MATCH_OBU_NO
+			, A.INST_CAR_NO
+			, A.EXMT_NOT_RES
+			, FC_CHG_CODEDP('142', A.EXMT_NOT_RES) AS EXMT_NOT_RES_DP
+			</if>
+		FROM PROC_LOC_EXMTHAND A, PROC_LOC_LOCSEARCH B
+		WHERE A.IC_CODE = #{IC_CODE}
+			AND A.WORK_DATE = #{WORK_DATE}
+			AND A.WORK_NO = #{WORK_NO}
+			AND A.HAND_SNO = #{HAND_SNO}
+			AND A.IC_CODE = B.IC_CODE(+)
+			AND A.WORK_DATE = B.WORK_DATE(+)
+			AND A.WORK_NO = B.WORK_NO(+)
+			AND A.HAND_SNO = B.HAND_SNO(+)
+	</select>
+	
+	<!-- 위반심사 - 위치정보 저장 처리  -->
+	<update id="updateLocationCorrectionBs" parameterType="hashMap">
+	/* Mapper ID: updateLocationCorrectionBs */
+		UPDATE PROC_LOC_EXMTHAND
+		SET EXMT_HAND_STAT = DECODE(#{requestId}, '3', '3', '2')
+		  , EXMT_HAND_TYPE = DECODE(#{requestId}, '4', '2', '3')
+		  , HAND_CAR_NO = DECODE(#{requestId}, '4', HAND_CAR_NO, #{item.HAND_CAR_NO})
+		WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO}
+	</update>
+	
+	<!-- 영상심사 목록조회 -->
+	<select id="selectImageList" resultType="hashMap">
+	/* Mapper ID: selectImageList */
+		SELECT ROW_NUMBER() OVER (ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO) ROW_NUMBER,
+			A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO, -- PK
+			FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP,
+			FC_CHG_ICNM_LANE(A.IC_CODE, SUBSTR(A.WORK_NO, 0, 2)) LANE_DP,
+			A.HAND_DT,
+			FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP,
+			A.ORIGIN_VLTN_CODE,
+			FC_CHG_CODEDP('057', A.ORIGIN_VLTN_CODE) ORIGIN_VLTN_CODE_DP,
+			A.VLTN_CODE,
+			FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP,
+			A.IMG_NO,
+			A.IMG_TYPE, 			-- 2: 차번불일치영상
+			A.IMG_TYPE_DTL,			-- 영상심사구분코드
+			FC_CHG_CODENM('137', A.IMG_TYPE_DTL) IMG_TYPE_DTL_DP,
+			A.HAND_CAR_TYPE AS CAR_TYPE, 						-- 처리차종(차로)
+			FC_CHG_CODEDP('171', A.HAND_CAR_TYPE) CAR_TYPE_DP,
+			B.HAND_CAR_TYPE, 									-- 처리차종(확정)
+			FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP,
+			NVL(A.CAR_NO, A.CONF_CAR_NO) AS CAR_NO, 		-- 차량번호(차로)
+			B.REP_CAR_NO,								-- 차량번호(재인식)
+			B.HAND_CAR_NO,								-- 차량번호(확정)
+			A.IMG_VLTN_MAKE_YN
+		FROM PRIM_ETCHAND A, PRIM_HANDCARNO B
+		WHERE A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+) 
+		AND A.HAND_SNO = B.HAND_SNO(+) 
+		AND A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.WORK_NO = DECODE(#{WORK_NO}, '', A.WORK_NO, #{WORK_NO})
+		AND A.IMG_TYPE = '2' -- 불일치
+		AND A.IMG_TYPE_DTL = DECODE(#{IMG_TYPE_DTL}, '', A.IMG_TYPE_DTL, #{IMG_TYPE_DTL})
+		<if test="NON_HAND_CAR_NO == true">
+		AND (B.HAND_CAR_NO = '' OR B.HAND_CAR_NO IS NULL)
+		</if>
+		ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO
+	</select>
+	
+	<!-- 영상심사 내역조회(단 건) -->
+	<select id="selectImageDetail" resultType="Map">
+	/* Mapper ID: selectImageDetail */
+		SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO, -- PK
+			FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP,
+			FC_CHG_ICNM_LANE(A.IC_CODE, SUBSTR(A.WORK_NO, 0, 2)) LANE_DP,
+			A.HAND_DT,
+			FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP,
+			A.ORIGIN_VLTN_CODE,
+			FC_CHG_CODEDP('057', A.ORIGIN_VLTN_CODE) ORIGIN_VLTN_CODE_DP,
+			A.VLTN_CODE,
+			FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP,  
+			A.IMG_NO,
+			A.IMG_TYPE, 			-- 2: 차번불일치영상
+			A.IMG_TYPE_DTL,			-- 영상심사구분코드
+			FC_CHG_CODEDP('137', A.IMG_TYPE_DTL) IMG_TYPE_DTL_DP,
+			A.HAND_CAR_TYPE AS CAR_TYPE, 						-- 처리차종(차로)
+			FC_CHG_CODEDP('171', A.HAND_CAR_TYPE) CAR_TYPE_DP,
+			B.HAND_CAR_TYPE, 									-- 처리차종(확정)
+			FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP,
+			NVL(A.CAR_NO, A.CONF_CAR_NO) AS CAR_NO, 			-- 차량번호(차로)
+			B.REP_CAR_NO,										-- 차량번호(재인식)
+			B.HAND_CAR_NO,										-- 차량번호(확정)
+			A.OBU_CAR_NO,										-- 차량번호(확정)
+			A.ECARD_CAR_NO,										-- 차량번호(확정)
+			A.IMG_VLTN_MAKE_YN
+		FROM PRIM_ETCHAND A, PRIM_HANDCARNO B
+		WHERE A.IC_CODE = B.IC_CODE(+)
+		  AND A.WORK_DATE = B.WORK_DATE(+)
+		  AND A.WORK_NO = B.WORK_NO(+) 
+		  AND A.HAND_SNO = B.HAND_SNO(+) 
+		  AND A.IC_CODE = #{IC_CODE}
+		  AND A.WORK_DATE = #{WORK_DATE}
+		  AND A.WORK_NO = #{WORK_NO}
+		  AND A.HAND_SNO = #{HAND_SNO}
+	</select>
+	
+	<select id="selectImageHistList" resultType="hashMap">
+	/* Mapper ID: "selectImageHistList" */
+		SELECT IC_CODE, WORK_DATE, WORK_NO, HAND_SNO, MDFY_SNO
+			, FC_CHG_FORMAT(WORK_DATE, '1') AS WORK_DATE_DP
+			, FC_CHG_WORKERNM(#{IC_CODE}, ADMIN_ID) AS ADMIN_NM
+			, FC_CHG_FORMAT(HAND_DT, '11') AS HAND_DT_DP
+			, FC_CHG_CODEDP('137', IMG_TYPE_DTL) AS IMG_TYPE_DTL_DP
+			, FC_CHG_CODEDP('171', HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+			, FC_CHG_CODEDP('057', VLTN_CODE) AS VLTN_CODE_DP
+			, HAND_CAR_NO
+			, NOTE
+		FROM PROC_ETCIMGHIST
+		WHERE IC_CODE = #{IC_CODE}
+		  AND WORK_DATE = #{WORK_DATE}
+		  AND WORK_NO = #{WORK_NO}
+		  AND HAND_SNO = #{HAND_SNO}
+		ORDER BY MDFY_SNO DESC
+	</select>
+	
+	<insert id="insertImageHist"  >
+	/* Mapper ID: "insertImageHist" */
+		INSERT INTO PROC_ETCIMGHIST(
+			IC_CODE, WORK_DATE, WORK_NO, HAND_SNO, MDFY_SNO,
+			ADMIN_ID, HAND_DT, IMG_TYPE_DTL, 
+			HAND_CAR_TYPE, HAND_CAR_NO, NOTE
+		)VALUES (
+			#{IC_CODE}, #{WORK_DATE}, #{WORK_NO}, #{HAND_SNO}, 
+			(	SELECT COUNT(MDFY_SNO) + 1 FROM PROC_ETCIMGHIST
+				WHERE IC_CODE = #{IC_CODE}
+				  AND WORK_DATE = #{WORK_DATE}
+				  AND WORK_NO = #{WORK_NO}
+				  AND HAND_SNO = #{HAND_SNO}
+			),
+			#{ADMIN_ID}, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), #{NEW_IMG_TYPE_DTL}, 
+			#{NEW_CAR_TYPE}, #{NEW_CAR_NO}, #{NEW_NOTE}
+		)
+	</insert>
+
+	<!-- 영상심사처리  -->
+	<resultMap id="resultMessage" type="hashMap"/>
+    <select id="updateImageAudit" statementType="CALLABLE" parameterType="Map">
+	/* Mapper ID: updateImageAudit */
+	{
+		CALL SP_AUDIT_IMG(
+			#{IC_CODE, mode=IN, jdbcType=VARCHAR},
+			#{WORK_DATE, mode=IN, jdbcType=VARCHAR},
+			#{WORK_NO, mode=IN, jdbcType=VARCHAR},
+			#{HAND_SNO, mode=IN, jdbcType=VARCHAR},
+			#{CAR_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{HAND_CAR_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{ORIGIN_VLTN_CODE, mode=IN, jdbcType=VARCHAR},
+			#{IMG_VLTN_MAKE_YN, mode=IN, jdbcType=VARCHAR},
+			#{NEW_IMG_TYPE_DTL, mode=IN, jdbcType=VARCHAR},
+			#{NEW_CAR_TYPE, mode=IN, jdbcType=VARCHAR},
+			#{NEW_CAR_NO, mode=IN, jdbcType=VARCHAR},
+			#{output, mode=OUT, jdbcType=CURSOR, javaType=ResultSet, resultMap=resultMessage}
+		)
+	}
+	</select>
+	
+	<!-- 영상심사 - 심사결과 조회 -->
+	<select id="selectImageCorrectionResultList"  resultType="hashMap">
+	/* Mapper ID: selectImageCorrectionResultList */
+		SELECT DECODE(GROUPINGID, '3', '-', FC_CHG_FORMAT(WORK_DATE, '1')) AS WORK_DATE_DP
+			 , DECODE(GROUPINGID, '1', '소계', '3', '합계', FC_CHG_CODENM('334', IC_DIV)) AS IC_DIV_DP
+			 , TOT_CNT
+			 , FC_CHG_FORMAT(TOT_CNT, '4') AS TOT_CNT_DP
+			 , READY_CNT
+			 , FC_CHG_FORMAT(READY_CNT, '4') AS READY_CNT_DP
+			 , MATCH_CNT
+			 , FC_CHG_FORMAT(MATCH_CNT, '4') AS MATCH_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * MATCH_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS MATCH_RATE
+			 , NOT_MATCH_CNT
+			 , FC_CHG_FORMAT(NOT_MATCH_CNT, '4') AS NOT_MATCH_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * NOT_MATCH_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS NOT_MATCH_RATE
+			 , CONF_LANE_CNT
+			 , FC_CHG_FORMAT(CONF_LANE_CNT, '4') AS CONF_LANE_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * CONF_LANE_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS CONF_LANE_RATE
+			 , CONF_REP_CNT
+			 , FC_CHG_FORMAT(CONF_REP_CNT, '4') AS CONF_REP_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * CONF_REP_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS CONF_REP_RATE
+			 , CONF_MANUAL_CNT
+			 , FC_CHG_FORMAT(CONF_MANUAL_CNT, '4') AS CONF_MANUAL_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * CONF_MANUAL_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS CONF_MANUAL_RATE
+			 , CONF_NO_IMAGE_CNT
+			 , FC_CHG_FORMAT(CONF_NO_IMAGE_CNT, '4') AS CONF_NO_IMAGE_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * CONF_NO_IMAGE_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS CONF_NO_IMAGE_RATE
+			
+			 , NOT_READ_IMAGE_CNT
+			 , FC_CHG_FORMAT(CONF_NO_IMAGE_CNT, '4') AS NOT_READ_IMAGE_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * NOT_READ_IMAGE_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS NOT_READ_IMAGE_RATE
+			 , FAIL_READ_IMAGE_CNT
+			 , FC_CHG_FORMAT(CONF_NO_IMAGE_CNT, '4') AS FAIL_READ_IMAGE_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * FAIL_READ_IMAGE_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS FAIL_READ_IMAGE_RATE
+					
+			 , CONF_NOT_CNT
+			 , FC_CHG_FORMAT(CONF_NOT_CNT, '4') AS CONF_NOT_CNT_DP
+			 , CASE WHEN TOT_CNT != 0 THEN TO_CHAR(ROUND(100.0 * CONF_NOT_CNT / TOT_CNT, 2), 'FM990.00') || '%'
+					ELSE '0.00%' END AS CONF_NOT_RATE
+		FROM (
+			SELECT HAND.WORK_DATE, LANE.IC_DIV
+				, GROUPING_ID(HAND.WORK_DATE, LANE.IC_DIV) GROUPINGID
+				, COUNT(HAND.IMG_TYPE) AS TOT_CNT
+				, SUM(DECODE(HAND.IMG_TYPE, '0', 1, 0)) AS READY_CNT
+				, SUM(DECODE(HAND.IMG_TYPE, '1', 1, 0)) AS MATCH_CNT
+				, SUM(DECODE(HAND.IMG_TYPE, '2', 1, 0)) AS NOT_MATCH_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '1' THEN HAND.IMG_TYPE_DTL END) AS CONF_LANE_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '2' THEN HAND.IMG_TYPE_DTL END) AS CONF_REP_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '3' THEN HAND.IMG_TYPE_DTL END) AS CONF_MANUAL_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '4' THEN HAND.IMG_TYPE_DTL END) AS CONF_NO_IMAGE_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '5' THEN HAND.IMG_TYPE_DTL END) AS NOT_READ_IMAGE_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '6' THEN HAND.IMG_TYPE_DTL END) AS FAIL_READ_IMAGE_CNT
+				, COUNT(CASE WHEN HAND.IMG_TYPE = '2' AND HAND.IMG_TYPE_DTL = '0' THEN HAND.IMG_TYPE_DTL END) AS CONF_NOT_CNT
+			FROM PRIM_ETCHAND HAND, BASE_LANEINFO LANE
+			WHERE HAND.IC_CODE = LANE.IC_CODE
+			  AND SUBSTR(HAND.WORK_NO, 0, 2) = LANE.LOGC_LANE
+			  AND HAND.IC_CODE = #{IC_CODE}
+			  AND HAND.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			GROUP BY ROLLUP(HAND.WORK_DATE, LANE.IC_DIV)
+		)
+		ORDER BY WORK_DATE, IC_DIV
+	</select>
+
+	<!-- 차량처리내역 목록 조회 -->
+	<select id="selectProcessList" resultType="hashMap">
+	/* Mapper ID: selectProcessList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) AS ROW_NUMBER
+			, FC_CHG_CODENM('808', TB.PREV_EXM_DIV) AS PREV_EXM_DIV_DP
+			, TB.*
+		FROM (
+			SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO -- PK
+				, FC_CHG_ICNM(A.IC_CODE) AS IC_CODE_DP
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+				, A.HAND_DT
+				, FC_CHG_FORMAT(A.HAND_DT, '11') AS HAND_DT_DP
+				, FC_CHG_CODEDP('171', A.HAND_CAR_TYPE) AS LANE_CAR_TYPE_DP 		-- 차종
+				, FC_CHG_CODEDP('171', A.OBU_CAR_TYPE) AS OBU_CAR_TYPE_DP 			-- OBU차종
+				, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP 		-- 처리차종
+				, B.HAND_CAR_NO														-- 처리차량번호
+				, B.REP_CAR_NO														-- 재인식차량번호
+				, A.VLTN_CODE 														-- 위반코드
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) AS VLTN_CODE_DP 				-- 위반코드
+				, A.MAIN_PAY_DIV
+				, FC_CHG_CODEDP('056', A.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+				, CASE
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV = '5' AND A.ECARD_PAY_DIV = '06' AND A.ECARD_TYPE = '02' AND REGEXP_LIKE(A.ECARD_ATT, '[2][0-9A-F]') THEN '91'
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV = '5' AND A.ECARD_PAY_DIV IN ('06', '26', '07', '27') AND REGEXP_LIKE(A.ECARD_ATT, '[^2][0-9A-F]') THEN '92'
+					WHEN A.VLTN_CODE = '00' AND A.BS_EXM_TYPE = '2' AND A.EXM_DIV NOT IN ('1', '2', '4') THEN A.BS_EXM_TYPE_DTL
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV = '4' AND A.BS_EXM_TYPE_DTL = '01' AND A.EXM_DIV NOT IN ('1', '2', '4') AND REGEXP_LIKE(UPPER(A.OBU_ATT), 'A[0-9A-F]') THEN '06'
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV = '4' AND A.BS_EXM_TYPE_DTL = '01' AND A.EXM_DIV NOT IN ('1', '2', '4') AND REGEXP_LIKE(UPPER(A.OBU_ATT), 'B[0-9A-F]') THEN '07'
+					WHEN A.VLTN_CODE = '00' AND A.EXM_DIV NOT IN ('1', '2', '4') THEN A.BS_EXM_TYPE_DTL
+					WHEN A.VLTN_CODE = '00' AND L.EXMT_HAND_STAT IS NOT NULL AND L.LOC_CO_DIV = '0' THEN '93'	-- 심사 전 통복
+					WHEN A.VLTN_CODE != '00' AND V.HAND_TYPE = '40' AND V.EXMT_DTL_TYPE IN ('01', '02') THEN A.BS_EXM_TYPE_DTL
+					WHEN A.VLTN_CODE != '00' AND V.HAND_TYPE = '40' THEN V.EXMT_DTL_TYPE
+					ELSE '-' 
+				  END AS PREV_EXM_DIV 											-- 면제구분(차로)
+				, CASE
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV = '5' AND A.ECARD_PAY_DIV = '06' AND A.ECARD_TYPE = '02' AND REGEXP_LIKE(A.ECARD_ATT, '[2][0-9A-F]') THEN FC_CHG_CODENM('138', A.EXM_DIV)
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV = '5' AND A.ECARD_PAY_DIV IN ('06', '26', '07', '27') AND REGEXP_LIKE(A.ECARD_ATT, '[^2][0-9A-F]') THEN FC_CHG_CODENM('138', A.EXM_DIV)
+					WHEN A.VLTN_CODE = '00' AND A.BS_EXM_TYPE = '2' AND A.EXM_DIV NOT IN ('1', '2', '4') THEN FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV)
+					WHEN A.VLTN_CODE = '00' AND A.MAIN_PAY_DIV IN ('4', '9') AND A.EXM_DIV NOT IN ('1', '2', '4') THEN FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV)
+					WHEN A.VLTN_CODE = '00' AND L.EXMT_HAND_STAT IS NOT NULL AND L.LOC_CO_DIV = '0' THEN FC_CHG_CODENM('138', DECODE(L.EXMT_HAND_TYPE, '2', '4', L.EXMT_HAND_STAT))	-- 심사 전 통복
+					WHEN A.VLTN_CODE != '00' AND V.HAND_TYPE = '40' THEN FC_CHG_CODENM('138', '2')
+					ELSE '-'
+				  END AS CORR_EXM_DIV_DP										-- 면제구분(심사)
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') AS ORIGIN_PASS_FARE_DP 	-- 원통행료
+				, FC_CHG_FORMAT(A.PASS_FARE, '4') AS PASS_FARE_DP 					-- 수납할통행료
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') AS PAY_FARE_DP 					-- 수납한통행료(출금액)
+				, FC_CHG_FORMAT(A.CARD_NO, 3) AS CARD_NO_DP
+				, FC_CHG_FORMAT(A.OBU_NO, 3) AS OBU_NO_DP
+				, FC_CHG_CODENM('282', A.OBU_STAT) AS OBU_STAT_DP					-- OBU상태
+				, FC_CHG_CODEDP('290', A.ECARD_ATT) AS ECARD_ATT_DP
+				, FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) AS OBU_ATT_DP
+				, FC_CHG_CODENM('283', A.OBU_TYPE) AS OBU_TYPE_DP
+				, L.LOC_CO_DIV
+				, A.LOC_SCAN_YN
+				, B.NOTE AS EXM_NOTE
+			FROM 
+				PRIM_ETCHAND A, PRIM_HANDCARNO B, PROC_LOC_EXMTHAND L, PRIM_ETCVLTN V
+			WHERE A.IC_CODE = #{IC_CODE}
+			  AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			  AND A.WORK_NO = DECODE(#{WORK_NO}, '', A.WORK_NO, #{WORK_NO})
+			  AND A.HAND_SNO BETWEEN #{HAND_SNO_S} AND #{HAND_SNO_E}
+			  AND A.VLTN_CODE = DECODE(#{VLTN_CODE}, '', A.VLTN_CODE, #{VLTN_CODE})
+			  AND A.CARD_NO LIKE '%' || DECODE(#{CARD_NO}, '', A.CARD_NO, #{CARD_NO}) || '%'
+			  AND A.OBU_NO LIKE '%' || DECODE(#{OBU_NO}, '', A.OBU_NO, #{OBU_NO}) || '%'
+			  AND A.OBU_STAT = DECODE(#{OBU_STAT}, '', A.OBU_STAT, #{OBU_STAT})
+			  AND A.IC_CODE = B.IC_CODE(+)
+			  AND A.WORK_DATE = B.WORK_DATE(+)
+			  AND A.WORK_NO = B.WORK_NO(+)
+			  AND A.HAND_SNO = B.HAND_SNO(+)
+			  AND A.IC_CODE = L.IC_CODE(+)
+			  AND A.WORK_DATE = L.WORK_DATE(+)
+			  AND A.WORK_NO = L.WORK_NO(+)
+			  AND A.HAND_SNO = L.HAND_SNO(+)
+			  AND A.IC_CODE = V.IC_CODE(+)
+			  AND A.WORK_DATE = V.WORK_DATE(+)
+			  AND A.WORK_NO = V.WORK_NO(+)
+			  AND A.HAND_SNO = V.HAND_SNO(+)
+			<if test="CAR_NO != null and CAR_NO != ''" >
+			  AND B.HAND_CAR_NO LIKE '%' || DECODE(#{CAR_NO}, '', B.HAND_CAR_NO, #{CAR_NO}) || '%'
+			</if>
+		) TB
+		WHERE TB.MAIN_PAY_DIV = DECODE(#{MAIN_PAY_DIV}, '', TB.MAIN_PAY_DIV, #{MAIN_PAY_DIV})
+		  AND TB.PREV_EXM_DIV = DECODE(#{PREV_EXM_DIV}, '', TB.PREV_EXM_DIV, #{PREV_EXM_DIV})
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+	
+	<!-- 감면내역심사-도로공사(면제카드) - 목록 조회 -->
+	<select id="selectReductionExEcardList" resultType="hashMap">
+	/* Mapper ID: selectReductionExEcardList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) ROW_NUMBER, TB.* 
+		FROM (
+			SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO	-- PK
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+				, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+				, A.ORIGIN_PASS_FARE 
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+				, A.PAY_FARE 
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP 
+				, A.WORK_DIV							-- 0: 정상근무, 1: 유지보수
+				, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+				, FC_CHG_CODENM('290', A.ECARD_ATT) ECARD_ATT_DP 			-- 전자카드속성(긴급면제구분)
+				, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+				, FC_CHG_CODENM('280', UPPER(A.OBU_ATT)) OBU_ATT_DP
+				, A.HAND_CAR_TYPE AS LANE_CAR_TYPE 	-- 처리차종(차로)
+				, FC_CHG_CODEDP('171', A.HAND_CAR_TYPE) LANE_CAR_TYPE_DP
+				, B.HAND_CAR_TYPE 				-- 처리차종(보정)
+				, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+				, A.EXM_DIV 		-- 심사구분
+				, FC_CHG_CODENM('138', A.EXM_DIV) EXM_DIV_DP
+				, A.IMG_TYPE  		-- 영상구분
+				, A.IMG_TYPE_DTL	-- 영상심사결과
+				, A.ECARD_CAR_NO 	-- 차번(전자카드)★
+				, B.HAND_CAR_NO 	-- 차번(보정)★
+				, FC_CHG_WORKERNM(A.IC_CODE, B.ADMIN_ID) AS ADMIN_DP
+				, CASE WHEN A.ECARD_CAR_NO=B.HAND_CAR_NO THEN '일치'
+					ELSE '불일치' 
+				  END AS MATCH_DIV
+				, B.NOTE
+			FROM 
+				PRIM_ETCHAND A, PRIM_HANDCARNO B
+			WHERE 
+				A.IC_CODE = #{IC_CODE}
+				AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+				AND A.IC_CODE = B.IC_CODE(+)
+		        AND A.WORK_DATE = B.WORK_DATE(+)
+		        AND A.WORK_NO = B.WORK_NO(+)
+		        AND A.HAND_SNO = B.HAND_SNO(+)
+		        AND A.VLTN_CODE = '00'							-- 위반코드: 정상
+		        AND A.MAIN_PAY_DIV = '5'						-- 대표수납구분: 면제
+		        AND A.ECARD_PAY_DIV = '06'						-- 전자카드수납구분: 면제(면제카드/단말기)
+		        AND A.ECARD_TYPE = '02'							-- 전자카드종류: 도공전자카드(면제)
+		        AND REGEXP_LIKE(A.ECARD_ATT, '[2][0-9A-F]')		-- 전자카드속성: 긴급면제카드
+		        AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0')) 	-- 미처리/미심사 불일치 영상데이터 제외
+				<if test="LANE_NO != null and LANE_NO != ''" >
+		        AND A.WORK_NO LIKE  #{LANE_NO} || '%__'
+				</if>
+				AND A.EXM_DIV = DECODE(#{EXM_DIV}, '', A.EXM_DIV, #{EXM_DIV})
+		        AND A.ECARD_ATT = DECODE(#{ECARD_ATT}, '', A.ECARD_ATT, #{ECARD_ATT})
+				<if test="ECARD_CAR_NO != null and ECARD_CAR_NO != ''" >
+				AND A.ECARD_CAR_NO LIKE '%' || #{ECARD_CAR_NO} || '%'
+				</if>
+				<if test="HAND_CAR_NO != null and HAND_CAR_NO != ''" >
+				AND B.HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'
+				</if>
+		) TB
+		WHERE TB.MATCH_DIV = DECODE(#{MATCH_DIV}, '', TB.MATCH_DIV, #{MATCH_DIV})
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+	
+	<!-- 감면내역심사-도로공사(단말기) - 목록 조회 -->
+	<select id="selectReductionExObuList" resultType="hashMap">
+	/* Mapper ID: selectReductionExObuList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) ROW_NUMBER, TB.*
+		FROM (
+			SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO			-- PK
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+				, A.HAND_DT 
+				, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP 
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+				, B.HAND_CAR_TYPE 
+				, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+				, A.ORIGIN_PASS_FARE 
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP 
+				, A.PAY_FARE 
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP 
+				, FC_CHG_CODENM('070', A.ECARD_PAY_DIV) ECARD_PAY_DIV_DP
+				, A.OBU_STAT
+				, FC_CHG_CODEDP('282', A.OBU_STAT) AS OBU_STAT_DP
+				, A.OBU_NO
+				, FC_CHG_FORMAT(A.OBU_NO, '3') OBU_NO_DP
+				, FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) OBU_ATT_DP   			-- 단말기속성(감면구분)
+				, A.OBU_CAR_NO 
+				, B.HAND_CAR_NO
+				, FC_CHG_WORKERNM(A.IC_CODE, B.ADMIN_ID) AS ADMIN_DP
+				, FC_CHG_FORMAT(A.CARD_NO, '3') CARD_NO_DP		-- 전자카드번호
+				, NVL2(C.XCARD_NO, FC_CHG_FORMAT(C.XCARD_NO, '3'), '-') XCARD_NO_DP	-- 처리차량번호 기준 통복카드번호
+				, A.EXM_DIV 
+				, FC_CHG_CODENM('138', A.EXM_DIV) EXM_DIV_DP
+				, CASE WHEN A.OBU_CAR_NO=B.HAND_CAR_NO THEN '일치'
+					ELSE '불일치' 
+				  END AS MATCH_DIV
+				, B.NOTE 
+			FROM 
+				PRIM_ETCHAND A, PRIM_HANDCARNO B, 
+				(SELECT DISTINCT * 
+				FROM BASE_WCARDPL 
+				WHERE ROWID IN (SELECT MIN(ROWID) 
+								FROM BASE_WCARDPL 
+								GROUP BY INST_CAR_NO)) C
+			WHERE 
+				A.IC_CODE = #{IC_CODE}
+				AND A.IC_CODE = B.IC_CODE(+)
+		        AND A.WORK_DATE = B.WORK_DATE(+)
+		        AND A.WORK_NO = B.WORK_NO(+)
+		        AND A.HAND_SNO = B.HAND_SNO(+)
+		        AND B.HAND_CAR_NO = C.INST_CAR_NO(+)
+		        AND A.VLTN_CODE = '00'							-- 위반코드: 정상
+		        AND A.MAIN_PAY_DIV = '5'						-- 대표수납구분: 면제
+		        AND A.ECARD_PAY_DIV IN ('06', '26', '07','27') 	-- 전자카드수납구분: 면제 및 할인
+		        AND REGEXP_LIKE(A.ECARD_ATT, '[^2][0-9A-F]')	-- 전자카드속성: 긴급면제카드 제외
+		        AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0')) -- 미처리/미심사 불일치 영상데이터 제외
+				AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+				<if test="LANE_NO != null and LANE_NO != ''" >
+				AND A.WORK_NO LIKE  #{LANE_NO} || '%__'
+				</if>
+				AND A.EXM_DIV = DECODE(#{EXM_DIV}, '', A.EXM_DIV, #{EXM_DIV})
+				<if test="OBU_ATT != null and OBU_ATT != ''">
+				AND REGEXP_LIKE(UPPER(A.OBU_ATT), '[' || #{OBU_ATT} || ']' || '[0-9A-F]')
+				</if>
+				<if test="OBU_CAR_NO != null and OBU_CAR_NO != ''" >
+				AND A.OBU_CAR_NO LIKE '%' || #{OBU_CAR_NO} || '%'
+			    </if>
+			    <if test="OBU_NO != null and OBU_NO != ''">
+				AND A.OBU_NO LIKE '%' || #{OBU_NO} || '%' 
+				</if>
+		) TB
+		WHERE TB.MATCH_DIV = DECODE(#{MATCH_DIV}, '', TB.MATCH_DIV, #{MATCH_DIV})
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+	
+	<!-- 감면내역심사-도로공사(통합복지) - 목록 조회 -->
+	<select id="selectReductionExWelfareList" resultType="hashMap">
+	/* Mapper ID: selectReductionExWelfareList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) ROW_NUMBER
+			, DECODE(TB.ECARD_NO , TB.WCARD_NO, '일치', '불일치') AS MATCH_CARD_NO
+			, DECODE(TB.OBU_NO, TB.DC_OBU_NO, '일치', '불일치') AS MATCH_OBU_NO
+			, TB.*
+		FROM (SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO 	--PK
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+				, A.EXIT_HAND_DATE || A.EXIT_HAND_TIME AS OCC_DT
+				, FC_CHG_FORMAT(A.EXIT_HAND_DATE || A.EXIT_HAND_TIME, '11') AS OCC_DT_DP
+				, FC_CHG_CODEDP('171', C.HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+				, A.ECARD_TYPE
+				, FC_CHG_CODENM('071', A.ECARD_TYPE) AS ECARD_TYPE_DP
+				, A.ECARD_NO 
+				, FC_CHG_FORMAT(A.ECARD_NO, '3') ECARD_NO_DP
+				, A.WCARD_NO 
+				, FC_CHG_FORMAT(A.WCARD_NO, '3') WCARD_NO_DP
+				, A.OBU_NO
+				, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+				, (SELECT MAX(I.OBU_NO) KEEP(DENSE_RANK FIRST ORDER BY I.MDFY_SNO DESC) FROM BASE_LOC_INSTCUST I WHERE I.WCARD_NO = A.WCARD_NO) DC_OBU_NO
+				, FC_CHG_FORMAT((SELECT MAX(I.OBU_NO) KEEP(DENSE_RANK FIRST ORDER BY I.MDFY_SNO DESC) FROM BASE_LOC_INSTCUST I WHERE I.WCARD_NO = A.WCARD_NO), 3) DC_OBU_NO_DP
+				, A.LC_HAND_DATE || A.LC_HAND_TIME AS LC_HAND_DT
+				, FC_CHG_FORMAT(A.LC_HAND_DATE || A.LC_HAND_TIME, '11') AS LC_HAND_DT_DP
+				, A.INST_CAR_NO 									-- 등록차량번호
+				, C.HAND_CAR_NO 									-- 처리차량번호
+				, FC_CHG_WORKERNM(A.IC_CODE, C.ADMIN_ID) AS ADMIN_DP
+				, A.ECARD_CAR_NO									-- 전자카드차량번호
+				, A.LC_INFO_RSLT 									-- 위치조회결과
+				, B.RSLT_NOTE 										-- 위치조회결과내용
+				, A.EXMT_NOT_RES 									-- 감면불가사유코드
+				, A.EXMT_HAND_STAT 									-- 심사구분(미처리/감면/미감면)
+				, A.EXMT_HAND_TYPE 									-- 처리유헝(미처리/자동/수동)
+				, FC_CHG_CODENM('140', A.LC_INFO_RSLT) AS LC_INFO_RSLT_DP
+				, FC_CHG_CODENM('144', B.RSLT_NOTE) AS RSLT_NOTE_NM -- 위치조회결과내용
+				, FC_CHG_CODENM('140', A.LC_INFO_RSLT) || '(' || FC_CHG_CODENM('144', B.RSLT_NOTE) || ')' AS RSLT_NOTE_DP
+				, DECODE(B.ARS_CRTF_TYPE, '01', '성공', '02', '패스', '03', '실패', B.ARS_CRTF_TYPE) AS ARS_CRTF_TYPE_DP
+				, FC_CHG_CODEDP('142', A.EXMT_NOT_RES) AS EXMT_NOT_RES_DP
+				, FC_CHG_CODENM('139', A.EXMT_HAND_STAT) AS EXMT_HAND_STAT_DP
+				, FC_CHG_CODENM('141', A.EXMT_HAND_TYPE) AS EXMT_HAND_TYPE_DP
+				, A.ORIGIN_PASS_FARE 
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP 
+				, A.PASS_FARE 
+				, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP 
+				, A.PAY_FARE 
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP 
+				, A.RFND_FARE 
+				, FC_CHG_FORMAT(A.RFND_FARE, '4') RFND_FARE_DP 
+				, FC_CHG_CODEDP('280', E.OBU_ATT) OBU_ATT_DP
+				, FC_CHG_CODENM('056', E.MAIN_PAY_DIV) MAIN_PAY_DIV_DP
+				, A.NOTE
+			FROM PROC_LOC_EXMTHAND A, PROC_LOC_LOCSEARCH B, PRIM_HANDCARNO C, PRIM_ETCHAND E
+			WHERE A.IC_CODE = #{IC_CODE}
+				AND A.IC_CODE = E.IC_CODE
+				AND A.WORK_DATE = E.WORK_DATE
+				AND A.WORK_NO = E.WORK_NO
+				AND A.HAND_SNO = E.HAND_SNO
+				AND A.IC_CODE = B.IC_CODE(+)
+				AND A.WORK_DATE = B.WORK_DATE(+)
+				AND A.WORK_NO = B.WORK_NO(+)
+				AND A.HAND_SNO = B.HAND_SNO(+)
+				AND A.IC_CODE = C.IC_CODE(+)
+				AND A.WORK_DATE = C.WORK_DATE(+)
+				AND A.WORK_NO = C.WORK_NO(+)
+				AND A.HAND_SNO = C.HAND_SNO(+)
+				AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+				AND A.VLTN_CODE = '00'
+				AND A.LOC_CO_DIV = '0'		-- 도로공사
+				AND (E.IMG_TYPE = '1' OR (E.IMG_TYPE = '2' AND E.IMG_TYPE_DTL != '0'))		-- 미처리/미심사 불일치 영상데이터 제외
+				AND A.EXMT_HAND_STAT = DECODE(#{EXMT_HAND_STAT}, '', A.EXMT_HAND_STAT, #{EXMT_HAND_STAT})
+				AND A.EXMT_HAND_TYPE = DECODE(#{EXMT_HAND_TYPE}, '', A.EXMT_HAND_TYPE, #{EXMT_HAND_TYPE})
+				<if test="LC_INFO_RSLT != null and LC_INFO_RSLT != ''" >
+				AND A.LC_INFO_RSLT = #{LC_INFO_RSLT}
+				</if>
+				<if test="WCARD_NO != null and WCARD_NO != ''" >
+				AND A.WCARD_NO LIKE '%' || #{WCARD_NO} || '%'
+				</if>
+				<if test="HAND_CAR_NO != null and HAND_CAR_NO != ''">
+				AND C.HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'
+				</if>
+				<if test="LANE_NO != null and LANE_NO != ''" >
+		        AND A.WORK_NO LIKE #{LANE_NO} || '%__'
+		        </if>
+	        ) TB
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+	
+	<!-- 감면내역심사-도로공사(면제카드/단말기) - 심사처리 -->
+	<update id="updateReductionExCorrection" statementType="CALLABLE" parameterType="hashMap">
+	/* Mapper ID: updateReductionExCorrection */
+		DECLARE
+			V_IS_DAYFIN INTEGER := 0;
+			O_UPDATE_CNT INTEGER := 0;
+			O_FAIL_CNT INTEGER := 0;
+		BEGIN
+		<foreach collection="data" item="item">
+			SELECT COUNT(*) INTO V_IS_DAYFIN FROM PROC_DAYFININFO 
+			WHERE IC_CODE = #{item.IC_CODE}
+				AND WORK_DATE = #{item.WORK_DATE};
+			IF V_IS_DAYFIN = 0 THEN
+				UPDATE PRIM_ETCHAND
+				SET EXM_DIV = #{requestId}
+				WHERE IC_CODE = #{item.IC_CODE}
+					AND WORK_DATE = #{item.WORK_DATE}
+					AND WORK_NO = #{item.WORK_NO}
+					AND HAND_SNO = #{item.HAND_SNO};
+				O_UPDATE_CNT :=  O_UPDATE_CNT + 1;
+			ELSE
+				O_FAIL_CNT := O_FAIL_CNT + 1;
+			END IF;
+		</foreach>
+			#{successCount, jdbcType=INTEGER, mode=OUT} := O_UPDATE_CNT;
+			#{failCount, jdbcType=INTEGER, mode=OUT} := O_FAIL_CNT;
+		END;
+	</update>
+	
+	<!-- 감면내역심사-도로공사(통합복지) - 심사처리 -->
+	<update id="updateReductionExCorrectionWelfare" statementType="CALLABLE" parameterType="hashMap">
+	/* Mapper ID: updateReductionExCorrectionWelfare */
+		DECLARE
+			V_IS_DAYFIN INTEGER := 0;
+			V_RFND_FARE INTEGER := 0;
+			V_DC_FARE INTEGER := 0;
+			O_UPDATE_CNT INTEGER := 0;
+			O_FAIL_CNT INTEGER := 0;
+		BEGIN
+		<foreach collection="data" item="item">
+			SELECT COUNT(*) INTO V_IS_DAYFIN FROM PROC_DAYFININFO 
+			WHERE IC_CODE = #{item.IC_CODE}
+				AND WORK_DATE = #{item.WORK_DATE};
+			IF V_IS_DAYFIN = 0 THEN
+				IF (#{requestId} IN ('2', '4')) THEN
+				/* 감면처리 */
+				UPDATE PRIM_ETCHAND SET EXM_DIV = #{requestId}, BS_EXM_TYPE_DIV = '0'
+				WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO};
+				DELETE FROM PROC_TAXI_HIST
+				WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO};
+					V_DC_FARE := #{item.PASS_FARE};
+					IF #{item.ECARD_TYPE} = '01' AND #{item.PAY_FARE} <![CDATA[<>]]> 0 THEN
+					/* 후불환급금액처리 */
+						UPDATE PRIM_ECARDHAND
+						SET LPAY_CRCT_YN = 'Y', CRCT_PAY_FARE = 0
+						WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO};
+						V_RFND_FARE := 0;
+					/* 후불환급금액처리 끝 */
+					ELSE
+					/* 선불환급금액처리 */
+						V_RFND_FARE := #{item.PAY_FARE};
+					/* 선불환급금액처리 끝 */
+					END IF;
+				/* 감면처리 끝 */
+				ELSE
+				/* 미감면처리 */
+				UPDATE PRIM_ETCHAND SET EXM_DIV = #{requestId}
+				WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO};
+					/* 후불환급금액처리(미감면) */
+					IF #{item.ECARD_TYPE} = '01' THEN
+						UPDATE PRIM_ECARDHAND
+						SET LPAY_CRCT_YN = 'N', CRCT_PAY_FARE = 0
+						WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO};
+						V_RFND_FARE := 0;
+					END IF;
+					/* 후불환급금액처리(미감면) 끝 */
+				/* 미감면처리 끝 */
+				END IF;
+				UPDATE PROC_LOC_EXMTHAND
+				SET EXMT_HAND_STAT = DECODE(#{requestId}, '3', '3', '2')
+				  , EXMT_HAND_TYPE = DECODE(#{requestId}, '4', '2', '3')
+				  , NOTE = DECODE(#{requestId}, '4', NOTE, #{item.EXM_NOTE})
+				  , EXMT_NOT_RES = DECODE(#{requestId}, '4', '00', #{item.NEW_EXMT_NOT_RES})
+				  , DC_FARE = V_DC_FARE
+				  , RFND_BEF_FARE = #{item.PASS_FARE}
+				  , RFND_FARE = V_RFND_FARE
+				  , HAND_CAR_NO = DECODE(#{requestId}, '4', HAND_CAR_NO, #{item.NEW_CAR_NO})
+				WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO} AND LOC_CO_DIV = '0';
+				O_UPDATE_CNT :=  O_UPDATE_CNT + 1;
+			ELSE
+				O_FAIL_CNT := O_FAIL_CNT + 1;
+			END IF;
+		</foreach>
+			#{successCount, jdbcType=INTEGER, mode=OUT} := O_UPDATE_CNT;
+			#{failCount, jdbcType=INTEGER, mode=OUT} := O_FAIL_CNT;
+		END;
+	</update>
+	
+	<!-- 감면부정사용내역-도로공사 목록 조회 -->
+	<select id="selectCheatReductionExList" resultType="hashMap">
+	/* Mapper ID: selectCheatReductionExList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) ROW_NUMBER, TB.* 
+		FROM (
+			SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO	-- PK
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+				, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+				, B.HAND_CAR_TYPE 				-- 처리차종
+				, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+				, A.ORIGIN_PASS_FARE 
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+				, A.PASS_FARE 
+				, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+				, A.PAY_FARE
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+				, FC_CHG_CODENM('138', A.EXM_DIV) EXM_DIV_DP
+				, A.CARD_NO
+				, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+				, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+				, FC_CHG_CODENM('290', A.ECARD_ATT) ECARD_ATT_DP 			-- 전자카드속성(긴급면제구분)
+				, FC_CHG_CODENM('280', UPPER(A.OBU_ATT)) OBU_ATT_DP   			-- 단말기속성(감면구분)
+				, B.HAND_CAR_NO 	-- 처리차량번호
+				, NVL(A.ECARD_CAR_NO, '-') AS ECARD_CAR_NO	-- 차량번호(카드)
+				, CASE WHEN REGEXP_LIKE(A.ECARD_ATT, '[2][0-9A-F]') THEN '긴급면제카드'
+					   WHEN REGEXP_LIKE(A.OBU_ATT, '[1-7][0-9A-F]') THEN '할인단말기'
+					   ELSE '통합복지'
+				  END AS CHEAT_DIV
+			FROM 
+				PRIM_ETCHAND A, PRIM_HANDCARNO B
+			WHERE A.IC_CODE = #{IC_CODE}
+				AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+				AND A.IC_CODE = B.IC_CODE(+)
+		        AND A.WORK_DATE = B.WORK_DATE(+)
+		        AND A.WORK_NO = B.WORK_NO(+)
+		        AND A.HAND_SNO = B.HAND_SNO(+)
+				<if test="LANE_NO != null and LANE_NO != ''" >
+				AND A.WORK_NO LIKE  #{LANE_NO} || '%__'
+				</if>
+				AND A.EXM_DIV = '3'	-- 부정(미납) 건 조회
+				<if test="CAR_NO != null and CAR_NO != ''" >
+				AND B.HAND_CAR_NO LIKE '%' || #{CAR_NO} || '%'
+				</if>
+				<if test="CARD_NO != null and CARD_NO != ''" >
+				AND A.CARD_NO LIKE '%' || #{CARD_NO} || '%'
+				</if>
+		) TB
+		WHERE TB.CHEAT_DIV = DECODE(#{CHEAT_DIV}, '', TB.CHEAT_DIV, #{CHEAT_DIV})
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+	
+	<!-- 감면내역심사-부산시 목록조회 -->
+	<select id="selectReductionBsList" resultType="hashMap">
+	/* Mapper ID: selectReductionBsList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) ROW_NUMBER, TB.*
+		FROM (SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO -- PK 
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+				, FC_CHG_ICNM_LANE(A.IC_CODE, SUBSTR(A.WORK_NO, 0, 2)) LANE_DP
+				, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+				, A.VLTN_CODE
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+				, B.HAND_CAR_TYPE
+				, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+				, A.ORIGIN_PASS_FARE 
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+				, A.PASS_FARE 
+				, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+				, A.PAY_FARE
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+				, A.ECARD_TYPE ECARD_TYPE
+				, FC_CHG_CODENM('071',A.ECARD_TYPE) AS ECARD_TYPE_DP
+				, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+				, A.MAIN_PAY_DIV
+				, FC_CHG_CODEDP('056', A.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+				, B.HAND_CAR_NO
+				, FC_CHG_WORKERNM(A.IC_CODE, B.ADMIN_ID) AS ADMIN_DP
+				, FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) OBU_ATT_DP
+				, A.BS_EXM_TYPE		-- 2: 부산시면제대상
+				, A.BS_EXM_TYPE_DTL
+				, FC_CHG_CODENM('292', A.BS_EXM_TYPE_DTL) AS BS_EXM_TYPE_DTL_DP
+				, A.BS_EXM_TYPE_DIV
+				, FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV) AS BS_EXM_TYPE_DIV_DP
+				, B.NOTE
+				<if test="BS_EXM_TYPE_DTL != '08'" >
+				, DECODE(L.LOC_CO_DIV, '1', L.LC_INFO_RSLT, '-') AS BS_LC_INFO_RSLT
+				, FC_CHG_CODENM('140', DECODE(L.LOC_CO_DIV, '1', L.LC_INFO_RSLT, '-')) AS LC_INFO_RSLT_DP
+				, DECODE(L.LOC_CO_DIV, '1', L.LC_HAND_DATE || L.LC_HAND_TIME, '-') AS LC_HAND_DT
+				, NVL(FC_CHG_FORMAT(DECODE(L.LOC_CO_DIV, '1', L.LC_HAND_DATE || L.LC_HAND_TIME, ''), 'DATETIME'), '-') AS LC_HAND_DT_DP
+				, L.RSLT_NOTE
+				, FC_CHG_CODENM('140', DECODE(L.LOC_CO_DIV, '1', L.LC_INFO_RSLT, '-')) || '(' || FC_CHG_CODENM('144', DECODE(L.LOC_CO_DIV, '1', L.RSLT_NOTE, '')) || ')' AS RSLT_NOTE_DP
+				</if>
+			FROM PRIM_ETCHAND A, PRIM_HANDCARNO B, PROC_LOC_LOCSEARCH L
+			WHERE A.IC_CODE = #{IC_CODE}
+				AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		        AND A.VLTN_CODE = '00'
+		        AND A.MAIN_PAY_DIV NOT IN ('5', '6', '8') 			-- 도공면제/특정일면제/직원면제 제외
+		        AND A.EXM_DIV NOT IN ('1', '2', '4') 				-- 도공면제처리된 내역 제외
+		        AND (A.BS_EXM_TYPE = '2' OR A.MAIN_PAY_DIV IN ('4', '9')) 	-- 부산시 면제대상 / 친환경, 전자카드PL
+				AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0')) 	-- 미처리/미심사 불일치 영상데이터 제외
+				AND A.IC_CODE = B.IC_CODE(+)
+		        AND A.WORK_DATE = B.WORK_DATE(+)
+		        AND A.WORK_NO = B.WORK_NO(+)
+		        AND A.HAND_SNO = B.HAND_SNO(+)
+				AND A.IC_CODE = L.IC_CODE(+)
+		        AND A.WORK_DATE = L.WORK_DATE(+)
+		        AND A.WORK_NO = L.WORK_NO(+)
+		        AND A.HAND_SNO = L.HAND_SNO(+)
+		        AND A.WORK_NO LIKE  #{LANE_NO} || '%__'
+		        AND A.BS_EXM_TYPE_DIV = DECODE(#{BS_EXM_TYPE_DIV}, '', A.BS_EXM_TYPE_DIV, #{BS_EXM_TYPE_DIV})
+				<if test="HAND_CAR_NO != null and HAND_CAR_NO != ''" >
+				AND B.HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'
+				</if>
+				<if test="PAY_FARE != null and PAY_FARE != ''" >
+				AND A.PAY_FARE = #{PAY_FARE}
+				</if>
+
+		        <choose> 
+		        <when test="BS_EXM_TYPE_DTL == '08'">
+		        AND A.BS_EXM_TYPE_DTL = '08'		        
+		        </when>
+		        <otherwise>
+		        AND A.BS_EXM_TYPE_DTL <![CDATA[<>]]> '08'
+		        AND A.BS_EXM_TYPE_DTL = DECODE(#{BS_EXM_TYPE_DTL}, '', A.BS_EXM_TYPE_DTL, #{BS_EXM_TYPE_DTL})
+		        </otherwise>
+		        </choose>
+		    ) TB
+		WHERE 1 = 1
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+	
+	<!-- 감면내역심사-부산시 내역조회(단 건) -->
+	<select id="selectReductionBsDetail" resultType="Map">
+	/* Mapper ID: selectReductionBsDetail */
+		SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO -- PK 
+			, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+			, FC_CHG_ICNM_LANE(A.IC_CODE, SUBSTR(A.WORK_NO, 0, 2)) LANE_DP
+			, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+			, A.VLTN_CODE
+			, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+			, B.HAND_CAR_TYPE
+			, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+			, A.ORIGIN_PASS_FARE 
+			, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+			, A.PASS_FARE 
+			, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+			, A.PAY_FARE
+			, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+			, A.ECARD_TYPE ECARD_TYPE_DP
+			, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+			, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+			, B.HAND_CAR_NO
+			, A.BS_EXM_TYPE		-- 2: 부산시면제대상
+			, A.BS_EXM_TYPE_DTL
+			, FC_CHG_CODENM('292', A.BS_EXM_TYPE_DTL) AS BS_EXM_TYPE_DTL_DP
+			, A.BS_EXM_TYPE_DIV
+			, FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV) AS BS_EXM_TYPE_DIV_DP
+		FROM PRIM_ETCHAND A, PRIM_HANDCARNO B
+		WHERE A.IC_CODE = #{IC_CODE}
+		  AND A.WORK_DATE = #{WORK_DATE}
+		  AND A.WORK_NO = #{WORK_NO}
+		  AND A.HAND_SNO = #{HAND_SNO}
+		  AND A.IC_CODE = B.IC_CODE(+)
+		  AND A.WORK_DATE = B.WORK_DATE(+)
+		  AND A.WORK_NO = B.WORK_NO(+)
+		  AND A.HAND_SNO = B.HAND_SNO(+)
+	</select>
+
+	<!-- 감면내역심사-부산시 심사처리 -->
+	<update id="updateReductionBsCorrection" statementType="CALLABLE" parameterType="hashMap">
+	/* Mapper ID: updateReductionBsCorrection */
+		DECLARE
+			V_IS_DAYFIN INTEGER := 0;
+			O_UPDATE_CNT INTEGER := 0;
+			O_FAIL_CNT INTEGER := 0;
+						
+			TYPE PK_RECORD_TYPE IS RECORD (
+				IC_CODE PRIM_ETCHAND.IC_CODE%TYPE,
+				WORK_DATE PRIM_ETCHAND.WORK_DATE%TYPE,
+				WORK_NO PRIM_ETCHAND.WORK_NO%TYPE,
+				HAND_SNO PRIM_ETCHAND.HAND_SNO%TYPE,
+				ECARD_TYPE PRIM_ETCHAND.ECARD_TYPE%TYPE,
+				PAY_FARE PRIM_ETCHAND.PAY_FARE%TYPE,
+				BS_EXM_TYPE_DTL PRIM_ETCHAND.BS_EXM_TYPE_DTL%TYPE
+			);
+			V_UPDATED_RECORD PK_RECORD_TYPE;
+			
+			TYPE PK_TABLE_TYPE IS TABLE OF PK_RECORD_TYPE;
+			V_UPDATED_LIST PK_TABLE_TYPE := PK_TABLE_TYPE();
+			
+		BEGIN
+		<foreach collection="data" item="item">
+			SELECT COUNT(*) INTO V_IS_DAYFIN FROM PROC_DAYFININFO 
+			WHERE IC_CODE = #{item.IC_CODE}
+				AND WORK_DATE = #{item.WORK_DATE};
+			IF V_IS_DAYFIN = 0 THEN
+				<if test="item.LC_INFO_RSLT_DP != null and item.LC_INFO_RSLT_DP != ''">
+				/* 위치정보조회 대상일 때 추가 업데이트 */
+				UPDATE PROC_LOC_EXMTHAND
+				SET EXMT_HAND_STAT = DECODE(#{requestId}, '3', '3', '2')
+				  , EXMT_HAND_TYPE = DECODE(#{requestId}, '4', '2', '3')
+				  , HAND_CAR_NO = DECODE(#{requestId}, '4', HAND_CAR_NO, #{item.NEW_CAR_NO})
+				  , NOTE = #{item.EXM_NOTE}
+				WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO}
+				  AND LOC_CO_DIV = '1';
+				</if>
+				UPDATE PRIM_ETCHAND
+				SET BS_EXM_TYPE_DIV = #{requestId}
+				<if test="item.NEW_BS_EXM_TYPE_DTL != null and item.NEW_BS_EXM_TYPE_DTL != ''" >
+				  , BS_EXM_TYPE_DTL = #{item.NEW_BS_EXM_TYPE_DTL}
+				</if>
+				WHERE IC_CODE = #{item.IC_CODE} AND WORK_DATE = #{item.WORK_DATE} AND WORK_NO = #{item.WORK_NO} AND HAND_SNO = #{item.HAND_SNO}
+				RETURNING IC_CODE, WORK_DATE, WORK_NO, HAND_SNO, ECARD_TYPE, PAY_FARE, BS_EXM_TYPE_DTL INTO V_UPDATED_RECORD;
+				O_UPDATE_CNT :=  O_UPDATE_CNT + 1;
+								
+				V_UPDATED_LIST.extend();
+				V_UPDATED_LIST(V_UPDATED_LIST.COUNT) := V_UPDATED_RECORD;
+			ELSE
+				O_FAIL_CNT := O_FAIL_CNT + 1;
+			END IF;
+		</foreach>
+			IF V_IS_DAYFIN = 0 THEN
+				FOR i IN V_UPDATED_LIST.FIRST .. V_UPDATED_LIST.LAST LOOP 
+					/* 택시는 후불보정 제외, 출금액이 있는 경우 후불보정 */
+					IF V_UPDATED_LIST(i).BS_EXM_TYPE_DTL != '08' AND V_UPDATED_LIST(i).ECARD_TYPE = '01' AND V_UPDATED_LIST(i).PAY_FARE > 0 THEN
+						UPDATE PRIM_ECARDHAND SET LPAY_CRCT_YN = DECODE(#{requestId}, '3', 'N', 'Y')
+						WHERE IC_CODE = V_UPDATED_LIST(i).IC_CODE AND WORK_DATE = V_UPDATED_LIST(i).WORK_DATE AND WORK_NO = V_UPDATED_LIST(i).WORK_NO AND HAND_SNO = V_UPDATED_LIST(i).HAND_SNO;
+					END IF;
+				END LOOP;
+			END IF;
+			
+			#{successCount, jdbcType=INTEGER, mode=OUT} := O_UPDATE_CNT;
+			#{failCount, jdbcType=INTEGER, mode=OUT} := O_FAIL_CNT;
+		END;
+	</update>
+	
+	<!-- 감면내역심사-부산시 심사처리(택시 추가처리) - 심사 -->
+    <update id="insertReductionBsAdditionalProcessTaxi" parameterType="hashMap">
+    /* Mapper ID: insertReductionBsAdditionalProcessTaxi */
+	    MERGE INTO PROC_TAXI_HIST
+		USING DUAL
+		ON( IC_CODE = #{item.IC_CODE} 
+		AND WORK_DATE = #{item.WORK_DATE}
+		AND WORK_NO = #{item.WORK_NO}
+		AND HAND_SNO = #{item.HAND_SNO}
+		)
+		WHEN NOT MATCHED THEN
+		INSERT( IC_CODE
+			  , WORK_DATE
+			  , WORK_NO
+			  , HAND_SNO
+			  , TAXI_EXM_TYPE
+		) 
+		VALUES( #{item.IC_CODE}
+			  , #{item.WORK_DATE}
+			  , #{item.WORK_NO}
+			  , #{item.HAND_SNO}
+			  , '0'
+		)
+	</update>
+	
+	<!-- 감면내역심사-부산시 심사처리(택시 추가처리) - 부정 -->
+    <update id="deleteReductionBsAdditionalProcessTaxi" parameterType="hashMap">
+    /* Mapper ID: deleteReductionBsAdditionalProcessTaxi */
+	    DELETE FROM PROC_TAXI_HIST
+		WHERE IC_CODE = #{item.IC_CODE} 
+		AND WORK_DATE = #{item.WORK_DATE}
+		AND WORK_NO = #{item.WORK_NO}
+		AND HAND_SNO = #{item.HAND_SNO}
+	</update>
+	
+	<!-- 감면부정사용내역-부산시 목록 조회 -->
+	<select id="selectCheatReductionBsList" resultType="hashMap">
+	/* Mapper ID: selectCheatReductionBsList */
+		SELECT ROW_NUMBER() OVER (ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO) ROW_NUMBER, TB.* 
+		FROM (SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO -- PK 
+				, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+				, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+				, B.HAND_CAR_TYPE 				-- 처리차종
+				, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+				, A.ORIGIN_PASS_FARE 
+				, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+				, A.PASS_FARE 
+				, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+				, A.PAY_FARE
+				, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+				, A.CARD_NO
+				, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+				, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+				, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+				, FC_CHG_CODENM('290', A.ECARD_ATT) ECARD_ATT_DP 			-- 전자카드속성(긴급면제구분)
+				, FC_CHG_CODENM('280', UPPER(A.OBU_ATT)) OBU_ATT_DP   			-- 단말기속성(감면구분)
+				, B.HAND_CAR_NO 	-- 처리차량번호
+				, NVL(A.ECARD_CAR_NO, '-') AS ECARD_CAR_NO	-- 차량번호(카드)
+				, A.BS_EXM_TYPE_DTL
+				, FC_CHG_CODENM('292', A.BS_EXM_TYPE_DTL) AS BS_EXM_TYPE_DTL_DP
+				, A.BS_EXM_TYPE_DIV
+				, FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV) AS BS_EXM_TYPE_DIV_DP
+			FROM 
+				PRIM_ETCHAND A, PRIM_HANDCARNO B
+			WHERE A.IC_CODE = #{IC_CODE}
+				AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+				AND A.IC_CODE = B.IC_CODE(+)
+		        AND A.WORK_DATE = B.WORK_DATE(+)
+		        AND A.WORK_NO = B.WORK_NO(+)
+		        AND A.HAND_SNO = B.HAND_SNO(+)
+		        AND A.BS_EXM_TYPE_DTL = DECODE(#{BS_EXM_TYPE_DTL}, '', A.BS_EXM_TYPE_DTL, #{BS_EXM_TYPE_DTL})
+				AND A.BS_EXM_TYPE_DIV = '3'	-- 부정(미납) 건 조회
+				<if test="LANE_NO != null and LANE_NO != ''" >
+		        AND A.WORK_NO LIKE  #{LANE_NO} || '%__'
+		        </if>
+				<if test="CAR_NO != null and CAR_NO != ''" >
+		        AND B.HAND_CAR_NO LIKE '%' || #{CAR_NO} || '%'
+		        </if>
+				<if test="CARD_NO != null and CARD_NO != ''" >
+				AND A.CARD_NO LIKE '%' || #{CARD_NO} || '%'
+		        </if>		        
+		) TB
+		WHERE 1 = 1
+		ORDER BY TB.IC_CODE, TB.WORK_DATE, TB.WORK_NO, TB.HAND_SNO
+	</select>
+
+	<!-- 후불보정내역 목록 조회 -->
+	<select id="selectPayCorrectionList" resultType="hashMap">
+	/* Mapper ID: selectPayCorrectionList */
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY A.IC_CODE, A.WORK_DATE, A.HAND_SNO) ROW_NUMBER
+            ,A.IC_CODE
+            ,A.WORK_DATE
+            ,TO_CHAR(TO_DATE(A.WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') WORK_DATE_DP
+            ,A.WORK_NO
+            ,A.HAND_SNO
+            ,C.HAND_CAR_NO 
+            ,A.ORIGIN_PASS_FARE
+            ,FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') AS ORIGIN_PASS_FARE_DP
+            ,A.PASS_FARE
+            ,FC_CHG_FORMAT(A.PASS_FARE, '4') AS PASS_FARE_DP
+            ,B.WTHD_FARE
+            ,FC_CHG_FORMAT(B.WTHD_FARE, '4') AS WTHD_FARE_DP
+            ,A.PAY_FARE
+            ,FC_CHG_FORMAT(A.PAY_FARE, '4') AS PAY_FARE_DP
+            ,A.PAY_BEF_BALC
+            ,FC_CHG_FORMAT(A.PAY_BEF_BALC, '4') AS PAY_BEF_BALC_DP
+            ,A.ECARD_TYPE
+            ,NVL(FC_CHG_CODEDP('071', A.ECARD_TYPE), '전자카드 미사용') ECARD_TYPE_DP
+            ,A.VLTN_CODE
+            ,FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+            ,A.HAND_CAR_TYPE AS CAR_TYPE
+            ,FC_CHG_CODEDP('171', A.HAND_CAR_TYPE) CAR_TYPE_DP
+            ,C.HAND_CAR_TYPE
+            ,FC_CHG_CODEDP('171', C.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+            ,A.HAND_DT AS OCC_DT
+            ,FC_CHG_FORMAT(A.HAND_DT, '11') AS OCC_DT_DP
+            ,A.CARD_NO
+            ,FC_CHG_FORMAT(A.CARD_NO, '3') AS CARD_NO_DP
+            ,A.OBU_STAT
+            ,FC_CHG_CODEDP('282', A.OBU_STAT) AS OBU_STAT_DP
+            ,A.ECARD_STAT
+            ,FC_CHG_CODEDP('291', A.ECARD_STAT) AS ECARD_STAT_DP
+            ,A.MAIN_PAY_DIV
+            ,FC_CHG_CODEDP('056', A.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+            ,C.HAND_CAR_TYPE
+			,FC_CHG_CODEDP('171', C.HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+            ,A.OBU_CAR_TYPE
+            ,FC_CHG_CODEDP('171', A.OBU_CAR_TYPE) OBU_CAR_TYPE_DP
+            ,A.CRTF_STAT
+            ,A.OBU_TYPE
+            ,FC_CHG_CODEDP('283', A.OBU_TYPE) AS OBU_TYPE_DP          
+            ,B.LPAY_CRCT_YN
+            ,B.CRCT_PAY_FARE
+            ,FC_CHG_FORMAT(B.CRCT_PAY_FARE, '4') AS CRCT_PAY_FARE_DP
+            
+            ,D.ADMIN_ID
+            ,D.NOTE AS NOTE_VLTN
+            ,C.NOTE AS NOTE_CARNO
+		FROM 
+			PRIM_ETCHAND A, PRIM_ECARDHAND B, PRIM_HANDCARNO C, PRIM_ETCVLTN D
+		WHERE 
+			A.IC_CODE = #{IC_CODE}
+			AND A.IC_CODE = B.IC_CODE(+)
+	        AND A.WORK_DATE = B.WORK_DATE(+)
+	        AND A.WORK_NO = B.WORK_NO(+)
+	        AND A.HAND_SNO = B.HAND_SNO(+)
+	        AND A.IC_CODE = C.IC_CODE(+)
+	        AND A.WORK_DATE = C.WORK_DATE(+)
+	        AND A.WORK_NO = C.WORK_NO(+)
+	        AND A.HAND_SNO = C.HAND_SNO(+)
+	        AND A.IC_CODE = D.IC_CODE(+)
+	        AND A.WORK_DATE = D.WORK_DATE(+)
+	        AND A.WORK_NO = D.WORK_NO(+)
+	        AND A.HAND_SNO = D.HAND_SNO(+)
+	        <if test='HAND_CAR_NO != null and HAND_CAR_NO != ""'>
+		    AND C.HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'
+			</if>
+	        
+			AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			AND B.LPAY_CRCT_YN = 'Y'
+	</select>
+	
+	<!-- 사전등록처리내역 목록 조회 -->
+	<select id="selectPreRegistrationList" resultType="hashMap">
+	/* Mapper ID: selectPreRegistrationList */
+	SELECT 
+		ROW_NUMBER() OVER(ORDER BY A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO) ROW_NUMBER,
+	  	A.IC_CODE,
+	    A.WORK_DATE,
+	    FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP,
+	    A.WORK_NO,
+	    A.HAND_SNO,
+	    A.HAND_DT,
+	    FC_CHG_FORMAT(A.HAND_DT, '11') AS HAND_DT_DP,
+	    A.OFC_EXPT_PAY_FARE,
+	    FC_CHG_FORMAT(A.OFC_EXPT_PAY_FARE, '4') AS OFC_EXPT_PAY_FARE_DP,
+	    A.TRNRCP_RSLT,
+	    FC_CHG_CODEDP('807', A.TRNRCP_RSLT) AS TRNRCP_RSLT_DP,
+	    A.TRNRCP_DT,
+	    FC_CHG_FORMAT(A.TRNRCP_DT, '11') AS TRNRCP_DT_DP,
+	    A.HAND_CAR_NO,
+	    B.HAND_CAR_NO ,
+	    B.MBR_NM,
+	    B.MBR_ID,
+	    FC_CHG_CODENM('809', B.RSPNS_TYPE) AS RSPNS_TYPE,
+	    B.RSPNS_RSLT_CN,
+	    TO_CHAR(B.RSPNS_DT, 'YYYY-MM-DD HH24:MI:SS') AS RSPNS_DT_DP
+	  FROM 
+	  	VW_PRE_RGST A, MQNIC.V_PRE_PAY_INFO B
+	  WHERE 
+	  A.IC_CODE = B.IC_CODE (+)
+	  AND A.WORK_DATE = B.WORK_DATE (+)
+	  AND A.WORK_NO = B.WORK_NO (+)
+	  AND A.HAND_SNO = B.HAND_SNO (+)
+	  AND A.VLTN_PAY_TYPE = '30'
+	  AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+
+	  <if test='HAND_CAR_NO != null and HAND_CAR_NO != "" '>
+	  	AND A.HAND_CAR_NO LIKE '%' || #{HAND_CAR_NO} || '%'
+	  </if>
+	  <if test='MBR_NM != null and MBR_NM != "" '>
+	  	AND B.MBR_NM LIKE #{MBR_NM}
+	  </if>
+	  <if test='TRNRCP_RSLT != null and TRNRCP_RSLT != "" '>
+	  	AND A.TRNRCP_RSLT = #{TRNRCP_RSLT}
+	  </if>
+	</select>
+	
+	<!-- 기타수입관리 목록 조회 -->
+	<select id="selectEtcIncomeList" resultType="hashMap">
+	/* Mapper ID: selectEtcIncomeList */
+		SELECT 
+			ROW_NUMBER() OVER (ORDER BY IN_DATE, ROWNUM ASC) ROW_NUMBER
+            ,A.IC_CODE
+            ,FC_CHG_ICNM(A.IC_CODE) AS IC_CODE_DP
+            ,A.IN_DATE
+			,TO_CHAR(TO_DATE(A.IN_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') IN_DATE_DP
+			,A.MDFY_DT
+			,SUBSTR(A.MDFY_DT, 9, 2) || ':' || SUBSTR(A.MDFY_DT, 11, 2) AS MDFY_DT_DP
+			,A.WORKER_NO
+			,FC_CHG_WORKERNM(A.IC_CODE,A.WORKER_NO) AS WORKER_DP
+			,A.IN_TYPE
+			,FC_CHG_CODEDP('120', A.IN_TYPE) AS IN_TYPE_DP
+			,A.MNY
+			,DECODE(A.DW_TYPE, '0', A.MNY, '1', 0) AS D_MNY
+            ,DECODE(A.DW_TYPE, '1', A.MNY, '0', 0) AS W_MNY
+            ,DECODE(A.DW_TYPE, '0', FC_CHG_FORMAT(A.MNY, '4'), '1', '0') AS D_MNY_DP
+            ,DECODE(A.DW_TYPE, '1', FC_CHG_FORMAT(A.MNY, '4'), '0', '0') AS W_MNY_DP
+			,A.NOTE
+			,A.DW_TYPE
+			,FC_CHG_CODEDP('804', A.DW_TYPE) AS DW_TYPE_DP
+			,A.WORK_NO
+			,A.ADMIN_ID
+			,A.IC_DIV
+			,A.CUST_NM
+			,A.CAR_NO
+			,A.CAR_TYPE
+
+			,B.TEL            
+		FROM 
+			PROC_ETCREVEN A, BASE_WORKERINFO B
+		WHERE 
+			A.IC_CODE = B.IC_CODE
+			AND A.WORKER_NO = B.WORKER_NO
+			
+			AND A.IC_CODE = #{IC_CODE}
+			AND A.IN_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+			<if test='DW_TYPE != null and DW_TYPE != "" '>
+	        	AND A.DW_TYPE = #{DW_TYPE} --입출금 구분 : 입금0 출금1
+	        </if>
+	        <if test='IN_TYPE != null and IN_TYPE != "" '>
+	        	AND A.IN_TYPE = #{IN_TYPE} --계정구분 대분류:120
+	        </if>
+			<if test='CAR_NO != null and CAR_NO != "" '>
+	        	AND A.CAR_NO LIKE '%'||#{CAR_NO}||'%'
+	        </if>
+	        <if test='NOTE != null and NOTE != "" '>
+	        	AND A.NOTE LIKE '%'||#{NOTE}||'%'
+	        </if>
+	     
+	        AND B.CLASS != '9' --유지보수자 제거
+	</select>
+	
+	<!-- 기타수입관리 근무자 목록 조회 -->
+	<select id="selectWorkerList" resultType="hashMap">
+        SELECT 
+        	WORKER_NO
+            ,WORKER_NM
+            ,RESIGN_YN
+            ,WORKER_NO || ':' || WORKER_NM AS WORKER_LIST
+        FROM 
+        	BASE_WORKERINFO
+        WHERE 
+        	CLASS IN ('3', '4','8')
+        	AND RESIGN_YN != 'Y'
+        GROUP BY WORKER_NO, WORKER_NM, RESIGN_YN
+        ORDER BY WORKER_NO
+    </select>
+    
+    <!-- 기타수입관리 데이터 중복 생성 방지  -->
+    <select id="checkEtcIncome" resultType="int">
+	/* Mapper ID: checkEtcIncome */
+	SELECT COUNT(*)
+    FROM PROC_ETCREVEN
+    WHERE IC_CODE = #{IC_CODE}
+      AND IN_DATE = #{IN_DATE}
+      AND WORKER_NO = #{WORKER_NO}
+      AND DW_TYPE = #{DW_TYPE}
+      AND CAR_NO = #{CAR_NO}
+	</select>
+    
+    <!-- 기타수입관리 추가 및 수정 -->
+    <update id="insertEtcIncome" parameterType="hashMap">
+    /* Mapper ID: insertEtcIncome */
+    INSERT INTO PROC_ETCREVEN
+			 (IC_CODE,
+	         IN_DATE,
+	         WORKER_NO,
+	         DW_TYPE,
+	         IN_TYPE,
+	         MNY,
+	         ADMIN_ID,
+	         NOTE,
+	         IC_DIV,
+	         MDFY_DT,
+	         CUST_NM,
+	         CAR_NO
+	        )
+	VALUES 
+            (#{IC_CODE},
+            #{IN_DATE},
+            #{WORKER_NO},
+            #{DW_TYPE},
+            #{IN_TYPE}, 
+            #{MNY},
+            #{ADMIN_ID},
+            #{NOTE},
+            1, -- 영업소구분
+            TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+            #{CUST_NM},
+            #{CAR_NO}
+            )
+	</update>
+          
+    <delete id="deleteEtcIncome" parameterType="list">
+	    DELETE FROM PROC_ETCREVEN
+	    WHERE 
+	    <foreach collection="list" item="item" separator=" OR ">
+	    (IC_CODE = #{item.IC_CODE}
+	      AND IN_DATE = #{item.IN_DATE}
+	      AND MDFY_DT = #{item.MDFY_DT}
+	      AND WORKER_NO = #{item.WORKER_NO}
+	      AND IN_TYPE = #{item.IN_TYPE}
+	      AND MNY = #{item.MNY}
+	      AND DW_TYPE = #{item.DW_TYPE})
+	  </foreach>
+	</delete>
+
+	
+	<!-- 기타수입관리 추가 및 수정 -->
+    <update id="updateEtcIncome" parameterType="hashMap">
+    /* Mapper ID: updateEtcIncome */
+	UPDATE PROC_ETCREVEN
+	SET DW_TYPE = #{DW_TYPE},
+        IN_TYPE = #{IN_TYPE},
+        MNY = #{MNY},
+        CUST_NM = #{CUST_NM},
+        CAR_NO = #{CAR_NO},
+        NOTE = #{NOTE}
+    WHERE IC_CODE = #{IC_CODE} AND IN_DATE = #{IN_DATE} AND MDFY_DT = #{MDFY_DT}
+	</update>
+	
+	<!-- 근무목록 조회 -->
+	<select id="selectWorkNo" resultType="hashMap">
+	SELECT DISTINCT
+		A.WORK_NO
+		,A.WORK_NO AS WORK_NM
+	FROM 
+		PRIM_WORKSTAT A
+	WHERE 
+		A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE}  AND #{END_DATE}
+	GROUP BY A.WORK_NO
+	ORDER BY A.WORK_NO
+    </select>
+    
+    <!-- 차로목록 조회 -->
+	<select id="selectLaneNo" resultType="hashMap">
+    SELECT 
+    	A.LOGC_LANE
+    	,A.LANE_NM
+    FROM 
+    	BASE_LANEINFO A
+    WHERE 
+    	A.IC_CODE = #{IC_CODE}
+    	AND A.PHGC_LANE NOT IN ('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '31', '32', '33', '41', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '64', '65', '71', '72', '74', '75')
+    </select>
+        
+	<!-- 위반차량 현황조회 - 보고서 -->
+	<select id="selectViolationState" resultType="hashMap">
+	/* Mapper ID: selectViolationState */
+		SELECT DECODE(GPID, 12, '합계', 14, '전체', FC_CHG_CODENM('304', HAND_TYPE)) HAND_TYPE_DP
+			, DECODE(GPID, 12, '합계', 14, '전체', DECODE(TIME_DIV, '1', '일반시간대', '2', '할인시간대', TIME_DIV)) TIME_DIV_DP
+			, DECODE(GPID, 12, '합계', 14, '전체', DECODE(FARE_DIV, '1', '통행료', '2', '부가통행료', NULL, '전체', FARE_DIV)) FARE_DIV_DP
+			, DECODE(VAL_DIV, '1', '대수', '2', '금액', VAL_DIV) VAL_DIV_DP
+			, GPID
+			, TYPE1_VAL
+			, TYPE2_VAL
+			, TYPE3_VAL
+			, TYPE4_VAL
+		FROM (
+			SELECT HAND_TYPE
+				, TIME_DIV
+				, FARE_DIV
+				, VAL_DIV
+				, GROUPING_ID(HAND_TYPE, TIME_DIV, FARE_DIV, VAL_DIV) GPID
+				, SUM(NVL(TYPE1_VAL, 0)) AS TYPE1_VAL 			-- 경차
+				, SUM(NVL(TYPE2_VAL, 0)) AS TYPE2_VAL 			-- 소형
+				, SUM(NVL(TYPE3_VAL, 0)) AS TYPE3_VAL 			-- 대형
+				, SUM(NVL(TYPE4_VAL, 0)) AS TYPE4_VAL 			-- 특수
+			FROM (
+				SELECT CN.HAND_TYPE, CN.TIME_DIV, CN.FARE_DIV, CN.VAL_DIV, TB.CAR_TYPE, TB.VAL 
+				FROM (
+					SELECT HAND_TYPE, TIME_DIV, FARE_DIV, CAR_TYPE, VAL_DIV, VAL FROM
+					(	SELECT VLTN.HAND_TYPE
+							, CASE WHEN VLTN.MAIN_PAY_DIV IN ('1', '2') THEN '2'
+								ELSE '1'
+							  END TIME_DIV
+							, '1' AS FARE_DIV
+							, (SELECT CODE.CODESC_NOTE FROM BASE_CODESC CODE WHERE CODELC = '171' AND CODE.CODESC = CARNO.HAND_CAR_TYPE) CAR_TYPE
+							, 1 AS CNT
+							, VLTN.SUM_OFC_PAY_FARE AS FARE
+						FROM  PRIM_ETCVLTN VLTN, PRIM_HANDCARNO CARNO
+						WHERE VLTN.IC_CODE = #{IC_CODE}
+						  AND VLTN.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+						  AND VLTN.IC_CODE = CARNO.IC_CODE
+						  AND VLTN.WORK_DATE = CARNO.WORK_DATE
+						  AND VLTN.WORK_NO = CARNO.WORK_NO
+						  AND VLTN.HAND_SNO = CARNO.HAND_SNO
+						  AND VLTN.HAND_TYPE = '30'		-- 완납
+					) UNPIVOT (
+						VAL FOR VAL_DIV IN (CNT AS '1', FARE AS '2')  
+					)
+				) TB, 
+				(	SELECT '30' AS HAND_TYPE, '1' AS TIME_DIV, '1' AS FARE_DIV, '1' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '1' AS TIME_DIV, '1' AS FARE_DIV, '2' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '1' AS TIME_DIV, '2' AS FARE_DIV, '1' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '1' AS TIME_DIV, '2' AS FARE_DIV, '2' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '2' AS TIME_DIV, '1' AS FARE_DIV, '1' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '2' AS TIME_DIV, '1' AS FARE_DIV, '2' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '2' AS TIME_DIV, '2' AS FARE_DIV, '1' AS VAL_DIV FROM DUAL
+					UNION ALL
+					SELECT '30' AS HAND_TYPE, '2' AS TIME_DIV, '2' AS FARE_DIV, '2' AS VAL_DIV FROM DUAL
+				) CN
+				WHERE CN.TIME_DIV = TB.TIME_DIV(+)
+				  AND CN.HAND_TYPE = TB.HAND_TYPE(+)
+				  AND CN.FARE_DIV = TB.FARE_DIV(+)
+				  AND CN.VAL_DIV = TB.VAL_DIV(+)
+			)
+			PIVOT (
+				SUM(NVL(VAL, 0)) AS VAL FOR CAR_TYPE IN ('1' AS TYPE1, '2' AS TYPE2, '3' AS TYPE3, '4' AS TYPE4)
+			)
+			GROUP BY CUBE(HAND_TYPE, TIME_DIV, FARE_DIV, VAL_DIV)
+			)
+		WHERE GPID IN (0, 12, 14)
+		ORDER BY GPID, HAND_TYPE, TIME_DIV, FARE_DIV, VAL_DIV
+    </select>
+
+	<!-- 심사건수 조회 -->
+	<select id="selectCorrectionCount" resultType="hashMap">
+	/* Mapper ID: selectCorrectionCount */
+		WITH COMBINED AS (
+		-- 영상심사 갯수
+		SELECT A.WORK_DATE, CASE WHEN A.VLTN_CODE = '00' THEN 'AUTO_IMG' ELSE 'MANUAL_IMG' END AS AUTO_GROUP, count(*) AS CNT_IMG, 0 AS CNT_VLTN, 0 AS CNT_EX , 0 AS CNT_BS
+		FROM PRIM_ETCHAND A
+		WHERE A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.IMG_TYPE = '2' -- 불일치
+		GROUP BY (A.WORK_DATE, CASE WHEN A.VLTN_CODE = '00' THEN 'AUTO_IMG' ELSE 'MANUAL_IMG' END)
+
+		UNION ALL
+		--위반심사 갯수
+		SELECT A.WORK_DATE, CASE WHEN A.NOTE LIKE '%자동처리' OR A.NOTE LIKE '%일괄처리' THEN 'AUTO_VLTN' ELSE 'MANUAL_VLTN' END AS AUTO_GROUP, 0 AS CNT_IMG, count(*) AS CNT_VLTN, 0 AS CNT_EX , 0 AS CNT_BS
+		FROM
+		PRIM_ETCVLTN A
+		,PRIM_ETCHAND B
+		WHERE
+		A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+)
+		AND A.HAND_SNO = B.HAND_SNO(+)
+
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.IC_CODE = #{IC_CODE}
+		AND ((B.IMG_TYPE != 0 AND B.IMG_TYPE_DTL != 0) OR (B.IMG_TYPE = 1 AND B.IMG_TYPE_DTL = 0))
+		GROUP BY (A.WORK_DATE, CASE WHEN A.NOTE LIKE '%자동처리' OR A.NOTE LIKE '%일괄처리' THEN 'AUTO_VLTN' ELSE 'MANUAL_VLTN' END)
+
+		UNION ALL
+
+
+		--감면내역심사 긴급면제카드
+		SELECT TB.WORK_DATE, CASE WHEN TB.NOTE LIKE '%자동처리' OR TB.NOTE LIKE '%일괄처리' THEN 'AUTO_EX' ELSE 'MANUAL_EX' END AS AUTO_GROUP, 0 AS CNT_IMG, 0 AS CNT_VLTN, COUNT(*) AS CNT_EX , 0 AS CNT_BS
+		FROM (
+		SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO   -- PK
+		, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+		, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+		, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+		, A.ORIGIN_PASS_FARE
+		, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+		, A.PAY_FARE
+		, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+		, A.WORK_DIV                     -- 0: 정상근무, 1: 유지보수
+		, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+		, FC_CHG_CODENM('290', A.ECARD_ATT) ECARD_ATT_DP          -- 전자카드속성(긴급면제구분)
+		, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+		, FC_CHG_CODENM('280', UPPER(A.OBU_ATT)) OBU_ATT_DP
+		, A.HAND_CAR_TYPE AS LANE_CAR_TYPE    -- 처리차종(차로)
+		, FC_CHG_CODEDP('171', A.HAND_CAR_TYPE) LANE_CAR_TYPE_DP
+		, B.HAND_CAR_TYPE             -- 처리차종(보정)
+		, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+		, A.EXM_DIV       -- 심사구분
+		, FC_CHG_CODENM('138', A.EXM_DIV) EXM_DIV_DP
+		, A.IMG_TYPE        -- 영상구분
+		, A.IMG_TYPE_DTL   -- 영상심사결과
+		, A.ECARD_CAR_NO    -- 차번(전자카드)★
+		, B.HAND_CAR_NO    -- 차번(보정)★
+		, CASE WHEN A.ECARD_CAR_NO=B.HAND_CAR_NO THEN '일치'
+		ELSE '불일치'
+		END AS MATCH_DIV
+		, B.NOTE
+		FROM
+		PRIM_ETCHAND A, PRIM_HANDCARNO B
+		WHERE
+		A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+)
+		AND A.HAND_SNO = B.HAND_SNO(+)
+		AND A.VLTN_CODE = '00'                     -- 위반코드: 정상
+		AND A.MAIN_PAY_DIV = '5'                  -- 대표수납구분: 면제
+		AND A.ECARD_PAY_DIV = '06'                  -- 전자카드수납구분: 면제(면제카드/단말기)
+		AND A.ECARD_TYPE = '02'                     -- 전자카드종류: 도공전자카드(면제)
+		AND REGEXP_LIKE(A.ECARD_ATT, '[2][0-9A-F]')      -- 전자카드속성: 긴급면제카드
+		AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0'))    -- 미처리/미심사 불일치 영상데이터 제외
+
+		) TB
+		WHERE TB.MATCH_DIV = DECODE('', '', TB.MATCH_DIV, '')
+		GROUP BY (TB.WORK_DATE, CASE WHEN TB.NOTE LIKE '%자동처리' OR TB.NOTE LIKE '%일괄처리' THEN 'AUTO_EX' ELSE 'MANUAL_EX' END)
+
+		UNION ALL
+
+		--감면내역심사 감면단말기
+		SELECT TB.WORK_DATE, CASE WHEN TB.NOTE LIKE '%자동처리' OR TB.NOTE LIKE '%일괄처리' THEN 'AUTO_EX' ELSE 'MANUAL_EX' END AS AUTO_GROUP, 0 AS CNT_IMG, 0 AS CNT_VLTN, COUNT(*) AS CNT_EX, 0 AS CNT_BS
+		FROM (
+		SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO         -- PK
+		, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+		, A.HAND_DT
+		, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+		, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+		, B.HAND_CAR_TYPE
+		, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+		, A.ORIGIN_PASS_FARE
+		, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+		, A.PAY_FARE
+		, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+		, FC_CHG_CODENM('070', A.ECARD_PAY_DIV) ECARD_PAY_DIV_DP
+		, A.OBU_STAT
+		, FC_CHG_CODEDP('282', A.OBU_STAT) AS OBU_STAT_DP
+		, A.OBU_NO
+		, FC_CHG_FORMAT(A.OBU_NO, '3') OBU_NO_DP
+		, FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) OBU_ATT_DP            -- 단말기속성(감면구분)
+		, A.OBU_CAR_NO
+		, B.HAND_CAR_NO
+		, FC_CHG_FORMAT(A.CARD_NO, '3') CARD_NO_DP      -- 전자카드번호
+		, NVL2(C.XCARD_NO, FC_CHG_FORMAT(C.XCARD_NO, '3'), '-') XCARD_NO_DP   -- 처리차량번호 기준 통복카드번호
+		, A.EXM_DIV
+		, FC_CHG_CODENM('138', A.EXM_DIV) EXM_DIV_DP
+		, CASE WHEN A.OBU_CAR_NO=B.HAND_CAR_NO THEN '일치'
+		ELSE '불일치'
+		END AS MATCH_DIV
+		, B.NOTE
+		FROM
+		PRIM_ETCHAND A, PRIM_HANDCARNO B,
+		(SELECT DISTINCT *
+		FROM BASE_WCARDPL
+		WHERE ROWID IN (SELECT MIN(ROWID)
+		FROM BASE_WCARDPL
+		GROUP BY INST_CAR_NO)) C
+		WHERE
+		A.IC_CODE = #{IC_CODE}
+		AND A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+)
+		AND A.HAND_SNO = B.HAND_SNO(+)
+		AND B.HAND_CAR_NO = C.INST_CAR_NO(+)
+		AND A.VLTN_CODE = '00'                     -- 위반코드: 정상
+		AND A.MAIN_PAY_DIV = '5'                  -- 대표수납구분: 면제
+		AND A.ECARD_PAY_DIV IN ('06', '26', '07','27')    -- 전자카드수납구분: 면제 및 할인
+		AND REGEXP_LIKE(A.ECARD_ATT, '[^2][0-9A-F]')   -- 전자카드속성: 긴급면제카드 제외
+		AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0')) -- 미처리/미심사 불일치 영상데이터 제외
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.EXM_DIV = DECODE('', '', A.EXM_DIV, '')
+
+		) TB
+		WHERE TB.MATCH_DIV = DECODE('', '', TB.MATCH_DIV, '')
+		GROUP BY (TB.WORK_DATE, CASE WHEN TB.NOTE LIKE '%자동처리' OR TB.NOTE LIKE '%일괄처리' THEN 'AUTO_EX' ELSE 'MANUAL_EX' END)
+
+		UNION ALL
+
+
+		--감면내역심사 통합복지(위치)
+		SELECT TB.WORK_DATE, CASE WHEN TB.EXMT_HAND_TYPE = 2 THEN 'AUTO_EX' ELSE 'MANUAL_EX' END AS AUTO_GROUP, 0 AS CNT_IMG, 0 AS CNT_VLTN, COUNT(*) AS CNT_EX, 0 AS CNT_BS
+		FROM (SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO    --PK
+		, FC_CHG_FORMAT(A.WORK_DATE, '1') AS WORK_DATE_DP
+		, A.EXIT_HAND_DATE || A.EXIT_HAND_TIME AS OCC_DT
+		, FC_CHG_FORMAT(A.EXIT_HAND_DATE || A.EXIT_HAND_TIME, '11') AS OCC_DT_DP
+		, FC_CHG_CODEDP('171', C.HAND_CAR_TYPE) AS HAND_CAR_TYPE_DP
+		, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+		, A.ECARD_TYPE
+		, FC_CHG_CODENM('071', A.ECARD_TYPE) AS ECARD_TYPE_DP
+		, A.ECARD_NO
+		, FC_CHG_FORMAT(A.ECARD_NO, '3') ECARD_NO_DP
+		, A.WCARD_NO
+		, FC_CHG_FORMAT(A.WCARD_NO, '3') WCARD_NO_DP
+		, A.OBU_NO
+		, FC_CHG_FORMAT(A.OBU_NO, 3) OBU_NO_DP
+		, (SELECT MAX(I.OBU_NO) KEEP(DENSE_RANK FIRST ORDER BY I.MDFY_SNO DESC) FROM BASE_LOC_INSTCUST I WHERE I.WCARD_NO = A.WCARD_NO) DC_OBU_NO
+		, FC_CHG_FORMAT((SELECT MAX(I.OBU_NO) KEEP(DENSE_RANK FIRST ORDER BY I.MDFY_SNO DESC) FROM BASE_LOC_INSTCUST I WHERE I.WCARD_NO = A.WCARD_NO), 3) DC_OBU_NO_DP
+		, A.LC_HAND_DATE || A.LC_HAND_TIME AS LC_HAND_DT
+		, FC_CHG_FORMAT(A.LC_HAND_DATE || A.LC_HAND_TIME, '11') AS LC_HAND_DT_DP
+		, A.INST_CAR_NO                            -- 등록차량번호
+		, C.HAND_CAR_NO                            -- 처리차량번호
+		, A.ECARD_CAR_NO                           -- 전자카드차량번호
+		, A.LC_INFO_RSLT                            -- 위치조회결과
+		, B.RSLT_NOTE                               -- 위치조회결과내용
+		, A.EXMT_NOT_RES                            -- 감면불가사유코드
+		, A.EXMT_HAND_STAT                            -- 심사구분(미처리/감면/미감면)
+		, A.EXMT_HAND_TYPE                            -- 처리유헝(미처리/자동/수동)
+		, FC_CHG_CODENM('140', A.LC_INFO_RSLT) AS LC_INFO_RSLT_DP
+		, DECODE(B.ARS_CRTF_TYPE, '01', '성공', '02', '패스', '03', '실패', B.ARS_CRTF_TYPE) AS ARS_CRTF_TYPE_DP
+		, FC_CHG_CODEDP('142', A.EXMT_NOT_RES) AS EXMT_NOT_RES_DP
+		, FC_CHG_CODENM('139', A.EXMT_HAND_STAT) AS EXMT_HAND_STAT_DP
+		, FC_CHG_CODENM('141', A.EXMT_HAND_TYPE) AS EXMT_HAND_TYPE_DP
+		, A.ORIGIN_PASS_FARE
+		, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+		, A.PASS_FARE
+		, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+		, A.PAY_FARE
+		, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+		, A.RFND_FARE
+		, FC_CHG_FORMAT(A.RFND_FARE, '4') RFND_FARE_DP
+		, FC_CHG_CODEDP('280', E.OBU_ATT) OBU_ATT_DP
+		, FC_CHG_CODENM('056', E.MAIN_PAY_DIV) MAIN_PAY_DIV_DP
+		, A.NOTE
+		FROM PROC_LOC_EXMTHAND A, PROC_LOC_LOCSEARCH B, PRIM_HANDCARNO C, PRIM_ETCHAND E
+		WHERE A.IC_CODE = #{IC_CODE}
+		AND A.IC_CODE = E.IC_CODE
+		AND A.WORK_DATE = E.WORK_DATE
+		AND A.WORK_NO = E.WORK_NO
+		AND A.HAND_SNO = E.HAND_SNO
+		AND A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+)
+		AND A.HAND_SNO = B.HAND_SNO(+)
+		AND A.IC_CODE = C.IC_CODE(+)
+		AND A.WORK_DATE = C.WORK_DATE(+)
+		AND A.WORK_NO = C.WORK_NO(+)
+		AND A.HAND_SNO = C.HAND_SNO(+)
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.VLTN_CODE = '00'
+		AND A.LOC_CO_DIV = '0'      -- 도로공사
+		AND (E.IMG_TYPE = '1' OR (E.IMG_TYPE = '2' AND E.IMG_TYPE_DTL != '0'))      -- 미처리/미심사 불일치 영상데이터 제외
+		AND A.EXMT_HAND_STAT = DECODE('', '', A.EXMT_HAND_STAT, '')
+		AND A.EXMT_HAND_TYPE = DECODE('', '', A.EXMT_HAND_TYPE, '')
+		-- 3 수동 2 자동 AND A.EXMT_HAND_TYPE = 3
+
+		) TB
+		GROUP BY (TB.WORK_DATE, CASE WHEN TB.EXMT_HAND_TYPE = 2 THEN 'AUTO_EX' ELSE 'MANUAL_EX' END)
+
+
+		UNION ALL
+
+		SELECT TB.WORK_DATE, CASE WHEN TB.NOTE LIKE '%자동처리' OR TB.NOTE LIKE '%일괄처리' THEN 'AUTO_BS' ELSE 'MANUAL_BS' END AS AUTO_GROUP, 0 AS CNT_IMG, 0 AS CNT_VLTN, 0 AS CNT_EX, COUNT(*) AS CNT_BS
+		FROM (SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO -- PK
+		, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+		, FC_CHG_ICNM_LANE(A.IC_CODE, SUBSTR(A.WORK_NO, 0, 2)) LANE_DP
+		, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+		, A.VLTN_CODE
+		, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+		, B.HAND_CAR_TYPE
+		, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+		, A.ORIGIN_PASS_FARE
+		, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+		, A.PASS_FARE
+		, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+		, A.PAY_FARE
+		, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+		, A.ECARD_TYPE ECARD_TYPE
+		, FC_CHG_CODENM('071',A.ECARD_TYPE) AS ECARD_TYPE_DP
+		, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+		, A.MAIN_PAY_DIV
+		, FC_CHG_CODEDP('056', A.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+		, B.HAND_CAR_NO
+		, FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) OBU_ATT_DP
+		, A.BS_EXM_TYPE      -- 2: 부산시면제대상
+		, A.BS_EXM_TYPE_DTL
+		, FC_CHG_CODENM('292', A.BS_EXM_TYPE_DTL) AS BS_EXM_TYPE_DTL_DP
+		, A.BS_EXM_TYPE_DIV
+		, FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV) AS BS_EXM_TYPE_DIV_DP
+		, B.NOTE
+
+		, DECODE(L.LOC_CO_DIV, '1', L.LC_INFO_RSLT, '-') AS BS_LC_INFO_RSLT
+		, FC_CHG_CODENM('140', DECODE(L.LOC_CO_DIV, '1', L.LC_INFO_RSLT, '-')) AS LC_INFO_RSLT_DP
+		, DECODE(L.LOC_CO_DIV, '1', L.LC_HAND_DATE || L.LC_HAND_TIME, '-') AS LC_HAND_DT
+		, NVL(FC_CHG_FORMAT(DECODE(L.LOC_CO_DIV, '1', L.LC_HAND_DATE || L.LC_HAND_TIME, '-'), 'DATETIME'), '-') AS LC_HAND_DT_DP
+
+		FROM PRIM_ETCHAND A, PRIM_HANDCARNO B, PROC_LOC_EXMTHAND L
+		WHERE A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.VLTN_CODE = '00'
+		AND A.MAIN_PAY_DIV NOT IN ('5', '6', '8')          -- 도공면제/특정일면제/직원면제 제외
+		AND A.EXM_DIV NOT IN ('1', '2', '4')             -- 도공면제처리된 내역 제외
+		AND (A.BS_EXM_TYPE = '2' OR A.MAIN_PAY_DIV IN ('4', '9'))    -- 부산시 면제대상 / 친환경, 전자카드PL
+		AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0'))    -- 미처리/미심사 불일치 영상데이터 제외
+		AND A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+)
+		AND A.HAND_SNO = B.HAND_SNO(+)
+		AND A.IC_CODE = L.IC_CODE(+)
+		AND A.WORK_DATE = L.WORK_DATE(+)
+		AND A.WORK_NO = L.WORK_NO(+)
+		AND A.HAND_SNO = L.HAND_SNO(+)
+		AND A.WORK_NO LIKE  '' || '%__'
+		AND A.BS_EXM_TYPE_DIV = DECODE('', '', A.BS_EXM_TYPE_DIV, '')
+
+		AND A.BS_EXM_TYPE_DTL  !=  '08'
+		AND A.BS_EXM_TYPE_DTL = DECODE('', '', A.BS_EXM_TYPE_DTL, '')
+
+		) TB
+		WHERE 1 = 1
+		GROUP BY (TB.WORK_DATE, CASE WHEN TB.NOTE LIKE '%자동처리' OR TB.NOTE LIKE '%일괄처리' THEN 'AUTO_BS' ELSE 'MANUAL_BS' END)
+
+		UNION ALL
+
+		--감면내역심사 공차택시
+
+		SELECT TB.WORK_DATE, CASE WHEN TB.NOTE IS NULL THEN 'AUTO_BS' ELSE 'MANUAL_BS' END AS AUTO_GROUP, 0 AS CNT_IMG, 0 AS CNT_VLTN, 0 AS CNT_EX, COUNT(*) AS CNT_BS
+		FROM (SELECT A.IC_CODE, A.WORK_DATE, A.WORK_NO, A.HAND_SNO -- PK
+		, FC_CHG_FORMAT(A.WORK_DATE, '1') WORK_DATE_DP
+		, FC_CHG_ICNM_LANE(A.IC_CODE, SUBSTR(A.WORK_NO, 0, 2)) LANE_DP
+		, FC_CHG_FORMAT(A.HAND_DT, '11') HAND_DT_DP
+		, A.VLTN_CODE
+		, FC_CHG_CODEDP('057', A.VLTN_CODE) VLTN_CODE_DP
+		, B.HAND_CAR_TYPE
+		, FC_CHG_CODEDP('171', B.HAND_CAR_TYPE) HAND_CAR_TYPE_DP
+		, A.ORIGIN_PASS_FARE
+		, FC_CHG_FORMAT(A.ORIGIN_PASS_FARE, '4') ORIGIN_PASS_FARE_DP
+		, A.PASS_FARE
+		, FC_CHG_FORMAT(A.PASS_FARE, '4') PASS_FARE_DP
+		, A.PAY_FARE
+		, FC_CHG_FORMAT(A.PAY_FARE, '4') PAY_FARE_DP
+		, A.ECARD_TYPE ECARD_TYPE
+		, FC_CHG_CODENM('071',A.ECARD_TYPE) AS ECARD_TYPE_DP
+		, FC_CHG_FORMAT(A.CARD_NO, 3) CARD_NO_DP
+		, A.MAIN_PAY_DIV
+		, FC_CHG_CODEDP('056', A.MAIN_PAY_DIV) AS MAIN_PAY_DIV_DP
+		, B.HAND_CAR_NO
+		, FC_CHG_CODEDP('280', UPPER(A.OBU_ATT)) OBU_ATT_DP
+		, A.BS_EXM_TYPE      -- 2: 부산시면제대상
+		, A.BS_EXM_TYPE_DTL
+		, FC_CHG_CODENM('292', A.BS_EXM_TYPE_DTL) AS BS_EXM_TYPE_DTL_DP
+		, A.BS_EXM_TYPE_DIV
+		, FC_CHG_CODENM('294', A.BS_EXM_TYPE_DIV) AS BS_EXM_TYPE_DIV_DP
+		, B.NOTE
+
+		FROM PRIM_ETCHAND A, PRIM_HANDCARNO B, PROC_LOC_EXMTHAND L
+		WHERE A.IC_CODE = #{IC_CODE}
+		AND A.WORK_DATE BETWEEN #{START_DATE} AND #{END_DATE}
+		AND A.VLTN_CODE = '00'
+		AND A.MAIN_PAY_DIV NOT IN ('5', '6', '8')          -- 도공면제/특정일면제/직원면제 제외
+		AND A.EXM_DIV NOT IN ('1', '2', '4')             -- 도공면제처리된 내역 제외
+		AND (A.BS_EXM_TYPE = '2' OR A.MAIN_PAY_DIV IN ('4', '9'))    -- 부산시 면제대상 / 친환경, 전자카드PL
+		AND (A.IMG_TYPE = '1' OR (A.IMG_TYPE = '2' AND A.IMG_TYPE_DTL != '0'))    -- 미처리/미심사 불일치 영상데이터 제외
+		AND A.IC_CODE = B.IC_CODE(+)
+		AND A.WORK_DATE = B.WORK_DATE(+)
+		AND A.WORK_NO = B.WORK_NO(+)
+		AND A.HAND_SNO = B.HAND_SNO(+)
+		AND A.IC_CODE = L.IC_CODE(+)
+		AND A.WORK_DATE = L.WORK_DATE(+)
+		AND A.WORK_NO = L.WORK_NO(+)
+		AND A.HAND_SNO = L.HAND_SNO(+)
+		AND A.WORK_NO LIKE  '' || '%__'
+		AND A.BS_EXM_TYPE_DIV = DECODE('', '', A.BS_EXM_TYPE_DIV, '')
+
+		AND A.BS_EXM_TYPE_DTL = '08'
+
+		) TB
+		WHERE 1 = 1
+		GROUP BY (TB.WORK_DATE, CASE WHEN TB.NOTE IS NULL THEN 'AUTO_BS' ELSE 'MANUAL_BS' END)
+
+		)
+		SELECT
+		COALESCE(TO_CHAR(TO_DATE(WORK_DATE, 'YYYYMMDD'), 'YYYY-MM-DD'), '합계') AS WORK_DATE,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'AUTO_IMG' THEN CNT_IMG ELSE 0 END), 4) AS AUTO_IMG,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'MANUAL_IMG' THEN CNT_IMG ELSE 0 END), 4) AS MANUAL_IMG,
+		FC_CHG_FORMAT(SUM(CNT_IMG), 4) AS TOTAL_IMG,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'AUTO_VLTN' THEN CNT_VLTN ELSE 0 END), 4) AS AUTO_VLTN,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'MANUAL_VLTN' THEN CNT_VLTN ELSE 0 END), 4) AS MANUAL_VLTN,
+		FC_CHG_FORMAT(SUM(CNT_VLTN), 4) AS TOTAL_VLTN,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'AUTO_EX' THEN CNT_EX ELSE 0 END), 4) AS AUTO_EX,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'MANUAL_EX' THEN CNT_EX ELSE 0 END), 4) AS MANUAL_EX,
+		FC_CHG_FORMAT(SUM(CNT_EX), 4) AS TOTAL_EX,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'AUTO_BS' THEN CNT_BS ELSE 0 END), 4) AS AUTO_BS,
+		FC_CHG_FORMAT(SUM(CASE WHEN AUTO_GROUP = 'MANUAL_BS' THEN CNT_BS ELSE 0 END), 4) AS MANUAL_BS,
+		FC_CHG_FORMAT(SUM(CNT_BS), 4) AS TOTAL_BS,
+		FC_CHG_FORMAT(SUM(CNT_IMG + CNT_VLTN + CNT_EX + CNT_BS), 4) AS TOTAL_ALL
+		FROM COMBINED
+		GROUP BY ROLLUP(WORK_DATE)
+		ORDER BY WORK_DATE NULLS LAST
+	</select>
+
+</mapper>
