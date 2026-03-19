@@ -1,6 +1,6 @@
 spring:
   datasource:
-    jdbcUrl: "jdbc:log4jdbc:oracle:thin:@10.100.10.145:1521/orcl"
+    jdbcUrl: "jdbc:log4jdbc:oracle:thin:@localhost:1521/orclpdb"
     username: gdtcs_dev
     password: gdtcs_dev
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
