@@ -1,0 +1,8 @@
+server:
+  port: 8080
+
+
+riot:
+  api-key: RGAPI-6d3bd6ae-279d-4a8b-a973-80b7e8278955
+  platform-host: https://kr.api.riotgames.com
+  regional-host: https://asia.api.riotgames.com
