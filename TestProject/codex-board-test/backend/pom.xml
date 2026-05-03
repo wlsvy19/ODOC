@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.example</groupId>
-    <artifactId>board</artifactId>
+    <artifactId>shop</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>board</name>
-    <description>Board CRUD API</description>
+    <name>shop</name>
+    <description>Shopping mall API</description>
 
     <properties>
         <java.version>17</java.version>
@@ -55,4 +55,3 @@
         </plugins>
     </build>
 </project>
-
