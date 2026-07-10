@@ -1,0 +1,453 @@
+<TAC install manual_LINUX>
+
+-------------------------------------------------방화벽 해제------------------------------------------------------
+
+systemctl stop firewalld
+systemctl disable firewalld
+
+-----------------------------------------------------------------------------------------------------------------------
+1. kernel값 확인
+$ vi /etc/sysctl.conf
+kernel.shmmax = [물리메모리의 1/2]
+kernel.shmall = shmmax/4096
+kernel.shmmni = 4096
+kernel.sem = 10000 32000 10000 10000
+fs.file-max = 6815744
+
+sysctl -p
+       
+-----------------------------------------------------------------------------------------------------------------------        
+2. logind.conf 
+# vi /etc/systemd/logind.conf 에서 RemoveIPC=no 
+# systemctl restart systemd-logind (적용)
+-----------------------------------------------------------------------------------------------------------------------
+
+
+3. /etc/security/limits.conf 를 수정
+# vi /etc/security/limits.conf
+
+tibero soft nproc 16384
+tibero hard nproc 16384
+tibero soft nofile 65536
+tibero hard nofile 65536
+
+
+
+-------------------------------------------------0번 node---------------------------------------------------
+1. groupadd dba
+   useradd -d /tibero -g dba tibero
+   passwd tibero
+
+2. mkdir -p /tibero
+   mkdir -p /tbdata
+   chown -R tibero:dba /tibero 
+   chmod -R 755 /tibero
+
+3. 바이너리 압축 해제 및 라이센스 mv
+
+4. vi .profile
+
+--> 
+PATH=/usr/bin:/etc:/usr/sbin:/usr/ucb:$HOME/bin:/usr/bin/X11:/sbin:.
+
+export PATH
+
+if [ -s "$MAIL" ]           # This is at Shell startup.  In normal
+then echo "$MAILMSG"        # operation, the Shell checks
+fi                          # periodically.
+
+
+set -o vi
+stty erase ^H
+stty erase ^?
+
+export LIBPATH=/usr/lib:$LIBPATH
+
+######## Profile ENV Config ###############
+#export PS1=`uname -n`'@$LOGNAME:$PWD $ '
+export PS1="[`whoami`@`hostname`:\$PWD]$ "
+export TERM=vt100
+umask 022
+export EDITOR=vi
+
+alias s='cd ..'
+alias l='ls -al'
+alias ll='ls -alF'
+
+
+######## TIBERO ENV ########
+export TB_BASE=/home/tibero
+export TB_HOME=$TB_BASE/tibero6
+export TB_SID=klas1
+export PATH=.:$TB_HOME/bin:$TB_HOME/client/bin:$JAVA_HOME:$PATH
+export LD_LIBRARY_PATH=$TB_HOME/lib:$TB_HOME/client/lib:$LD_LIBRARY_PATH
+export LIBPATH=$TB_HOME/lib:$TB_HOME/client/lib:$LIBPATH
+
+######## TIBERO alias ########
+alias tbhome='cd $TB_HOME'
+alias tbbin='cd $TB_HOME/bin'
+alias tblog='cd $TB_HOME/instance/$TB_SID/log'
+alias tbcfg='cd $TB_HOME/config'
+alias tbcfgv='vi $TB_HOME/config/$TB_SID.tip'
+alias tbcli='cd ${TB_HOME}/client/config'
+alias tbcliv='vi ${TB_HOME}/client/config/tbdsn.tbr'
+#alias tbcliv='vi ${TB_HOME}/client/config/tbnet_alias.tbr'
+alias tbi='cd $TB_BASE/tbinary'
+alias tm='cd $TB_BASE/tbinary/monitor;monitor;cd'
+
+### TIBERO CLUSTERE MANAGER ###
+export CM_HOME=$TB_HOME
+export CM_SID=cm1
+
+### Alias For tbcm ###
+alias cmcfgv='vi $CM_HOME/config/$CM_SID.tip'
+alias cmlog='cd $CM_HOME/instance/$CM_SID/log'
+alias show='cmrctl show'
+
+export LANG=C
+export TB_NLS_DATE_FORMAT='YYYY/MM/DD HH24:MI:SS'
+
+--> ./.profile
+
+
+5. sh $TB_HOME/config/gen_tip.sh 실행
+--> vi klas1.tip
+
+DB_NAME=klas
+LISTENER_PORT=8629
+CONTROL_FILES="/dev/raw/raw3","/dev/raw/raw4"
+
+#DB_CREATE_FILE_DEST="/tbdata"
+LOG_ARCHIVE_DEST="/arch"
+#LOG_ARCHIVE_FORMAT="arclog%t_%s_%r.arc"
+
+MAX_SESSION_COUNT=1000
+
+TOTAL_SHM_SIZE=8G
+MEMORY_TARGET=16G
+
+THREAD=0
+UNDO_TABLESPACE=UNDO0
+CLUSTER_DATABASE=Y
+LOCAL_CLUSTER_ADDR=
+LOCAL_CLUSTER_PORT=11029
+CM_PORT=11039
+
+PEP_PROC_CNT=10
+_WTHR_PER_PEP=40
+USE_TS_QUOTA=N
+_SLOG_DISPLAY_YEAR=Y
+AUTHENTICATION_TIMEOUT=100
+DBLINK_CONN_TIMEOUT=100
+
+GATHER_SQL_EXEC_TIME=Y
+GATHER_SQL_PLAN_STAT=Y
+
+
+
+6. CM tip 파일 생성 후 내용 등록
+ 
+--> cp cm.template cm1.tip
+
+CM_UI_PORT=11039
+CM_NAME=cm1
+CM_RESOURCE_FILE=$TB_HOME/tibero6/config/cm1_res.crf
+
+CM_ENABLE_FAST_NET_ERROR_DETECTION=Y
+CM_HEARTBEAT_EXPIRE=300
+CM_WATCHDOG_EXPIRE=290
+
+7. tbdsn.tbr 수정
+
+-->
+klas1=(
+    (INSTANCE=(HOST=localhost)
+              (PORT=8629)
+              (DB_NAME=klas)
+    )
+)
+
+klas=(
+    (INSTANCE=(HOST=172.30.1.12)
+              (PORT=8629)
+              (DB_NAME=klas)
+    )
+    (INSTANCE=(HOST=172.30.1.14)
+              (PORT=8629)
+              (DB_NAME=klas)
+    )
+    (LOAD_BALANCE=Y)
+    (USE_FAILOVER=Y)
+)
+
+
+8. tbcm 기동 및 등록
+
+-->
+ - cmrctl add network --name inter0 --nettype private --ipaddr 10.10.10.1 --portno 11019
+ - cmrctl add network --name pub0 --nettype public --ifname en3
+ - cmrctl add cluster --name cls --cfile "/dev/raw/raw1, /dev/raw/raw2"--incnet inter0 --pubnet pub0
+ - cmrctl start cluster --name cls
+ - cmrctl add service --name klas --cname cls
+ - cmrctl add db --name $TB_SID --svcname klas --dbhome $TB_HOME
+ 
+9. nomount open
+
+--> tbboot nomount
+
+10. DB 생성
+create database
+user sys identified by tibero
+character set UTF8  -- UTF8, EUCKR, ASCII, MSWIN949
+logfile group 0 ('/dev/raw/raw5','/dev/raw/raw6') size 500M,
+        group 1 ('/dev/raw/raw7','/dev/raw/raw8') size 500M,
+        group 2 ('/dev/raw/raw9','/dev/raw/raw10') size 500M,
+        group 3 ('/dev/raw/raw11','/dev/raw/raw12') size 500M,
+        group 4 ('/dev/raw/raw13','/dev/raw/raw14') size 500M
+maxdatafiles 4096
+maxlogfiles 100
+maxlogmembers 8
+archivelog
+  datafile '/dev/raw/raw29' size 10240M autoextend off
+default tablespace USR
+  datafile '/dev/raw/raw33' size 10240M autoextend off
+default temporary tablespace TEMP
+  tempfile '/dev/raw/raw30' size 30720M autoextend off	
+undo tablespace UNDO0
+  datafile '/dev/raw/raw25' size 30720M autoextend off
+syssub datafile '/dev/raw/raw34' size 10240M autoextend off;
+-- extent management local UNIFORM SIZE 1M;
+
+
+CREATE DATABASE 
+USER SYS IDENTIFIED BY TIBERO
+MAXDATAFILES 4096
+CHARACTER SET UTF8    
+LOGFILE GROUP 0 ('redo01.redo','redo02.redo') SIZE 100M,
+  GROUP 1 ('redo11.redo','redo12.redo') SIZE 100M,
+  GROUP 2 ('redo21.redo','redo22.redo') SIZE 100M
+MAXLOGFILES 100
+MAXLOGMEMBERS 8
+ARCHIVELOG
+DATAFILE 'system001.dtf' SIZE 1G
+  AUTOEXTEND ON NEXT 16M MAXSIZE 32G
+DEFAULT TABLESPACE USR
+  DATAFILE 'usr001.dtf' SIZE 1G
+  AUTOEXTEND ON NEXT 16M MAXSIZE 32G
+DEFAULT TEMPORARY TABLESPACE TEMP
+  TEMPFILE 'temp001.dtf' SIZE 1G
+  AUTOEXTEND ON NEXT 16M MAXSIZE 32G
+  EXTENT MANAGEMENT LOCAL AUTOALLOCATE
+UNDO TABLESPACE UNDO
+  DATAFILE 'undo001.dtf' SIZE 1G
+  AUTOEXTEND ON NEXT 16M MAXSIZE 32G
+syssub datafile 'tpr_ts.dtf' size 1G reuse autoextend on next 10m MAXSIZE 10G
+  --EXTENT MANAGEMENT LOCAL AUTOALLOCATE;
+
+
+
+
+11. tbboot 후 cmrctl show 조회
+
+12. 0번 Node - 1번 Node에서 사용할 Undo Tablespace 생성 및 Redo Log 추가
+--> Undo tablespace create
+create undo tablespace UNDO1
+     datafile '/dev/raw/raw27' size 30720M autoextend off;
+
+     
+--> Redo Log add
+alter database add logfile thread 1 group 5 '/dev/raw/raw15' size 500M;
+alter database add logfile member '/dev/raw/raw16' to group 5;
+
+alter database add logfile thread 1 group 6 '/dev/raw/raw17' size 500M;
+alter database add logfile member '/dev/raw/raw18' to group 6;
+
+alter database add logfile thread 1 group 7 '/dev/raw/raw19' size 500M;
+alter database add logfile member '/dev/raw/raw20' to group 7;
+
+alter database add logfile thread 1 group 8 '/dev/raw/raw21' size 500M;
+alter database add logfile member '/dev/raw/raw22' to group 8;
+
+alter database add logfile thread 1 group 9 '/dev/raw/raw23' size 500M;
+alter database add logfile member '/dev/raw/raw24' to group 9;
+--> thread enable 처리
+alter database enable public thread 1;
+
+
+13. 0번 Node - system 쉘 수행
+-->cd $TB_HOME/scripts
+	sh $TB_HOME/scripts/system.sh -p1 tibero -p2 syscat -a1 y -a2 y -a3 y -a4 y 
+
+※여기까지 완료한 후 1번 node tbcm 기동 및 등록
+
+1. vi .profile
+
+--> 
+PATH=/usr/bin:/etc:/usr/sbin:/usr/ucb:$HOME/bin:/usr/bin/X11:/sbin:.
+
+export PATH
+
+if [ -s "$MAIL" ]           # This is at Shell startup.  In normal
+then echo "$MAILMSG"        # operation, the Shell checks
+fi                          # periodically.
+
+
+set -o vi
+stty erase ^H
+stty erase ^?
+
+export LIBPATH=/usr/lib:$LIBPATH
+
+######## Profile ENV Config ###############
+#export PS1=`uname -n`'@$LOGNAME:$PWD $ '
+export PS1="[`whoami`@`hostname`:\$PWD]$ "
+export TERM=vt100
+umask 022
+export EDITOR=vi
+
+alias s='cd ..'
+alias l='ls -al'
+alias ll='ls -alF'
+
+
+######## TIBERO ENV ########
+export TB_BASE=/tibero
+export TB_HOME=/t$TB_HOME/tibero6
+export TB_SID=
+export PATH=.:$TB_HOME/bin:$TB_HOME/client/bin:$JAVA_HOME:$PATH
+export LD_LIBRARY_PATH=$TB_HOME/lib:$TB_HOME/client/lib:$LD_LIBRARY_PATH
+export LIBPATH=$TB_HOME/lib:$TB_HOME/client/lib:$LIBPATH
+
+######## TIBERO alias ########
+alias tbhome='cd $TB_HOME'
+alias tbbin='cd $TB_HOME/bin'
+alias tblog='cd $TB_HOME/instance/$TB_SID/log'
+alias tbcfg='cd $TB_HOME/config'
+alias tbcfgv='vi $TB_HOME/config/$TB_SID.tip'
+alias tbcli='cd ${TB_HOME}/client/config'
+alias tbcliv='vi ${TB_HOME}/client/config/tbdsn.tbr'
+#alias tbcliv='vi ${TB_HOME}/client/config/tbnet_alias.tbr'
+alias tbi='cd $TB_BASE/tbinary'
+alias tm='cd $TB_BASE/tbinary/monitor;monitor;cd'
+
+### TIBERO CLUSTERE MANAGER ###
+export CM_HOME=$TB_HOME
+export CM_SID=cm1
+
+### Alias For tbcm ###
+alias cmcfgv='vi $CM_HOME/config/$CM_SID.tip'
+alias cmlog='cd $CM_HOME/instance/$CM_SID/log'
+alias show='cmrctl show'
+
+export LANG=C
+export TB_NLS_DATE_FORMAT='YYYY/MM/DD HH24:MI:SS'
+
+
+--> ./.profile
+
+
+2. sh $TB_HOME/config/gen_tip.sh 실행
+--> vi klas2.tip
+
+DB_NAME=klas
+LISTENER_PORT=8629
+CONTROL_FILES=CONTROL_FILES="/dev/raw/raw3","dev/raw/raw4"
+
+#DB_CREATE_FILE_DEST="/tbdata/"
+LOG_ARCHIVE_DEST="/arch"
+#LOG_ARCHIVE_FORMAT="arclog%t_%s_%r.arc"
+
+#CERTIFICATE_FILE="/tibero/tibero6/config/tb_wallet/tibero1.crt"
+##PRIVKEY_FILE="/tibero/tibero6/config/tb_wallet/tibero1.key"
+##WALLET_FILE="/tibero/tibero6/config/tb_wallet/WALLET"
+##ILOG_MAP="/tibero/tibero6/config/ilog.map"
+
+MAX_SESSION_COUNT=1000
+
+TOTAL_SHM_SIZE=80G
+MEMORY_TARGET=120G
+
+THREAD=1
+UNDO_TABLESPACE=UNDO1
+CLUSTER_DATABASE=Y
+LOCAL_CLUSTER_ADDR=10.10.10.2
+LOCAL_CLUSTER_PORT=11029
+CM_PORT=11039
+
+PEP_PROC_CNT=10
+_WTHR_PER_PEP=40
+USE_TS_QUOTA=N
+_SLOG_DISPLAY_YEAR=Y
+AUTHENTICATION_TIMEOUT=100
+DBLINK_CONN_TIMEOUT=100
+
+3. CM tip 파일 생성 후 내용 등록
+ 
+--> cp cm.template cm2.tip
+
+CM_NAME=cm2
+CM_UI_PORT=11039
+CM_RESOURCE_FILE=$TB_HOME/config/cm2_res.crf
+
+CM_ENABLE_FAST_NET_ERROR_DETECTION=Y
+CM_HEARTBEAT_EXPIRE=120
+CM_WATCHDOG_EXPIRE=110
+
+
+
+4. tbdsn.tbr 수정
+
+-->
+klas2=(
+    (INSTANCE=(HOST=localhost)
+              (PORT=8629)
+              (DB_NAME=klas)
+    )
+)
+
+klas=(
+    (INSTANCE=(HOST=172.30.1.12)
+              (PORT=8629)
+              (DB_NAME=klas)
+    )
+    (INSTANCE=(HOST=172.30.1.14)
+              (PORT=8629)
+              (DB_NAME=klas)
+    )
+)
+
+
+- cmrctl add network --name inter1 --nettype private --ipaddr 10.10.10.2 --portno 11019
+ - cmrctl add network --name pub1 --nettype public --ifname en8
+ - cmrctl add cluster --name cls --cfile "/dev/raw/raw1, /dev/raw/raw2" --incnet inter1 --pubnet pub1
+ - cmrctl start cluster --name cls
+ - cmrctl add service --name klas --cname cls
+ - cmrctl add db --name $TB_SID --svcname klas --dbhome $TB_HOME
+
+---------------------------------------------------------VIP 등록----------------------------------------------------------------
+
+1. 0번 node
+ --> cmrctl add vip --name vip0 --node cm0 --svcname klas --ipaddr 172.30.1.12/255.255.255.0 --bcast 172.30.1.255
+
+2. tbboot 후 cmrctl show, ifconfig -a 로 vip 올라와있나 확인
+
+3. 1번 node 
+ --> cmrctl add vip --name vip1 --node cm1 --svcname klas --ipaddr 172.30.1.14/255.255.255.0 --bcast 172.30.1.255
+4. 2번 항목 동일하게 확인
+
+The End....
+
+
+
+권장은 3그룹 이상 멤버는 적을수록 성능 높다
+
+gwehomedb1
+
+
+tbiobench  -i all -s 100M -F O_SYNC -F O_DIRECT -k
+
+[TSM 산정]
+TOTAL_SHM_SIZE >= (1.6 * DB_CACHE_SIZE) + (1.8MB * WTHR_PROC_CNT * _WTHR_PER_PROC)
+
+TSM>= 1.6*DB_CACHE_SIZE + 1.8*max_session
+4096   >   3276                   +  800     
