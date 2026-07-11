@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 node_modules
 
 HELP.md
@@ -35,3 +36,5 @@ RemoteSystemsTempFiles
 
 .codetogether.ignore
 .factorypath
+=======
+>>>>>>> Stashed changes
