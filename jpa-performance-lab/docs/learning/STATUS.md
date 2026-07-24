@@ -10,7 +10,7 @@
 - Supabase GDTCS 프로젝트에 `jpa_study` 스키마를 생성했다.
 - `jpa_study.posts` 테이블과 테스트 데이터 3건을 생성하고 DBeaver에서 조회했다.
 - 애플리케이션의 Actuator health에서 전체 상태와 `db` 구성요소가 `UP`인 것을 확인했다.
-- DB 접속 계정과 비밀번호를 `JPA_STUDY_DB_USERNAME`, `JPA_STUDY_DB_PASSWORD` 환경변수로 분리했다.
+- 개인 저장소에서 각 PC의 추가 설정이 없게 하기 위해 DB 접속 계정과 비밀번호를 `application.yaml`에 직접 입력했다.
 
 ## 현재 확인된 실행 결과
 
@@ -33,5 +33,5 @@
 
 ## 알려진 문제 또는 막힌 점
 
-- 애플리케이션이 사용하는 DB 계정이 `jpa_study` 전용 최소 권한 계정인지 아직 확인하지 않았다.
+- 개인 저장소에 DB 접속정보가 포함되어 있으므로 저장소를 공개하거나 공유하기 전 비밀번호 교체와 환경변수 전환이 필요하다.
 - JPA 엔티티와 Repository는 아직 작성하지 않았다.

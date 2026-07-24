@@ -1,5 +1,7 @@
 # 여러 PC·AI 간 JPA 학습 인계 설계
 
+> **정책 변경:** DB 접속정보 정책은 `2026-07-24-committed-database-credentials-design.md`가 이 문서보다 우선한다. 개인 저장소는 `application.yaml`의 username과 password를 직접 커밋하고, 환경변수 방식으로 임의 변경하지 않는다.
+
 ## 1. 목적
 
 `ODOC/jpa-performance-lab`에서 진행하는 JPA 학습을 여러 데스크톱 PC에서 이어간다. 각 PC에서는 Git으로 최신 상태를 받은 뒤 Codex를 기본 AI 도구로 사용하고, 필요하면 Claude Code도 동일한 학습 맥락을 이어받는다.

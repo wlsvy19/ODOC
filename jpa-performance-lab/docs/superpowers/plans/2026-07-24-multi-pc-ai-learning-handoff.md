@@ -1,5 +1,7 @@
 # 여러 PC·AI JPA 학습 인계 구현 계획
 
+> **대체됨:** 이 계획의 DB 환경변수 단계는 `2026-07-24-committed-database-credentials.md`로 대체된다. `application.yaml` 하드코딩을 확인한 현재 정책으로 사용하며, 이 문서의 환경변수 설정·검증 단계를 다시 실행하지 않는다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** `ODOC/jpa-performance-lab`을 어느 PC에서 받아도 Codex 또는 Claude Code가 동일한 학습 상태를 읽고, 사용자가 JPA 실습을 한 단계씩 이어갈 수 있게 한다.
