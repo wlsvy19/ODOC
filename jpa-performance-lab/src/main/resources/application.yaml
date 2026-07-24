@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: "jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&currentSchema=jpa_study"
-    username: "${JPA_STUDY_DB_USERNAME}"
-    password: "${JPA_STUDY_DB_PASSWORD}"
+    username: "postgres.kxndgixgrlitlnzzcuxd"
+    password: "vhxmWkd13!@"
     hikari:
       pool-name: JpaPerformancePool
       maximum-pool-size: 5
