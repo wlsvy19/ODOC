@@ -1,10 +1,10 @@
-package com.study.jpaboard;
+package com.study.jpalab;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class JpaBoardStudyApplicationTests {
+class JpaPerformanceLabApplicationTests {
 
 	@Test
 	void contextLoads() {

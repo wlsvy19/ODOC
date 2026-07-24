@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: jpa-performance-lab
+
+  datasource:
+    url: "jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&currentSchema=jpa_study"
+    username: "${JPA_STUDY_DB_USERNAME}"
+    password: "${JPA_STUDY_DB_PASSWORD}"
+    hikari:
+      pool-name: JpaPerformancePool
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        default_schema: jpa_study
+        format_sql: true
+
+    open-in-view: false
+    show-sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+
+  endpoint:
+    health:
+      show-details: always
