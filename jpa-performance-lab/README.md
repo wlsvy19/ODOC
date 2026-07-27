@@ -9,10 +9,11 @@ JPA 기본 CRUD부터 쿼리·인덱스 개선과 부하 테스트까지 단계�
 | Language | Java 26 |
 | Framework | Spring Boot 4.1.0 |
 | Build | Gradle Groovy DSL, Wrapper 9.5.1 |
-| Web | Spring Web MVC, Thymeleaf |
+| Packaging | 실행형 War |
+| Web | Spring Web MVC, JSP, JSTL |
 | Persistence | Spring Data JPA, Hibernate |
 | Database | Supabase PostgreSQL, `jpa_study` 스키마 |
-| Observability | Spring Boot Actuator |
+| Observability | Spring Boot Actuator, P6Spy 학습용 SQL 로그 |
 | Load Test | k6 |
 
 ## 새 PC에서 시작
@@ -71,8 +72,20 @@ Java 26 toolchain과 Gradle 9.5.1을 사용한다.
 실행 후 다음 주소에서 상태를 확인한다.
 
 - Health: `http://localhost:8080/actuator/health`
+- JSP 게시판: `http://localhost:8080/posts`
 
 전체 `status`와 `components.db.status`가 모두 `UP`이면 PostgreSQL 연결이 성공한 것이다.
+
+실행형 War를 만들고 외부 Tomcat 없이 실행할 수도 있다.
+
+```powershell
+.\gradlew.bat bootWar
+java -jar .\build\libs\jpa-performance-lab-0.0.1-SNAPSHOT.war
+```
+
+## SQL 로그
+
+P6Spy를 사용해 PreparedStatement의 바인딩 값이 적용된 SQL을 Hibernate 형식으로 콘솔에 출력한다. 이 로그는 학습과 기능 확인에만 사용한다. JDBC 호출을 가로채고 SQL과 데이터가 출력되므로 성능 부하 테스트와 공개·운영 환경에서는 비활성화한다.
 
 ## 현재 학습 상태 확인
 
@@ -92,13 +105,15 @@ Codex 또는 Claude Code를 시작하면 위 문서를 읽고 다음 세 가지�
 
 의미 있는 단계가 끝나면 테스트 결과를 확인하고 `STATUS.md`를 갱신한다. 단계 상태가 바뀌면 `ROADMAP.md`, 새로운 기술 결정이 있으면 `DECISIONS.md`도 함께 갱신한다.
 
-다른 PC에서 이어갈 예정이면 Codex에 다음과 같이 요청한다.
+다른 PC에서 이어갈 예정이면 Codex에 현재 진행 내용을 커밋하고 푸시하라고 명시적으로 요청한다.
 
 ```text
 인계 저장
+지금까지 진행한 것을 Git에 올려
+커밋 후 push 진행해
 ```
 
-이 문구는 현재 학습 상태 확인, 문서 갱신, 한글 커밋과 `origin/main` 푸시까지 승인한다. 푸시가 성공해야 다른 PC에서 이어받을 수 있다.
+이와 같은 요청은 현재 학습 상태 확인, 문서 갱신, 한글 커밋과 `origin/main` 푸시까지 승인한다. 푸시가 성공해야 다른 PC에서 이어받을 수 있다.
 
 다른 PC에서는 다음 명령을 실행한다.
 
