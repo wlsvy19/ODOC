@@ -3,11 +3,13 @@ package com.study.jpalab.post;
 import com.study.jpalab.post.entity.Post;
 import com.study.jpalab.post.repository.PostRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@Order(1)
 public class PostConsoleRunner implements CommandLineRunner {
 
     private final PostRepository postRepository;
