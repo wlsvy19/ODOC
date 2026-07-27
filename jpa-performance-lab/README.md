@@ -86,11 +86,36 @@ Codex 또는 Claude Code를 시작하면 위 문서를 읽고 다음 세 가지�
 2. 현재 학습 단계
 3. 이번 세션에서 할 한 가지
 
-현재 다음 단계는 사용자가 `Post` 엔티티를 직접 작성해 기존 `jpa_study.posts` 테이블에 매핑하는 것이다.
+현재 다음 단계는 `docs/learning/STATUS.md`의 `다음에 할 한 단계`를 기준으로 하며 이 README에 중복 기록하지 않는다.
 
 ## 학습 종료와 Git 인계
 
 의미 있는 단계가 끝나면 테스트 결과를 확인하고 `STATUS.md`를 갱신한다. 단계 상태가 바뀌면 `ROADMAP.md`, 새로운 기술 결정이 있으면 `DECISIONS.md`도 함께 갱신한다.
+
+다른 PC에서 이어갈 예정이면 Codex에 다음과 같이 요청한다.
+
+```text
+인계 저장
+```
+
+이 문구는 현재 학습 상태 확인, 문서 갱신, 한글 커밋과 `origin/main` 푸시까지 승인한다. 푸시가 성공해야 다른 PC에서 이어받을 수 있다.
+
+다른 PC에서는 다음 명령을 실행한다.
+
+```powershell
+Set-Location C:\sw\ODOC
+git status --short
+git pull --ff-only origin main
+Set-Location .\jpa-performance-lab
+```
+
+Codex 작업 폴더를 `C:\sw\ODOC\jpa-performance-lab`으로 열고 다음과 같이 묻는다.
+
+```text
+어디까지 진행했어?
+```
+
+Codex는 완료된 것, 현재 단계, 다음 한 단계를 보고하고 사용자 직접 타이핑 방식으로 이어간다.
 
 ```powershell
 Set-Location C:\sw\ODOC
