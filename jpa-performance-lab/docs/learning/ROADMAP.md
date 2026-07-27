@@ -5,9 +5,9 @@
 | 단계 | 상태 | 학습 결과 |
 |---:|---|---|
 | 1 | 완료 | 프로젝트 생성 및 Supabase PostgreSQL 연결 |
-| 2 | 진행 중 | `Post` 엔티티와 `jpa_study.posts` 테이블 매핑 |
-| 3 | 대기 | Spring Data JPA Repository 작성 |
-| 4 | 대기 | 게시글 등록과 조회 |
+| 2 | 완료 | `Post` 엔티티와 `jpa_study.posts` 테이블 매핑 |
+| 3 | 완료 | Spring Data JPA Repository 작성 |
+| 4 | 진행 중 | 게시글 등록과 조회 |
 | 5 | 대기 | 게시글 수정과 삭제 |
 | 6 | 대기 | Thymeleaf 게시판 화면 |
 | 7 | 대기 | JPA 테스트 |
