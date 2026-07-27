@@ -42,6 +42,19 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+}
+
+tasks.named('bootRun') {
+	systemProperty 'file.encoding', 'UTF-8'
+	systemProperty 'stdout.encoding', 'UTF-8'
+	systemProperty 'stderr.encoding', 'UTF-8'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
+	systemProperty 'file.encoding', 'UTF-8'
+	systemProperty 'stdout.encoding', 'UTF-8'
+	systemProperty 'stderr.encoding', 'UTF-8'
 }
