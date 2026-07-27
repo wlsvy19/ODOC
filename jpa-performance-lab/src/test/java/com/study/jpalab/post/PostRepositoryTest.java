@@ -1,5 +1,7 @@
 package com.study.jpalab.post;
 
+import com.study.jpalab.post.entity.Post;
+import com.study.jpalab.post.repository.PostRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

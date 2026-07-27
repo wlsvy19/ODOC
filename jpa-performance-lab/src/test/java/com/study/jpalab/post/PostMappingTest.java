@@ -1,5 +1,6 @@
 package com.study.jpalab.post;
 
+import com.study.jpalab.post.entity.Post;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;

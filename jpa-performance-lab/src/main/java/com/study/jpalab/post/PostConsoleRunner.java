@@ -1,5 +1,7 @@
 package com.study.jpalab.post;
 
+import com.study.jpalab.post.entity.Post;
+import com.study.jpalab.post.repository.PostRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
