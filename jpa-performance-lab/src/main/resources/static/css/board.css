@@ -1,0 +1,160 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f4f6f9;
+    color: #202737;
+    font-family: Arial, "Noto Sans KR", sans-serif;
+}
+
+a {
+    color: #28395f;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.board-container {
+    width: min(960px, calc(100% - 32px));
+    margin: 64px auto;
+    padding: 32px;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 12px 34px rgba(30, 42, 68, 0.08);
+}
+
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 24px;
+}
+
+.board-header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+.board-header p {
+    margin: 8px 0 0;
+    color: #7a8496;
+}
+
+.post-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 2px solid #30394f;
+}
+
+.post-table th,
+.post-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #e2e6ed;
+    text-align: center;
+}
+
+.post-table th {
+    background: #f7f8fa;
+    color: #30394f;
+}
+
+.post-table th:nth-child(2),
+.post-table td:nth-child(2) {
+    text-align: left;
+}
+
+.post-table tbody tr:hover {
+    background: #fafbfc;
+}
+
+.empty {
+    padding: 48px;
+    color: #8b93a3;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.button.primary {
+    background: #30394f;
+    color: #ffffff;
+}
+
+.button.secondary {
+    border-color: #cdd3de;
+    background: #ffffff;
+    color: #30394f;
+}
+
+.button.danger {
+    border-color: #f0b8b8;
+    background: #fff5f5;
+    color: #b42323;
+}
+
+@media (max-width: 640px) {
+    .board-container {
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .board-header h1 {
+        font-size: 26px;
+    }
+
+    .post-table th:nth-child(4),
+    .post-table td:nth-child(4) {
+        display: none;
+    }
+}
+
+.form-container {
+    max-width: 760px;
+}
+
+.form-field {
+    margin-bottom: 20px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.form-field input,
+.form-field textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cdd3de;
+    border-radius: 7px;
+    font: inherit;
+}
+
+.form-field textarea {
+    resize: vertical;
+}
+
+.field-error {
+    display: block;
+    margin-top: 7px;
+    color: #b42323;
+    font-size: 13px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 24px;
+}
