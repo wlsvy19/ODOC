@@ -30,7 +30,8 @@ IntelliJ IDEA Community의 Gradle `bootRun`을 더블클릭해 애플리케이�
 
 `com.study.jpalab.config` 패키지에 추가한다.
 
-- Spring Boot의 `WebServerApplicationContext`를 주입받는다.
+- Spring의 `ApplicationContext`를 주입받는다.
+- 실제 실행 컨텍스트가 `WebServerApplicationContext`일 때 웹 서버를 가져온다.
 - `getWebServer().getPort()`로 실제 실행 포트를 가져온다.
 - `PostConsoleRunner` 다음 순서로 실행한다.
 - 다음 형식으로 출력한다.
@@ -53,7 +54,7 @@ IntelliJ IDEA Community의 Gradle `bootRun`을 더블클릭해 애플리케이�
 
 ## 오류 처리
 
-이 프로젝트는 Spring Web 애플리케이션이므로 웹 서버 컨텍스트가 없으면 정상 실행 조건을 만족하지 못한 것으로 본다. 임의의 기본 포트로 대체하지 않고 애플리케이션 시작 실패를 그대로 드러내 잘못된 접속 주소가 출력되지 않게 한다.
+실제 `bootRun`의 웹 서버 컨텍스트에서는 실행 포트를 읽어 주소를 출력한다. 실제 웹 서버를 띄우지 않는 `@SpringBootTest` 기본 컨텍스트에서는 주소 출력을 건너뛴다. 어떤 경우에도 임의의 기본 포트로 대체해 잘못된 접속 주소를 출력하지 않는다.
 
 ## 검증
 

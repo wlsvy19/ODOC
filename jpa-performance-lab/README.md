@@ -65,9 +65,13 @@ Java 26 toolchain과 Gradle 9.5.1을 사용한다.
 
 ## 애플리케이션 실행
 
+IntelliJ IDEA Community에서는 Gradle 도구 창의 `Tasks → application → bootRun`을 더블클릭한다. 이 방식은 프로젝트에 저장된 UTF-8 콘솔 설정을 사용하므로 PC별 VM 옵션을 추가하지 않는다.
+
 ```powershell
 .\gradlew.bat bootRun
 ```
+
+시작이 완료되면 콘솔 맨 끝에 실제 실행 포트가 적용된 JSP 게시판 주소가 출력된다. 포트를 변경해 실행해도 출력 주소가 자동으로 바뀐다.
 
 실행 후 다음 주소에서 상태를 확인한다.
 

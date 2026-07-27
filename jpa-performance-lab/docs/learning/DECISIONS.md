@@ -95,3 +95,9 @@
 - 결정: P6Spy와 Hibernate SQL 포맷터를 사용해 바인딩 값이 적용된 SQL을 IntelliJ 콘솔에 출력한다.
 - 이유: PreparedStatement의 `?`에 실제 어떤 값이 전달되는지 JPA CRUD 학습 중 직접 확인하기 위해서다.
 - 변경 조건: 성능 부하 테스트, 공개 환경 또는 운영 환경에서는 로그 오버헤드와 데이터 노출을 막기 위해 P6Spy를 비활성화한다.
+
+## 2026-07-27 — Gradle bootRun UTF-8 콘솔
+
+- 결정: Gradle 데몬, Java 컴파일, Gradle 테스트와 `bootRun` JVM의 기본 문자 집합, 표준 출력과 표준 오류 인코딩을 UTF-8로 고정한다.
+- 이유: 어느 PC에서든 Git으로 프로젝트를 받은 뒤 IntelliJ 개인 VM 옵션 없이 한글 로그를 동일하게 출력하기 위해서다.
+- 변경 조건: 실행 방식을 IntelliJ Application 직접 실행이나 배포 컨테이너로 바꾸면 해당 실행 환경에 같은 인코딩 정책을 별도로 적용한다.

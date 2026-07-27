@@ -18,7 +18,9 @@
 - JSP 목록에서 전체 게시글을 조회하고 제목을 눌러 상세 화면으로 이동하는 동작을 확인했다.
 - JSP 등록 폼, 취소 동작과 게시글 INSERT 후 상세 화면 리다이렉트를 확인했다.
 - P6Spy로 바인딩 값이 적용된 INSERT와 SELECT를 Hibernate 형식으로 콘솔에 출력했다.
-- IntelliJ VM 옵션으로 현재 PC의 콘솔 한글 출력을 확인했다.
+- Gradle 데몬, Java 컴파일, 테스트와 `bootRun`의 콘솔 인코딩을 UTF-8로 고정해 Git으로 공유했다.
+- IntelliJ Community의 Gradle `bootRun`에서 게시글과 P6Spy SQL의 한글 출력을 확인했다.
+- 시작 로그의 맨 끝에 실제 Tomcat 포트가 적용된 JSP 게시판 주소를 출력하도록 구성했다.
 
 ## 현재 확인된 실행 결과
 
@@ -35,7 +37,11 @@
 - `/posts/new` 등록 화면과 취소: 성공
 - `POST /posts` 등록과 상세 리다이렉트: 성공
 - P6Spy 실제 바인딩 값 포함 SQL 포맷 출력: 성공
-- 전체 Gradle 테스트와 `bootWar`: 2026-07-27 16:19 `BUILD SUCCESSFUL`
+- IntelliJ Community Gradle `bootRun` 한글 출력: 성공
+- 동적 포트 기반 게시판 접속 주소 출력: 성공
+- `ApplicationUrlConsoleRunnerTest` 3개: 성공
+- 전체 Gradle 테스트: 2026-07-27 17:26 `BUILD SUCCESSFUL`
+- `bootWar`: 2026-07-27 16:19 `BUILD SUCCESSFUL`
 
 ## 다음에 할 한 단계
 
@@ -52,7 +58,6 @@
 ## 알려진 문제 또는 막힌 점
 
 - 개인 저장소에 DB 접속정보가 포함되어 있으므로 저장소를 공개하거나 공유하기 전 비밀번호 교체와 환경변수 전환이 필요하다.
-- IntelliJ UTF-8 VM 옵션이 Git 추적 파일로 확인되지 않아 다른 PC에서는 실행 설정을 다시 확인해야 한다.
 - 빈 값 등록 시 화면 검증 메시지는 코드가 구현됐지만 브라우저에서 아직 명시적으로 확인하지 않았다.
 - 등록과 SQL 로그 실습으로 생성된 게시글들은 수정·삭제 단계에서 정리해야 한다.
 - P6Spy는 실행 시간과 데이터가 포함된 SQL을 출력하므로 성능 부하 테스트 전에 비활성화해야 한다.

@@ -28,7 +28,7 @@
 ### 생성 파일
 
 - `src/main/java/com/study/jpalab/config/ApplicationUrlConsoleRunner.java`: 실제 웹 서버 포트를 읽고 게시판 접속 주소를 출력한다.
-- `src/test/java/com/study/jpalab/config/ApplicationUrlConsoleRunnerTest.java`: 동적 포트 출력과 두 시작 작업의 실행 순서를 검증한다.
+- `src/test/java/com/study/jpalab/config/ApplicationUrlConsoleRunnerTest.java`: 동적 포트 출력, 두 시작 작업의 실행 순서와 비웹 테스트 컨텍스트 동작을 검증한다.
 
 ### 변경 파일
 
@@ -49,7 +49,7 @@
 
 **Interfaces:**
 
-- Consumes: `WebServerApplicationContext#getWebServer()`, `WebServer#getPort()`, 기존 `PostConsoleRunner`
+- Consumes: `ApplicationContext`, `WebServerApplicationContext#getWebServer()`, `WebServer#getPort()`, 기존 `PostConsoleRunner`
 - Produces: `ApplicationUrlConsoleRunner#run(String... args)`와 게시글 조회 뒤에 출력되는 `http://localhost:<port>/posts`
 
 - [ ] **Step 1: 동적 포트와 실행 순서 테스트 작성**
@@ -66,6 +66,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 
 import java.io.ByteArrayOutputStream;
@@ -84,8 +85,11 @@ class ApplicationUrlConsoleRunnerTest {
     @Mock
     private WebServer webServer;
 
+    @Mock
+    private ApplicationContext nonWebApplicationContext;
+
     @Test
-    void printsBoardUrlUsingActualWebServerPort() throws Exception {
+    void printsBoardUrlUsingActualWebServerPort() {
         when(applicationContext.getWebServer()).thenReturn(webServer);
         when(webServer.getPort()).thenReturn(54321);
 
@@ -115,6 +119,21 @@ class ApplicationUrlConsoleRunnerTest {
         assertThat(postOrder).isNotNull();
         assertThat(urlOrder).isNotNull();
         assertThat(postOrder.value()).isLessThan(urlOrder.value());
+    }
+
+    @Test
+    void skipsOutputWhenWebServerIsNotRunning() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+
+        try (PrintStream testOut = new PrintStream(output, true, StandardCharsets.UTF_8)) {
+            System.setOut(testOut);
+            new ApplicationUrlConsoleRunner(nonWebApplicationContext).run();
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        assertThat(output.toString(StandardCharsets.UTF_8)).isEmpty();
     }
 }
 ```
@@ -154,6 +173,7 @@ package com.study.jpalab.config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -161,15 +181,19 @@ import org.springframework.stereotype.Component;
 @Order(2)
 public class ApplicationUrlConsoleRunner implements CommandLineRunner {
 
-    private final WebServerApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
-    public ApplicationUrlConsoleRunner(WebServerApplicationContext applicationContext) {
+    public ApplicationUrlConsoleRunner(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     @Override
     public void run(String... args) {
-        int port = applicationContext.getWebServer().getPort();
+        if (!(applicationContext instanceof WebServerApplicationContext webServerApplicationContext)) {
+            return;
+        }
+
+        int port = webServerApplicationContext.getWebServer().getPort();
 
         System.out.println();
         System.out.println("=== 애플리케이션 접속 주소 ===");
@@ -186,7 +210,7 @@ Run:
 .\gradlew.bat test --tests "com.study.jpalab.config.ApplicationUrlConsoleRunnerTest"
 ```
 
-Expected: `BUILD SUCCESSFUL`, 테스트 2개 성공.
+Expected: `BUILD SUCCESSFUL`, 테스트 3개 성공.
 
 - [ ] **Step 6: 전체 회귀 테스트 실행**
 
