@@ -4,7 +4,7 @@
 
 **Goal:** 어느 PC에서든 Git으로 프로젝트를 받은 뒤 Gradle `bootRun`으로 실행하면 Java 소스와 애플리케이션 표준 출력·표준 오류가 UTF-8을 사용하게 한다.
 
-**Architecture:** Git으로 추적되는 `build.gradle`이 컴파일, 테스트 JVM과 `bootRun` 애플리케이션 JVM의 인코딩을 명시한다. IntelliJ의 개인 `.idea` 설정에는 의존하지 않으며 IntelliJ IDEA Community의 Gradle 도구 창과 Gradle Wrapper 명령이 같은 설정을 사용한다.
+**Architecture:** Git으로 추적되는 `gradle.properties`가 Gradle 데몬 JVM의 인코딩을, `build.gradle`이 컴파일·테스트 JVM과 `bootRun` 애플리케이션 JVM의 인코딩을 명시한다. IntelliJ의 개인 `.idea` 설정에는 의존하지 않으며 IntelliJ IDEA Community의 Gradle 도구 창과 Gradle Wrapper 명령이 같은 설정을 사용한다.
 
 **Tech Stack:** Java 26, Spring Boot 4.1.0 Gradle Plugin, Gradle 9.5.1 Groovy DSL, IntelliJ IDEA Community
 
@@ -12,6 +12,7 @@
 
 - 사용자는 Gradle `bootRun`으로 애플리케이션을 실행한다.
 - Java 소스 인코딩과 애플리케이션 표준 출력·표준 오류 인코딩은 UTF-8로 고정한다.
+- Gradle 데몬 JVM의 기본 문자 집합과 표준 출력·표준 오류 인코딩도 UTF-8로 고정한다. `bootRun` 자식 JVM 설정만으로는 Gradle 데몬이 출력하는 한글을 보장할 수 없다.
 - Gradle 테스트 JVM에도 같은 인코딩 속성을 적용한다.
 - `.idea`와 PC별 IntelliJ Run Configuration은 Git에 추가하지 않는다.
 - 기존 Java 26, Spring Boot 4.1.0과 Gradle Wrapper 9.5.1을 유지한다.
@@ -26,13 +27,14 @@
 ### 변경 파일
 
 - `build.gradle`: Java 컴파일, Gradle 테스트와 `bootRun` JVM의 UTF-8 설정
+- `gradle.properties`: 기본 Gradle 메모리 한도와 Gradle 데몬 JVM의 UTF-8 설정
 - `README.md`: IntelliJ Community Gradle `bootRun` 실행 방식
 - `docs/learning/STATUS.md`: UTF-8 검증 결과와 다음 JPA 학습 단계
 - `docs/learning/DECISIONS.md`: PC 간 UTF-8 콘솔 결정
 
 ### 생성 파일
 
-- 없음
+- `gradle.properties`: 프로젝트 수준 Gradle 데몬 JVM 설정
 
 ---
 
@@ -41,11 +43,20 @@
 **Files:**
 
 - Modify: `build.gradle`
+- Create: `gradle.properties`
 
 **Interfaces:**
 
 - Consumes: 기존 `JavaCompile`, `test`, Spring Boot `bootRun` Gradle 작업
-- Produces: UTF-8 Java 컴파일과 UTF-8 표준 출력·표준 오류를 사용하는 테스트 및 애플리케이션 JVM
+- Produces: UTF-8 Java 컴파일과 UTF-8 표준 출력·표준 오류를 사용하는 Gradle 데몬, 테스트 및 애플리케이션 JVM
+
+- [ ] **Step 0: Gradle 데몬 UTF-8 설정 추가**
+
+프로젝트 루트에 `gradle.properties`를 만들고 Gradle 기본 메모리 한도와 함께 데몬 JVM의 세 인코딩 속성을 지정한다.
+
+```properties
+org.gradle.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+```
 
 - [ ] **Step 1: 기존 테스트 작업 설정 위치 확인**
 
@@ -100,15 +111,16 @@ Expected:
 - `PostMappingTest`, `PostRepositoryTest`, `PostTest` 성공
 - 한글 관련 컴파일 오류가 없음
 
-- [ ] **Step 5: bootRun JVM 인수 확인**
+- [ ] **Step 5: Gradle 데몬 및 bootRun JVM 인수 확인**
 
-다른 프로세스가 8080 포트를 사용 중이면 먼저 종료하고 다음 명령을 실행한다.
+기존 데몬을 중지한 후, 사용자 소유 8080 프로세스와 충돌하지 않도록 임시 포트로 다음 명령을 실행한다.
 
 ```powershell
-.\gradlew.bat bootRun --info
+.\gradlew.bat --stop
+.\gradlew.bat bootRun --info --args="--server.port=0"
 ```
 
-Expected: `bootRun` Java 프로세스 실행 명령에 다음 세 JVM 속성이 포함된다.
+Expected: 새 Gradle 데몬 및 `bootRun` Java 프로세스 실행 명령에 다음 세 JVM 속성이 포함된다.
 
 ```text
 -Dfile.encoding=UTF-8
@@ -129,7 +141,7 @@ Expected: `bootRun` Java 프로세스 실행 명령에 다음 세 JVM 속성이 
 
 ```powershell
 Set-Location C:\sw\ODOC
-git add -- jpa-performance-lab/build.gradle
+git add -- jpa-performance-lab/build.gradle jpa-performance-lab/gradle.properties
 git diff --cached --check
 git commit -m "Gradle bootRun UTF-8 출력 설정"
 ```

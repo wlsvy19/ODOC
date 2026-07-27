@@ -8,12 +8,13 @@
 
 IntelliJ의 개인 VM 옵션과 `.idea` 설정은 Git으로 공유되지 않는다. 새 PC마다 같은 옵션을 직접 입력하는 방식은 PC 간 학습 인계 목표와 맞지 않는다.
 
-Java 26은 기본 문자 집합으로 UTF-8을 사용하지만 표준 출력과 표준 오류의 인코딩은 실행 환경에 따라 별도로 결정될 수 있다. 따라서 애플리케이션을 실행하는 `bootRun` JVM에 출력 인코딩을 명시한다.
+Java 26은 기본 문자 집합으로 UTF-8을 사용하지만 표준 출력과 표준 오류의 인코딩은 실행 환경에 따라 별도로 결정될 수 있다. 또한 `bootRun`을 실행·출력하는 Gradle 데몬 자체의 인코딩은 `bootRun` 자식 JVM 설정만으로 바뀌지 않는다. 따라서 프로젝트가 추적하는 Gradle 데몬과 애플리케이션 JVM 양쪽에 UTF-8을 명시한다.
 
 ## 결정
 
-프로젝트의 `build.gradle`에서 다음 범위에 UTF-8을 명시한다.
+프로젝트의 `gradle.properties`와 `build.gradle`에서 다음 범위에 UTF-8을 명시한다.
 
+- Gradle 데몬 JVM의 기본 문자 집합, 표준 출력 및 표준 오류 인코딩
 - 모든 `JavaCompile` 작업의 소스 인코딩
 - `bootRun` 애플리케이션 JVM의 기본 문자 집합
 - `bootRun` 애플리케이션 JVM의 표준 출력 인코딩
@@ -40,6 +41,12 @@ PowerShell에서는 다음 명령이 같은 설정을 사용한다.
 
 ## 설정 형태
 
+`gradle.properties`에 Gradle 데몬 JVM 옵션을 저장한다. 메모리 한도는 Gradle의 기본값을 유지한다.
+
+```properties
+org.gradle.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+```
+
 `build.gradle`에 다음 구성을 추가한다.
 
 ```groovy
@@ -65,9 +72,9 @@ tasks.named('test') {
 
 ## 검증
 
-1. `.\gradlew.bat test`가 성공하는지 확인한다.
-2. `.\gradlew.bat bootRun`으로 애플리케이션을 실행한다.
-3. 게시글 목록 조회와 P6Spy SQL 로그의 한글이 깨지지 않는지 확인한다.
+1. `.\gradlew.bat --stop` 후 Gradle 데몬이 `-Dfile.encoding=UTF-8`, `-Dstdout.encoding=UTF-8`, `-Dstderr.encoding=UTF-8`로 시작되는지 확인한다.
+2. `.\gradlew.bat test`가 성공하는지 확인한다.
+3. `.\gradlew.bat bootRun --info --args="--server.port=0"`으로 애플리케이션을 실행하고, 자식 JVM 인수와 `PostConsoleRunner` 한글 출력이 모두 정상인지 확인한다.
 4. `git diff --check`로 공백 오류를 확인한다.
 
 ## 문서화
