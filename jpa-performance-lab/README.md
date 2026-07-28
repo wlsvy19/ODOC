@@ -96,6 +96,7 @@ P6Spy를 사용해 PreparedStatement의 바인딩 값이 적용된 SQL을 Hibern
 - 전체 순서: `docs/learning/ROADMAP.md`
 - 현재 단계와 다음 한 단계: `docs/learning/STATUS.md`
 - 기술 선택의 이유: `docs/learning/DECISIONS.md`
+- 누적 Word 교재: `docs/learning/JPA_학습_커리큘럼.docx`
 
 Codex 또는 Claude Code를 시작하면 위 문서를 읽고 다음 세 가지를 먼저 요약해야 한다.
 
@@ -104,6 +105,8 @@ Codex 또는 Claude Code를 시작하면 위 문서를 읽고 다음 세 가지�
 3. 이번 세션에서 할 한 가지
 
 현재 다음 단계는 `docs/learning/STATUS.md`의 `다음에 할 한 단계`를 기준으로 하며 이 README에 중복 기록하지 않는다.
+
+Word 교재는 사람이 읽기 쉬운 누적 학습본이다. 실제 진행 기준은 코드와 Markdown 문서이며, AI는 새 단원이나 보강 내용을 먼저 제안하고 사용자가 확정한 범위만 Markdown과 Word 교재에 함께 반영한다.
 
 ## 학습 종료와 Git 인계
 

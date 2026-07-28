@@ -8,6 +8,7 @@
 2. `docs/learning/STATUS.md`
 3. `docs/learning/ROADMAP.md`
 4. `docs/learning/DECISIONS.md`
+5. `docs/learning/JPA_학습_커리큘럼.docx`
 
 그다음 `git status --short`와 최근 커밋을 확인한다. 사용자에게는 먼저 다음 세 가지만 간결하게 보고한다.
 
@@ -31,6 +32,10 @@
 - 의미 있는 단계가 끝나면 `docs/learning/STATUS.md`를 갱신한다.
 - 학습 단계 상태가 바뀌면 `docs/learning/ROADMAP.md`를 같은 커밋에서 갱신한다.
 - 새로운 기술 선택이 생기면 `docs/learning/DECISIONS.md`에 날짜, 결정, 이유, 변경 조건을 기록한다.
+- Word 교재는 `docs/learning/JPA_학습_커리큘럼.docx` 하나를 누적본으로 관리한다.
+- Word 교재를 갱신할 때는 실제 코드, 테스트 결과, `STATUS.md`, `ROADMAP.md`, `DECISIONS.md`를 기준으로 삼는다.
+- 커리큘럼에 새 단원, 보강 설명, 오류 사례를 추가할 때는 먼저 사용자에게 반영 범위를 제안하고 확정된 내용만 넣는다.
+- Word 교재를 만든 뒤에는 모든 페이지를 렌더링해 표, 목록, 한글, 머리말·꼬리말, 페이지 넘김을 확인한다.
 
 ## 검증
 
@@ -53,6 +58,7 @@
 - 인계 전 `git status --short`, diff, 테스트, 원격 차이를 확인한다.
 - 완료·현재·다음 한 단계와 실패 또는 알려진 문제를 `STATUS.md`에 기록한다.
 - 단계 상태가 바뀌면 `ROADMAP.md`, 새로운 결정이 생기면 `DECISIONS.md`를 함께 갱신한다.
+- Word 교재 내용도 달라져야 하면 `docs/learning/JPA_학습_커리큘럼.docx`를 같은 흐름에서 갱신한다.
 - 현재 학습 관련 파일만 스테이징하고 다른 ODoc 프로젝트 변경은 보존한다.
 - 원격 `main`이 앞서 있거나 충돌 위험, 자격 증명 노출 위험이 있으면 자동 푸시하지 않고 보고한다.
 - 강제 푸시와 원격 이력 재작성은 하지 않는다.
