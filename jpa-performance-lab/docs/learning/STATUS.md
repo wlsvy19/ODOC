@@ -22,6 +22,8 @@
 - IntelliJ Community의 Gradle `bootRun`에서 게시글과 P6Spy SQL의 한글 출력을 확인했다.
 - 시작 로그의 맨 끝에 실제 Tomcat 포트가 적용된 JSP 게시판 주소를 출력하도록 구성했다.
 - 실제 코드와 학습 Markdown을 기준으로 하는 단일 누적 Word 교재 `JPA_학습_커리큘럼.docx`를 만들고 AI 갱신 규칙을 연결했다.
+- 게시글 수정 Service 메서드, 수정 화면 GET/POST Controller, 상세 화면 수정 버튼을 추가했다.
+- 브라우저에서 게시글 수정 후 상세 화면에 변경값이 반영되는 것을 확인했다.
 
 ## 현재 확인된 실행 결과
 
@@ -37,22 +39,23 @@
 - `/posts/{id}` 상세 조회: 성공
 - `/posts/new` 등록 화면과 취소: 성공
 - `POST /posts` 등록과 상세 리다이렉트: 성공
+- `/posts/{id}/edit` 수정 화면 진입과 기존 값 표시: 성공
+- `POST /posts/{id}/edit` 수정과 상세 리다이렉트: 성공
 - P6Spy 실제 바인딩 값 포함 SQL 포맷 출력: 성공
 - IntelliJ Community Gradle `bootRun` 한글 출력: 성공
 - 동적 포트 기반 게시판 접속 주소 출력: 성공
 - `ApplicationUrlConsoleRunnerTest` 3개: 성공
+- 전체 Gradle 테스트: 2026-07-28 16:53 `BUILD SUCCESSFUL`
 - 전체 Gradle 테스트: 2026-07-27 17:26 `BUILD SUCCESSFUL`
 - `bootWar`: 2026-07-27 16:19 `BUILD SUCCESSFUL`
 
 ## 다음에 할 한 단계
 
-`PostService`와 `PostServiceImpl`에 게시글 수정 메서드를 추가하고 JPA 변경 감지로 UPDATE가 실행되는 흐름을 구현한다.
+수정 실행 시 P6Spy 로그에서 실제 수정 값이 포함된 UPDATE SQL을 확인하고, 다음으로 삭제 기능을 안전 범위 안에서 구현한다.
 
 ## 다음 단계 완료 조건
 
-- 실습 게시글의 수정 폼에 기존 값이 표시된다.
-- 수정 성공 후 상세 화면으로 리다이렉트된다.
-- P6Spy 로그에서 실제 값이 포함된 UPDATE를 확인한다.
+- P6Spy 로그에서 실제 수정 값이 포함된 UPDATE를 확인한다.
 - 삭제는 사용자가 웹에서 새로 만든 실습 게시글에만 수행한다.
 - 전체 Gradle 테스트가 성공한다.
 

@@ -13,4 +13,5 @@ public interface PostService {
 
     Post create(PostForm form);
 
+    Post update(Long id, PostForm form);
 }

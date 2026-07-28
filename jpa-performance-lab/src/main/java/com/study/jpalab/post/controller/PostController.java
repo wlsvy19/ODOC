@@ -1,6 +1,7 @@
 package com.study.jpalab.post.controller;
 
 import com.study.jpalab.post.dto.PostForm;
+import com.study.jpalab.post.entity.Post;
 import com.study.jpalab.post.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -57,5 +58,40 @@ public class PostController {
         Long postId = postService.create(form).getId();
 
         return "redirect:/posts/" + postId;
+    }
+
+    @GetMapping("/{id}/edit")
+    public String updateForm(
+            @PathVariable Long id,
+            Model model
+    ) {
+        Post post = postService.findById(id);
+
+        model.addAttribute("postForm", PostForm.from(post));
+        model.addAttribute("pageTitle", "게시글 수정");
+        model.addAttribute("formAction", "/posts/" + id + "/edit");
+        model.addAttribute("submitLabel", "수정");
+
+        return "posts/form";
+    }
+
+    @PostMapping("/{id}/edit")
+    public String update(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("postForm") PostForm form,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pageTitle", "게시글 수정");
+            model.addAttribute("formAction", "/posts/" + id + "/edit");
+            model.addAttribute("submitLabel", "수정");
+
+            return "posts/form";
+        }
+
+        postService.update(id, form);
+
+        return "redirect:/posts/" + id;
     }
 }

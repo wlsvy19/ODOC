@@ -45,4 +45,19 @@ public class PostServiceImpl implements PostService {
 
         return postRepository.save(post);
     }
+
+    @Override
+    @Transactional
+    public Post update(Long id, PostForm form) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
+
+        post.update(
+                form.getTitle(),
+                form.getContent(),
+                form.getAuthor()
+        );
+
+        return post;
+    }
 }

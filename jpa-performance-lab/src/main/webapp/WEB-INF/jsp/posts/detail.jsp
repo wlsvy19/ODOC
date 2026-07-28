@@ -36,7 +36,10 @@
     </article>
 
     <div class="actions">
+        <c:url var="editUrl" value="/posts/${post.id}/edit"/>
         <c:url var="listUrl" value="/posts"/>
+
+        <a class="button primary" href="${editUrl}">수정</a>
         <a class="button secondary" href="${listUrl}">목록</a>
     </div>
 </main>
